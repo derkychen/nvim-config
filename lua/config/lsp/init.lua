@@ -1,0 +1,5 @@
+require("config.lsp.lua")
+require("config.lsp.python")
+require("config.lsp.latex")
+require("config.lsp.modelsim")
+require("config.lsp.verilog")
