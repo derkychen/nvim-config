@@ -7,6 +7,8 @@ return {
 	},
 	lazy = false,
 	config = function()
-		vim.keymap.set("n", "<C-n>", ":Neotree reveal toggle<CR>", {})
+		vim.keymap.set("n", "<C-n>", function()
+			vim.cmd("Neotree reveal toggle<CR>")
+		end, {})
 	end,
 }

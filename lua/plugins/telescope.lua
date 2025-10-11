@@ -27,7 +27,9 @@ return {
 		dir = "~/Developer/dirjump/",
 		config = function()
 			require("telescope").load_extension("dirjump")
-			vim.keymap.set("n", "<Leader>fd", ":Telescope dirjump", {})
+			vim.keymap.set("n", "<Leader>fd", function()
+				vim.cmd("Telescope dirjump <CR>")
+			end, {})
 		end,
 	},
 }
