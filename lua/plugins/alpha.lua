@@ -1,6 +1,5 @@
 return {
   "goolord/alpha-nvim",
-  event = "VimEnter",
   config = function()
     local alpha = require("alpha")
     local dashboard = require("alpha.themes.dashboard")
@@ -18,10 +17,6 @@ return {
 
     -- Setup
     alpha.setup(dashboard.opts)
-
-    vim.keymap.set("n", "<Leader>ta", function()
-      vim.cmd("tabnew | Alpha")
-    end, {})
 
     -- Header and footer
     vim.api.nvim_create_autocmd("User", {
@@ -66,6 +61,25 @@ return {
 
         dashboard.section.header.val = header
         pcall(vim.cmd.AlphaRedraw)
+      end,
+    })
+    -- Auto-open Alpha when creating a new tab (only if it's an empty scratch buffer)
+    vim.api.nvim_create_autocmd("TabNew", {
+      callback = function()
+        -- defer so we're actually in the new tab/window
+        vim.schedule(function()
+          local win = vim.api.nvim_get_current_win()
+          local buf = vim.api.nvim_win_get_buf(win)
+          local name = vim.api.nvim_buf_get_name(buf)
+          local bt = vim.bo[buf].buftype
+          local modified = vim.bo[buf].modified
+          local line_count = vim.api.nvim_buf_line_count(buf)
+
+          -- Open Alpha only for a fresh, unnamed, unmodified buffer
+          if name == "" and bt == "" and not modified and line_count <= 1 then
+            require("alpha").start(true) -- `true` keeps layout in this tab
+          end
+        end)
       end,
     })
   end,
