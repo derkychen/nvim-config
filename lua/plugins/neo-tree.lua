@@ -12,6 +12,17 @@ return {
 			vim.cmd("Neotree reveal toggle")
 		end)
 		require("neo-tree").setup({
+			event_handlers = {
+				{
+					event = "neo_tree_buffer_enter",
+					handler = function()
+						vim.opt_local.relativenumber = true
+						vim.opt_local.cursorline = true
+						vim.opt_local.number = true
+            vim.opt_local.cursorlineopt = "number"
+					end,
+				},
+			},
 			default_component_configs = {
 				icon = {
 					provider = function(icon, node) -- setup a custom icon provider
