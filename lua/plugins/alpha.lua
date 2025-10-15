@@ -32,8 +32,10 @@ return {
       dashboard.button("n", "+  " .. "> New file", "<cmd> ene <BAR> startinsert <cr>"),
       dashboard.button("r", "󰽙  " .. "> Recent files", "<cmd> Telescope oldfiles <cr>"),
       dashboard.button("f", "  " .. "> Find file", "<cmd> Telescope find_files <cr>"),
-      dashboard.button("d", "  " .. "> Change directory", "<cmd> Telescope dirjump <cr>"),
-      dashboard.button("c", "  " .. "> Config", "<cmd> e ~/.config/nvim/ <cr>"),
+      dashboard.button("d", "  " .. "> Change directory", function()
+        vim.cmd("DirjumpThenReveal")
+      end),
+      dashboard.button("c", "  " .. "> Config", "<cmd> tcd ~/.config/nvim/ <BAR> Neotree reveal left <cr>"),
       dashboard.button("q", "  " .. "> Quit", "<cmd> q <cr>"),
     }
 
