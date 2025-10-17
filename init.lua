@@ -30,9 +30,16 @@ vim.lsp.enable("verible")
 
 -- Modelsim
 vim.filetype.add({
-  extension = { ["do"] = "modelsim" },  -- avoid clobbering Stata's .do
+	extension = { ["do"] = "modelsim" }, -- avoid clobbering Stata's .do
 })
 pcall(function()
-  vim.treesitter.language.register("tcl", "modelsim")
+	vim.treesitter.language.register("tcl", "modelsim")
 end)
 vim.lsp.enable("efm")
+
+-- C
+vim.lsp.enable("clangd")
+
+-- Markdown
+vim.lsp.enable("marksman")
+vim.lsp.enable("remark_ls")
