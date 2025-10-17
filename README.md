@@ -3,7 +3,7 @@ A lightweight, stick-to-defaults Neovim 0.11 config that aims to use the least n
 ## Configuring an LSP with Neovim's native support
 
 1. Navigate to [nvim-lspconfig configuration docs](https://github.com/neovim/nvim-lspconfig/blob/master/doc/configs.md) and find a supported language server.
-2. To follow the natively supported format, in `lsp/` create file of the same name as the language server, and return the default (or tweaked) configs from the document. In `init.lua` or any file required by it, enable the language server.
+2. To follow the natively supported format, in `lsp/` create a file of the same name as the language server, and return the default (or tweaked) configs from the document. An example with `lua_ls`:
 
 ```lua
 -- lsp/lua_ls.lua
@@ -21,8 +21,30 @@ return {
 		".git",
 	},
 }
+```
 
---init.lua
+Not following the standard format, you can enable the language servers through the following format and enable in the same way. However, you will have to make sure to `require` the file with your configs, since `lsp/` is a special directory and the format above is recognized by Neovim automatically.
+
+```lua
+vim.lsp.config("lua_ls", {
+	cmd = { "lua-language-server" },
+	filetypes = { "lua" },
+	root_markers = {
+		".luarc.json",
+		".luarc.jsonc",
+		".luacheckrc",
+		".stylua.toml",
+		"stylua.toml",
+		"selene.toml",
+		"selene.yml",
+		".git",
+	},
+})
+```
+
+And then enable the language server in a file required by or is `init.lua`.
+
+```lua
 vim.lsp.enable("lua_ls")
 ```
 
