@@ -11,7 +11,16 @@ return {
 		vim.keymap.set("n", "<C-e>", function()
 			vim.cmd("Neotree reveal toggle")
 		end)
+
 		require("neo-tree").setup({
+			-- Show hidden files by default
+			filesystem = {
+				filtered_items = {
+					visible = true,
+				},
+			},
+
+			-- Line numbers
 			event_handlers = {
 				{
 					event = "neo_tree_buffer_enter",
@@ -23,22 +32,21 @@ return {
 					end,
 				},
 			},
+
+			-- Using mini.icons
 			default_component_configs = {
 				icon = {
-					provider = function(icon, node) -- setup a custom icon provider
+					provider = function(icon, node)
 						local text, hl
 						local mini_icons = require("mini.icons")
-						if node.type == "file" then -- if it's a file, set the text/hl
+						if node.type == "file" then
 							text, hl = mini_icons.get("file", node.name)
-						elseif node.type == "directory" then -- get directory icons
+						elseif node.type == "directory" then
 							text, hl = mini_icons.get("directory", node.name)
-							-- only set the icon text if it is not expanded
 							if node:is_expanded() then
 								text = nil
 							end
 						end
-
-						-- set the icon text/highlight only if it exists
 						if text then
 							icon.text = text
 						end
