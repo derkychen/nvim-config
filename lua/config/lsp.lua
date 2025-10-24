@@ -27,3 +27,6 @@ vim.lsp.enable("clangd")
 -- Markdown
 vim.lsp.enable("marksman")
 vim.lsp.enable("remark_ls")
+
+-- RISC-V
+vim.lsp.enable("asm-lsp")

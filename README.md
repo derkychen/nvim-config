@@ -23,7 +23,7 @@ return {
 }
 ```
 
-Not following the standard format, you can enable the language servers through the following format and enable in the same way. However, you will have to make sure to `require` the file with your configs, since `lsp/` is a special directory and the format above is recognized by Neovim automatically.
+Not following the standard format, you can configure the language servers through the following format. However, you will have to make sure to `require` the file with your configs, since `lsp/` is a special directory and the format above is recognized by Neovim automatically.
 
 ```lua
 vim.lsp.config("lua_ls", {
@@ -42,7 +42,7 @@ vim.lsp.config("lua_ls", {
 })
 ```
 
-And then enable the language server in a file required by or is `init.lua`.
+For the language server to actually do stuff, enable the language server in a file required by or is `init.lua`.
 
 ```lua
 vim.lsp.enable("lua_ls")

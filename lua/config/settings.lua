@@ -25,10 +25,9 @@ vim.opt.foldlevelstart = 99
 
 vim.opt.foldcolumn = "0" -- change to 1 for next release
 vim.opt.fillchars = {
+  fold = " ",
   foldopen = "",
   foldclose = "",
   -- foldinner = " ", -- only available next release
   foldsep = " ",
 }
-
-vim.opt.autoread = true
