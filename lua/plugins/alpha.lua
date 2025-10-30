@@ -6,10 +6,10 @@ return {
     -- Header
     dashboard.section.header.val = {
       "                    ⠐⢤⡀ ⢆          ",
-      "   ⣴⣶⣤⡤⠦⣤⣀⣤⠆    ⠈⣉⣭⣿⣶⣶⣿⣦⣌⣦⡀        ",
-      "    ⠉⠻⢿⣿⠿⣿⣿⣶⣦⠤⠄⡠⢾⣿⣿⡿⠋⠉⠉⠻⣿⣿⡛⣦       ",
-      "          ⠈⢿⣿⣟⠦ ⣾⣿⣿⣷    ⠻⠿⢿⣿⣷⣄     ",
-      "           ⣸⣿⣿⢧ ⢻⠻⣿⣿⣷⣄ ⠈⠢⣄⡀ ⠈⠻⠁    ",
+      "   ⣴⣶⣤⡤⠦⣤⣀⣤⠆    ⠈⣉⣭⣿⣷⣶⣿⣦⣌⣦⡀        ",
+      "    ⠉⠻⢿⣿⠿⣿⣿⣶⣦⠤⠄⡠⢾⣿⣿⡿⠋⠉⠉⠙⢿⣿⡛⣦       ",
+      "          ⠈⢿⣿⣟⠦ ⣾⣿⣿⣧    ⠘⠿⠿⢿⣷⣄     ",
+      "           ⣸⣿⣿⢧ ⢻⠻⣿⣿⣷⣄ ⠈⠢⣄⡀ ⠈⠋     ",
       "          ⢠⣿⣿⣿⠈  ⠤⠖⣻⣿⣿⣿⣿⣿⣿⣿⣛⣳⣤⣀⣀   ",
       "   ⢠⣧⣶⣥⡤⢄ ⣸⣿⣿⠘  ⢀⣴⣾⣿⡿⠛⣿⣿⣧⠈⢿⠿⠟⠛⠻⠿⠇  ",
       "  ⣰⢟⣿⠛⠻⣿⣿⡦⢹⣿⣷   ⢊⣾⣿⡏  ⢸⣿⣿⡇ ⢀⣢⣄⣾    ",
@@ -17,8 +17,8 @@ return {
       " ⠙⠃   ⣼⣿⡟  ⠈⠻⣿⣿⣦⣌⡇⠻⣿⣿⣷⣿⣿⣿ ⣿⣿⡇ ⠛⠻⢷⣄ ",
       "      ⢻⣿⣿⣄   ⠈⠻⣿⣿⣿⣷⣿⣿⣿⣿⣿⡟ ⠫⢿⣿⡆   ⠋ ",
       "       ⠻⣿⣿⣿⣿⣶⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⡟⢀⣀⣤⣾⡿⠃     ",
-      "⠀⠀⠀⠀⢀⣤⣄⠀⠠⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣟⣡⠂ ⠀⠀ ⣀⡀",
-      "⢾⣁⣴⣤⣭⣿⣿⣿⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣾⣿⣶⣤⣬⣥⡿",
+      "⠀⠀⠀⠀⢀⣤⣄⠀⢤⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣟⣥⠄ ⠀⠀ ⣀⡀",
+      "⢾⣁⣴⣤⣭⣿⣿⣷⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣿⣶⣤⣬⣥⡿",
     }
 
     -- NVIM version
@@ -31,7 +31,7 @@ return {
 
     -- Buttons
     dashboard.section.buttons.val = {
-      dashboard.button("n", "  " .. "> New file", "<cmd> ene <BAR> startinsert <cr>"),
+      dashboard.button("n", "  " .. "> New file", "<cmd> ene <BAR> startinsert <cr>"),
       dashboard.button("r", "󰽙  " .. "> Recent files", "<cmd> Telescope oldfiles <cr>"),
       dashboard.button("f", "  " .. "> Find file", "<cmd> Telescope find_files <cr>"),
       dashboard.button("d", "  " .. "> Change directory", function()
@@ -40,8 +40,6 @@ return {
       dashboard.button("c", "  " .. "> Config", "<cmd> tcd ~/.config/nvim/ <BAR> Neotree reveal left <cr>"),
       dashboard.button("q", "  " .. "> Quit", "<cmd> q <cr>"),
     }
-
-    dashboard.section.footer.val = "AAAAAAAAAAAAAA"
 
     dashboard.config.layout = {
       { type = "padding", val = 16 },

@@ -1,4 +1,4 @@
-A lightweight, stick-to-defaults Neovim 0.11 config that aims to use the least number of plugins possible.
+An opinionated, lightweight, stick-to-defaults Neovim 0.11 config that aims to use the least number of plugins possible.
 
 ## Configuring an LSP with Neovim's native support
 
