@@ -24,7 +24,7 @@ return {
 		end,
 	},
 	{
-		dir = "~/Developer/dirjump/",
+		"derkychen/dirjump.nvim",
 		config = function()
 			require("telescope").load_extension("dirjump")
 

@@ -1,33 +1,13 @@
 return {
   "goolord/alpha-nvim",
   config = function()
+    local alpha = require("alpha")
     local dashboard = require("alpha.themes.dashboard")
 
-    -- Header
-    dashboard.section.header.val = {
-      "                    ⠐⢤⡀ ⢆          ",
-      "   ⣴⣶⣤⡤⠦⣤⣀⣤⠆    ⠈⣉⣭⣿⣷⣶⣿⣦⣌⣦⡀        ",
-      "    ⠉⠻⢿⣿⠿⣿⣿⣶⣦⠤⠄⡠⢾⣿⣿⡿⠋⠉⠉⠙⢿⣿⡛⣦       ",
-      "          ⠈⢿⣿⣟⠦ ⣾⣿⣿⣧    ⠘⠿⠿⢿⣷⣄     ",
-      "           ⣸⣿⣿⢧ ⢻⠻⣿⣿⣷⣄ ⠈⠢⣄⡀ ⠈⠋     ",
-      "          ⢠⣿⣿⣿⠈  ⠤⠖⣻⣿⣿⣿⣿⣿⣿⣿⣛⣳⣤⣀⣀   ",
-      "   ⢠⣧⣶⣥⡤⢄ ⣸⣿⣿⠘  ⢀⣴⣾⣿⡿⠛⣿⣿⣧⠈⢿⠿⠟⠛⠻⠿⠇  ",
-      "  ⣰⢟⣿⠛⠻⣿⣿⡦⢹⣿⣷   ⢊⣾⣿⡏  ⢸⣿⣿⡇ ⢀⣢⣄⣾    ",
-      " ⣠⣿⠿⠛ ⢀⣿⣿⣷⠘⢿⣿⣦⡀ ⢸⢿⣿⣿⣄ ⣸⣿⣿⡇⣪⣿⡿⠿⣿⡳⡄  ",
-      " ⠙⠃   ⣼⣿⡟  ⠈⠻⣿⣿⣦⣌⡇⠻⣿⣿⣷⣿⣿⣿ ⣿⣿⡇ ⠛⠻⢷⣄ ",
-      "      ⢻⣿⣿⣄   ⠈⠻⣿⣿⣿⣷⣿⣿⣿⣿⣿⡟ ⠫⢿⣿⡆   ⠋ ",
-      "       ⠻⣿⣿⣿⣿⣶⣶⣾⣿⣿⣿⣿⣿⣿⣿⣿⡟⢀⣀⣤⣾⡿⠃     ",
-      "⠀⠀⠀⠀⢀⣤⣄⠀⢤⣽⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣟⣥⠄ ⠀⠀ ⣀⡀",
-      "⢾⣁⣴⣤⣭⣿⣿⣷⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣿⣶⣤⣬⣥⡿",
-    }
-
     -- NVIM version
-    dashboard.section.nvim = {
-      type = "text",
-      val = ("NVIM v%d.%d.%d%s"):format(vim.version().major, vim.version().minor, vim.version().patch,
-        vim.version().prerelease and "-dev" or ""),
-      opts = { position = "center" },
-    }
+    dashboard.section.header.val = { ("NVIM v%d.%d.%d%s"):format(vim.version().major, vim.version().minor,
+      vim.version().patch,
+      vim.version().prerelease and "-dev" or "") }
 
     -- Buttons
     dashboard.section.buttons.val = {
@@ -41,19 +21,26 @@ return {
       dashboard.button("q", "  " .. "> Quit", "<cmd> q <cr>"),
     }
 
-    dashboard.config.layout = {
-      { type = "padding", val = 16 },
-      dashboard.section.header,
-      { type = "padding", val = 1 },
-      dashboard.section.nvim,
-      { type = "padding", val = 2 },
-      dashboard.section.buttons,
-    }
-
     -- Setup
-    require("alpha").setup(dashboard.config)
+    alpha.setup(dashboard.config)
 
-    -- Auto-open Alpha when creating empty new tab
+    -- Vertical centering
+    local function vert_center()
+      local content_height = #dashboard.section.header.val + (#dashboard.section.buttons.val * 2 - 1) + 3
+      dashboard.opts.layout[1].val = vim.fn.floor((vim.fn.winheight(0) - content_height + 2) / 2)
+      pcall(alpha.redraw)
+    end
+
+    vim.api.nvim_create_autocmd({ "VimEnter", "VimResized", "WinResized" }, {
+      callback = vert_center
+    })
+
+    vim.api.nvim_create_autocmd("User", {
+      pattern = "AlphaReady",
+      callback = vert_center,
+    })
+
+    -- Open Alpha when creating empty new tab
     vim.api.nvim_create_autocmd("TabNew", {
       callback = function()
         vim.schedule(function()
@@ -65,10 +52,11 @@ return {
           local line_count = vim.api.nvim_buf_line_count(buf)
 
           if name == "" and bt == "" and not modified and line_count <= 1 then
-            require("alpha").start(true)
+            vim.cmd(":Alpha")
           end
         end)
       end,
     })
   end,
 }
+
