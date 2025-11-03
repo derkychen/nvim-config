@@ -4,16 +4,20 @@ vim.g.mapleader = " "
 -- Always show tabline
 vim.opt.showtabline = 2
 
--- Indentation settings
-vim.cmd("set expandtab")
-vim.cmd("set tabstop=2")
-vim.cmd("set softtabstop=2")
-vim.cmd("set shiftwidth=2")
-
 -- Editor line numbers
-vim.cmd("set number")
-vim.cmd("set relativenumber")
-vim.cmd("set cursorline")
+vim.opt.number = true
+vim.opt.relativenumber = true
+vim.opt.cursorline = true
+
+-- Indentation settings
+vim.opt.expandtab = true
+vim.opt.tabstop = 2
+vim.opt.softtabstop=2
+vim.opt.shiftwidth=2
+
+-- Indentation indicators
+vim.opt.listchars:append({ leadmultispace = '│ ' })
+vim.opt.list = true
 
 -- Code folding with Treesitter
 vim.opt.foldmethod = "expr"
@@ -28,6 +32,7 @@ vim.opt.fillchars = {
   fold = " ",
   foldopen = "",
   foldclose = "",
-  -- foldinner = " ", -- only available next release
+  --foldinner = " ", -- only available next release
   foldsep = " ",
 }
+

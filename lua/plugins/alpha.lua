@@ -11,14 +11,14 @@ return {
 
     -- Buttons
     dashboard.section.buttons.val = {
-      dashboard.button("n", "  " .. "> New file", "<cmd> ene <BAR> startinsert <cr>"),
+      dashboard.button("n", "  " .. "> New file", "<cmd> ene <BAR> startinsert <cr>"),
       dashboard.button("r", "󰽙  " .. "> Recent files", "<cmd> Telescope oldfiles <cr>"),
       dashboard.button("f", "  " .. "> Find file", "<cmd> Telescope find_files <cr>"),
+      dashboard.button("g", "󱎸  " .. "> Live grep", "<cmd> Telescope live_grep <cr>"),
       dashboard.button("d", "  " .. "> Change directory", function()
         vim.cmd("DirjumpThenReveal")
       end),
       dashboard.button("c", "  " .. "> Config", "<cmd> tcd ~/.config/nvim/ <BAR> Neotree reveal left <cr>"),
-      dashboard.button("q", "  " .. "> Quit", "<cmd> q <cr>"),
     }
 
     -- Setup
@@ -26,9 +26,41 @@ return {
 
     -- Vertical centering
     local function vert_center()
-      local content_height = #dashboard.section.header.val + (#dashboard.section.buttons.val * 2 - 1) + 3
-      dashboard.opts.layout[1].val = vim.fn.floor((vim.fn.winheight(0) - content_height + 2) / 2)
-      pcall(alpha.redraw)
+      if vim.bo.filetype == "alpha" then
+        local function height(elem)
+          if elem.type == "padding" then
+            return elem.val
+          elseif elem.type == "text" then
+            if type(elem.val) == "string" then
+              return #vim.split(elem.val, "\n", { plain = true })
+            elseif type(elem.val) == "table" then
+              return #elem.val
+            end
+          elseif elem.type == "button" then
+            return 1
+          elseif elem.type == "group" then
+            local total, n = 0, 0
+            for _, child in ipairs(elem.val or {}) do
+              total = total + height(child)
+              n = n + 1
+            end
+            local spacing = (elem.opts and elem.opts.spacing) or 0
+            if n > 1 then total = total + spacing * (n - 1) end
+            return total
+          else
+            return 0
+          end
+        end
+
+        local content_height = 0
+        for i, elem in ipairs(dashboard.opts.layout or {}) do
+          if (i ~= 1) then
+            content_height = content_height + height(elem)
+          end
+        end
+        dashboard.opts.layout[1].val = math.max(0, math.floor((vim.api.nvim_win_get_height(0) - content_height) / 2))
+        pcall(alpha.redraw)
+      end
     end
 
     vim.api.nvim_create_autocmd({ "VimEnter", "VimResized", "WinResized" }, {
@@ -59,4 +91,3 @@ return {
     })
   end,
 }
-
