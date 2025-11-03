@@ -7,16 +7,19 @@ vim.opt.showtabline = 2
 -- Editor line numbers
 vim.opt.number = true
 vim.opt.relativenumber = true
+
+-- Line and column highlighting
 vim.opt.cursorline = true
+vim.opt.cursorcolumn = true
 
 -- Indentation settings
 vim.opt.expandtab = true
 vim.opt.tabstop = 2
-vim.opt.softtabstop=2
-vim.opt.shiftwidth=2
+vim.opt.softtabstop = 2
+vim.opt.shiftwidth = 2
 
 -- Indentation indicators
-vim.opt.listchars:append({ leadmultispace = '│ ' })
+vim.opt.listchars:append({ leadmultispace = "│" .. string.rep(" ", vim.o.tabstop - 1) })
 vim.opt.list = true
 
 -- Code folding with Treesitter
@@ -35,4 +38,3 @@ vim.opt.fillchars = {
   --foldinner = " ", -- only available next release
   foldsep = " ",
 }
-

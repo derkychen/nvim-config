@@ -2,7 +2,6 @@
 vim.lsp.enable("lua_ls")
 
 -- Python
-vim.lsp.enable("basedpyright")
 vim.lsp.enable("ruff")
 
 -- LaTeX
@@ -13,7 +12,7 @@ vim.lsp.enable("verible")
 
 -- Modelsim
 vim.filetype.add({
-	extension = { ["do"] = "modelsim" }, -- avoid clobbering Stata's .do
+	extension = { ["do"] = "modelsim" },
 })
 pcall(function()
 	vim.treesitter.language.register("tcl", "modelsim")
