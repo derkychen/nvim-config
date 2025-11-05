@@ -14,9 +14,9 @@ vim.opt.cursorcolumn = true
 
 -- Indentation settings
 vim.opt.expandtab = true
-vim.opt.tabstop = 2
-vim.opt.softtabstop = 2
-vim.opt.shiftwidth = 2
+vim.opt.tabstop = 4
+vim.opt.softtabstop = 4
+vim.opt.shiftwidth = 4
 
 -- Indentation indicators
 vim.opt.listchars:append({ leadmultispace = "│" .. string.rep(" ", vim.o.tabstop - 1) })
@@ -32,9 +32,9 @@ vim.opt.foldlevelstart = 99
 
 vim.opt.foldcolumn = "0" -- change to 1 for next release
 vim.opt.fillchars = {
-  fold = " ",
-  foldopen = "",
-  foldclose = "",
-  --foldinner = " ", -- only available next release
-  foldsep = " ",
+    fold = " ",
+    foldopen = "",
+    foldclose = "",
+    --foldinner = " ", -- only available next release
+    foldsep = " ",
 }
