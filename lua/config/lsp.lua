@@ -12,10 +12,10 @@ vim.lsp.enable("verible")
 
 -- Modelsim
 vim.filetype.add({
-    extension = { ["do"] = "modelsim" },
+  extension = { ["do"] = "modelsim" },
 })
 pcall(function()
-    vim.treesitter.language.register("tcl", "modelsim")
+  vim.treesitter.language.register("tcl", "modelsim")
 end)
 vim.lsp.enable("efm")
 

@@ -14,12 +14,36 @@ vim.opt.cursorcolumn = true
 
 -- Indentation settings
 vim.opt.expandtab = true
-vim.opt.tabstop = 4
-vim.opt.softtabstop = 4
-vim.opt.shiftwidth = 4
+vim.opt.smarttab = true
+vim.opt.autoindent = true
+vim.opt.tabstop = 2
+vim.opt.softtabstop = 2
+vim.opt.shiftwidth = 2
 
 -- Indentation indicators
-vim.opt.listchars:append({ leadmultispace = "│" .. string.rep(" ", vim.o.tabstop - 1) })
+local function update_leadmultispace()
+  if not vim.wo.list then return end
+
+  local sw = vim.bo.shiftwidth
+  if sw == 0 then sw = vim.bo.tabstop end
+  local s = "│" .. string.rep(" ", math.max(sw - 1, 0))
+
+  local lc = vim.opt_local.listchars:get()
+  if lc.leadmultispace ~= s then
+    lc.leadmultispace = s
+    vim.opt_local.listchars = lc
+  end
+end
+
+vim.api.nvim_create_autocmd({ "BufWinEnter", "FileType" }, {
+  callback = update_leadmultispace,
+})
+
+vim.api.nvim_create_autocmd("OptionSet", {
+  pattern = { "shiftwidth", "tabstop", "list" },
+  callback = update_leadmultispace,
+})
+
 vim.opt.list = true
 
 -- Code folding with Treesitter
