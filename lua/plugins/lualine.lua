@@ -2,24 +2,41 @@ return {
   "nvim-lualine/lualine.nvim",
   dependencies = { "nvim-mini/mini.icons" },
   config = function()
-    vim.api.nvim_set_hl(0, "TabActive", {
-      fg = vim.api.nvim_get_hl(0, { name = "TabLineSel" }).fg,
-      bg = vim.api.nvim_get_hl(0, { name = "TabLineSel" }).bg,
-    })
+    local function set_tab_hl()
+      local tabline    = vim.api.nvim_get_hl(0, { name = "TabLine", link = false })
+      local tablinesel = vim.api.nvim_get_hl(0, { name = "TabLineSel", link = false })
 
-    vim.api.nvim_set_hl(0, "TabInactive", {
-      fg = vim.api.nvim_get_hl(0, { name = "TabLine" }).fg,
-      bg = vim.api.nvim_get_hl(0, { name = "TabLine" }).bg,
-    })
+      vim.api.nvim_set_hl(0, "TabActive", {
+        fg = tabline.fg or tablinesel.fg,
+        bg = tablinesel.bg or tabline.bg,
+      })
 
-    vim.api.nvim_set_hl(0, "TabSepActive", {
-      fg = vim.api.nvim_get_hl(0, { name = "TabLineSel" }).bg,
-      bg = vim.api.nvim_get_hl(0, { name = "TabLine" }).bg,
-    })
+      vim.api.nvim_set_hl(0, "TabInactive", {
+        fg = tabline.fg,
+        bg = tabline.bg,
+      })
 
-    vim.api.nvim_set_hl(0, "TabSepInactive", {
-      fg = vim.api.nvim_get_hl(0, { name = "TabLine" }).bg,
-      bg = vim.api.nvim_get_hl(0, { name = "TabLine" }).bg,
+      vim.api.nvim_set_hl(0, "TabSepActive", {
+        fg = tablinesel.bg or tabline.bg,
+        bg = tabline.bg,
+      })
+
+      vim.api.nvim_set_hl(0, "TabSepInactive", {
+        fg = tabline.bg,
+        bg = tabline.bg,
+      })
+      vim.api.nvim_set_hl(0, "TabLineFill", { fg = tabline.fg, bg = tabline.bg })
+    end
+
+    vim.schedule(set_tab_hl)
+
+    local grp = vim.api.nvim_create_augroup("TablineHL", { clear = true })
+
+    vim.api.nvim_create_autocmd("ColorScheme", {
+      group = grp,
+      callback = function()
+        vim.schedule(set_tab_hl)
+      end,
     })
 
     _G.TablineSwitch = function(tabnr, clicks, button, mods)
@@ -133,6 +150,7 @@ return {
             tabs,
             mode = 2,
             max_length = vim.o.columns,
+            separator = { left = "", right = "" },
           },
         },
       },
