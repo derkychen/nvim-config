@@ -25,6 +25,7 @@ return {
         fg = tabline.bg,
         bg = tabline.bg,
       })
+
       vim.api.nvim_set_hl(0, "TabLineFill", { fg = tabline.fg, bg = tabline.bg })
     end
 
@@ -135,6 +136,7 @@ return {
 
       return true
     end
+
     require("lualine").setup({
       tabline = {
         lualine_a = {
@@ -155,13 +157,6 @@ return {
         },
       },
       winbar = {
-        lualine_b = {
-          {
-            "filename",
-            path = 0,
-            cond = show_winbar,
-          },
-        },
         lualine_c = {
           {
             "aerial",
