@@ -138,6 +138,9 @@ return {
     end
 
     require("lualine").setup({
+      options = {
+        always_divide_middle = false,
+      },
       tabline = {
         lualine_a = {
           {
@@ -153,6 +156,7 @@ return {
             mode = 2,
             max_length = vim.o.columns,
             separator = { left = "", right = "" },
+            color = "TabLineFill",
           },
         },
       },
