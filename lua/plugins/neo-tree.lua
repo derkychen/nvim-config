@@ -9,10 +9,14 @@ return {
   lazy = false,
   config = function()
     require("neo-tree").setup({
-      -- Show hidden files by default
       filesystem = {
+        -- Show hidden files
         filtered_items = {
           visible = true,
+        },
+        -- Focus current buffer
+        follow_current_file = {
+          enabled = true,
         },
       },
 
@@ -29,7 +33,7 @@ return {
         },
       },
 
-      -- Using mini.icons
+      -- Use mini.icons
       default_component_configs = {
         icon = {
           provider = function(icon, node)
@@ -53,6 +57,7 @@ return {
         },
       },
     })
+
     vim.keymap.set("n", "<Leader>e", function()
       vim.cmd("Neotree reveal toggle")
     end)
