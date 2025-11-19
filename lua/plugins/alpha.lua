@@ -25,41 +25,60 @@ return {
 
     -- Vertical centering
     local function vert_center()
-      if vim.bo.filetype == "alpha" then
-        local function height(elem)
-          if elem.type == "padding" then
-            return elem.val
-          elseif elem.type == "text" then
-            if type(elem.val) == "string" then
-              return #vim.split(elem.val, "\n", { plain = true })
-            elseif type(elem.val) == "table" then
-              return #elem.val
-            end
-          elseif elem.type == "button" then
-            return 1
-          elseif elem.type == "group" then
-            local total, n = 0, 0
-            for _, child in ipairs(elem.val or {}) do
-              total = total + height(child)
-              n = n + 1
-            end
-            local spacing = (elem.opts and elem.opts.spacing) or 0
-            if n > 1 then total = total + spacing * (n - 1) end
-            return total
-          else
-            return 0
-          end
+      local alpha_wins = {}
+      for _, win in ipairs(vim.api.nvim_list_wins()) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        if vim.bo[buf].filetype == "alpha" then
+          table.insert(alpha_wins, win)
         end
+      end
 
-        local content_height = 0
-        for i, elem in ipairs(dashboard.opts.layout or {}) do
-          if (i ~= 1) then
-            content_height = content_height + height(elem)
+      if #alpha_wins == 0 then
+        return
+      end
+
+      local function height(elem)
+        if elem.type == "padding" then
+          return elem.val
+        elseif elem.type == "text" then
+          if type(elem.val) == "string" then
+            return #vim.split(elem.val, "\n", { plain = true })
+          elseif type(elem.val) == "table" then
+            return #elem.val
           end
+        elseif elem.type == "button" then
+          return 1
+        elseif elem.type == "group" then
+          local total, n = 0, 0
+          for _, child in ipairs(elem.val or {}) do
+            total = total + height(child)
+            n = n + 1
+          end
+          local spacing = (elem.opts and elem.opts.spacing) or 0
+          if n > 1 then total = total + spacing * (n - 1) end
+          return total
+        else
+          return 0
         end
-        dashboard.opts.layout[1].val = math.max(0,
-          math.floor((vim.api.nvim_win_get_height(0) - content_height) / 2))
-        pcall(alpha.redraw)
+      end
+
+      local content_height = 0
+      for i, elem in ipairs(dashboard.opts.layout or {}) do
+        if (i ~= 1) then
+          content_height = content_height + height(elem)
+        end
+      end
+
+      for _, win in ipairs(alpha_wins) do
+        local win_height = vim.api.nvim_win_get_height(win)
+        dashboard.opts.layout[1].val = math.max(
+          0,
+          math.floor((win_height - content_height) / 2)
+        )
+
+        vim.api.nvim_win_call(win, function()
+          pcall(alpha.redraw)
+        end)
       end
     end
 
