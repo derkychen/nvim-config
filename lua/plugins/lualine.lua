@@ -138,11 +138,12 @@ return {
         },
       },
       winbar = {
-        lualine_c = {
+        lualine_b = {
           {
             "aerial",
             sep = "  ",
             sep_icon = "",
+            separator = { left = "", right = "" },
           },
         }
       },
