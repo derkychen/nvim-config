@@ -11,13 +11,13 @@ return {
     -- Buttons
     dashboard.section.buttons.val = {
       dashboard.button("n", "  " .. "> New file", "<cmd> ene <BAR> startinsert <cr>"),
-      dashboard.button("r", "󰽙  " .. "> Recent files", "<cmd> Telescope oldfiles <cr>"),
-      dashboard.button("f", "  " .. "> Find file", "<cmd> Telescope find_files <cr>"),
-      dashboard.button("g", "󱎸  " .. "> Live grep", "<cmd> Telescope live_grep <cr>"),
+      dashboard.button("r", "󰽙  " .. "> Recent files", "<cmd> FzfLua oldfiles <cr>"),
+      dashboard.button("f", "  " .. "> Find file", "<cmd> FzfLua files <cr>"),
+      dashboard.button("g", "󱎸  " .. "> Live grep", "<cmd> FzfLua live_grep <cr>"),
       dashboard.button("d", "  " .. "> Change directory", function()
-        vim.cmd("DirjumpThenReveal")
+        vim.cmd("DirjumpThenExplorer")
       end),
-      dashboard.button("c", "  " .. "> Config", "<cmd> tcd ~/.config/nvim/ <BAR> Neotree reveal left <cr>"),
+      dashboard.button("c", "  " .. "> Config", "<cmd> tcd ~/.config/nvim/ <BAR> Fyler open kind=split_left_most <cr>"),
     }
 
     -- Setup
