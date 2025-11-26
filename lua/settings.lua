@@ -47,49 +47,47 @@ local winopts = {
   list = true,
 }
 
--- Set listchars
-local function set_listchars()
-  if not vim.wo.list then
-    return
-  end
-
-  local sw = vim.bo.shiftwidth
-  if sw == 0 then
-    sw = vim.bo.tabstop
-  end
-
-  vim.opt_local.listchars = {
-    trail = "⋅",
-    tab = "↦ ",
-    leadmultispace = "│" .. string.rep(" ", math.max(sw - 1, 0)),
-  }
-end
-
 -- Check if valid for setting window-local options
 local function valid_buffer()
   return vim.bo.buftype == "" and vim.bo.buflisted
 end
 
+-- Set listchars
+local function set_listchars()
+  if valid_buffer() and vim.wo.list then
+    local sw = vim.bo.shiftwidth
+    if sw == 0 then
+      sw = vim.bo.tabstop
+    end
+
+    vim.opt_local.listchars = {
+      trail = "⋅",
+      tab = "↦ ",
+      leadmultispace = "│" .. string.rep(" ", math.max(sw - 1, 0)),
+    }
+  end
+end
+
+-- Set window-local options
 local function set_winlocal()
   if valid_buffer() then
     for opt, val in pairs(winopts) do
       vim.opt_local[opt] = val
     end
-    set_listchars()
   end
 end
 
--- Set window-local options
 vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
   callback = set_winlocal,
+})
+
+-- Set listchars after filetype is set
+vim.api.nvim_create_autocmd("FileType", {
+  callback = set_listchars,
 })
 
 -- Adapt listchars when relevant options are set
 vim.api.nvim_create_autocmd("OptionSet", {
   pattern = { "shiftwidth", "tabstop", "list" },
-  callback = function()
-    if valid_buffer() then
-      set_listchars()
-    end
-  end,
+  callback = set_listchars,
 })

@@ -101,12 +101,12 @@ return {
         local sep_hl = is_current and "%#SepActive#" or "%#SepInactive#"
 
         local tab = sep_hl ..
-        left_sep ..
-        label_hl ..
-        "%" ..
-        i ..
-        "@v:lua.TablineSwitch@" ..
-        label .. "%X" .. "%" .. i .. "@v:lua.TablineClose@" .. "  " .. "%X" .. sep_hl .. right_sep
+            left_sep ..
+            label_hl ..
+            "%" ..
+            i ..
+            "@v:lua.TablineSwitch@" ..
+            label .. "%X" .. "%" .. i .. "@v:lua.TablineClose@" .. "  " .. "%X" .. sep_hl .. right_sep
 
         table.insert(tabline, tab)
       end
@@ -142,10 +142,9 @@ return {
           {
             "aerial",
             sep = "  ",
-            sep_icon = "",
             separator = { left = "", right = "" },
           },
-        }
+        },
       },
     })
   end,

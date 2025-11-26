@@ -37,13 +37,13 @@ return {
       })
     end
 
-    vim.api.nvim_create_user_command("DirjumpThenExplorer", function()
+    vim.api.nvim_create_user_command("TcdThenExplorer", function()
       vim.api.nvim_create_autocmd("DirChanged", {
-        group = vim.api.nvim_create_augroup("DirjumpThenExplorer", { clear = true }),
+        group = vim.api.nvim_create_augroup("TcdThenExplorer", { clear = true }),
         once = true,
         callback = function()
           vim.schedule(function()
-            vim.cmd("Fyler open kind=split_left_most")
+            _G.Explorer()
           end)
         end,
       })
@@ -51,7 +51,7 @@ return {
     end, {})
 
     vim.keymap.set("n", "<Leader>fd", function()
-      vim.cmd("DirjumpThenExplorer")
+      vim.cmd("TcdThenExplorer")
     end, {})
   end,
 }

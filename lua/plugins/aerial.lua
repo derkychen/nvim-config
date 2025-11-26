@@ -11,6 +11,7 @@ return {
       backends = { "lsp", "treesitter", "markdown", "man" },
       filter_kind = false,
       show_guides = true,
+      nerd_font = true,
     })
     vim.keymap.set("n", "<Leader>a", aerial.toggle, {})
     vim.keymap.set("n", "<Leader>fs", aerial.fzf_lua_picker, {})
