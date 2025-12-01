@@ -15,7 +15,7 @@ vim.opt.autoindent = true
 -- Window-local options
 local winopts = {
   -- Statuscolumn structure
-  statuscolumn = "%s %l %C ",
+  statuscolumn = " %s %l %C ",
 
   -- Editor line numbers
   number = true,
@@ -25,8 +25,9 @@ local winopts = {
   cursorline = true,
   cursorcolumn = true,
 
-  -- Line wrap at words
+  -- Line wrap at words, match indent
   linebreak = true,
+  breakindent = true,
 
   -- Code folding with Treesitter
   foldmethod = "expr",
@@ -59,7 +60,6 @@ local function set_listchars()
     if sw == 0 then
       sw = vim.bo.tabstop
     end
-
     vim.opt_local.listchars = {
       trail = "⋅",
       tab = "↦ ",

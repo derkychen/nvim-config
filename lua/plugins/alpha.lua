@@ -14,10 +14,10 @@ return {
       dashboard.button("r", "󰽙  " .. "> Recent files", "<cmd> FzfLua oldfiles <cr>"),
       dashboard.button("f", "  " .. "> Find file", "<cmd> FzfLua files <cr>"),
       dashboard.button("g", "󱎸  " .. "> Live grep", "<cmd> FzfLua live_grep <cr>"),
-      dashboard.button("d", "  " .. "> Change directory", "<cmd> TcdThenExplorer <cr>"),
+      dashboard.button("d", "  " .. "> Change directory", "<cmd> TcdThenCwdExplorer <cr>"),
       dashboard.button("c", "  " .. "> Config", function()
         vim.cmd("tcd ~/.config/nvim/")
-        _G.Explorer()
+        _G.CwdExplorer()
       end),
     }
 

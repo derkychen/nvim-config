@@ -6,6 +6,7 @@ vim.lsp.enable("ruff")
 
 -- LaTeX
 vim.lsp.enable("texlab")
+vim.lsp.enable("latexindent")
 
 -- SystemVerilog
 vim.lsp.enable("verible")
