@@ -1,6 +1,5 @@
 return {
   "saghen/blink.cmp",
-  dependencies = { "rafamadriz/friendly-snippets" },
   version = "1.*",
   opts = {
     keymap = {
@@ -8,7 +7,7 @@ return {
       ["<CR>"] = { "select_and_accept", "fallback" },
       ["<Esc>"] = {
         function(cmp)
-          if cmp.is_visible and cmp.is_visible() then
+          if cmp.is_visible() then
             cmp.cancel()
             return true
           end
@@ -47,7 +46,7 @@ return {
     appearance = {
       nerd_font_variant = "mono",
     },
-    completion = { documentation = { auto_show = false } },
+    completion = { documentation = { auto_show = true} },
     sources = {
       default = { "lsp", "path", "snippets", "buffer" },
     },

@@ -1,6 +1,5 @@
 return {
   "ibhagwan/fzf-lua",
-  dependencies = { "nvim-mini/mini.icons" },
   opts = {},
   config = function()
     local fzf_lua = require("fzf-lua")

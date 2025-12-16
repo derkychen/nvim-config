@@ -1,7 +1,6 @@
 return {
-  'stevearc/oil.nvim',
+  "stevearc/oil.nvim",
   opts = {},
-  dependencies = { { "nvim-mini/mini.icons", opts = {} } },
   lazy = false,
   config = function()
     local oil = require("oil")
@@ -10,7 +9,10 @@ return {
       win_options = {
         number = true,
         relativenumber = true,
+        statuscolumn = " %l ",
+        conceallevel = 0,
         cursorline = true,
+        cursorcolumn = true,
       },
       watch_for_changes = true,
       keymaps = {
@@ -60,6 +62,10 @@ return {
     _G.CwdExplorer = function()
       oil.open(vim.fn.getcwd())
     end
+
+    vim.api.nvim_create_user_command("CwdExplorer", _G.CwdExplorer
+      
+    , {})
 
     vim.keymap.set("n", "<Leader>o", oil.open, {})
   end,

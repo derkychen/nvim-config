@@ -1,3 +1,5 @@
+local icons = require("icons")
+
 -- <Leader> key
 vim.g.mapleader = " "
 
@@ -12,10 +14,21 @@ vim.opt.softtabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.autoindent = true
 
+vim.diagnostic.config({
+  signs = {
+    text = {
+      [vim.diagnostic.severity.ERROR] = icons.diagnostics.ERROR,
+      [vim.diagnostic.severity.WARN] = icons.diagnostics.WARN,
+      [vim.diagnostic.severity.INFO] = icons.diagnostics.INFO,
+      [vim.diagnostic.severity.HINT] = icons.diagnostics.HINT,
+    },
+  },
+})
+
 -- Window-local options
 local winopts = {
   -- Statuscolumn structure
-  statuscolumn = " %s %l %C ",
+  statuscolumn = " %s%l %C ",
 
   -- Editor line numbers
   number = true,
@@ -39,8 +52,8 @@ local winopts = {
 
   fillchars = {
     fold = " ",
-    foldopen = "",
-    foldclose = "",
+    foldopen = icons.arrows.down,
+    foldclose = icons.arrows.right,
     -- foldinner = " ", -- only available next release
     foldsep = " ",
   },
@@ -48,29 +61,24 @@ local winopts = {
   list = true,
 }
 
--- Check if valid for setting window-local options
-local function valid_buffer()
-  return vim.bo.buftype == "" and vim.bo.buflisted
-end
-
 -- Set listchars
 local function set_listchars()
-  if valid_buffer() and vim.wo.list then
+  if vim.bo.buftype == "" and vim.wo.list then
     local sw = vim.bo.shiftwidth
     if sw == 0 then
       sw = vim.bo.tabstop
     end
     vim.opt_local.listchars = {
-      trail = "⋅",
       tab = "↦ ",
       leadmultispace = "│" .. string.rep(" ", math.max(sw - 1, 0)),
+      trail = "⋅",
     }
   end
 end
 
 -- Set window-local options
 local function set_winlocal()
-  if valid_buffer() then
+  if vim.bo.buftype == "" then
     for opt, val in pairs(winopts) do
       vim.opt_local[opt] = val
     end
@@ -91,3 +99,4 @@ vim.api.nvim_create_autocmd("OptionSet", {
   pattern = { "shiftwidth", "tabstop", "list" },
   callback = set_listchars,
 })
+

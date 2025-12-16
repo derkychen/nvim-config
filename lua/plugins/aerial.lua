@@ -1,14 +1,18 @@
 return {
   'stevearc/aerial.nvim',
   opts = {},
-  dependencies = {
-    "nvim-treesitter/nvim-treesitter",
-    "nvim-mini/mini.icons"
-  },
   config = function()
     local aerial = require("aerial")
     aerial.setup({
       backends = { "lsp", "treesitter", "markdown", "man" },
+      layout = {
+        win_opts = {
+          number = true,
+          relativenumber = true,
+          statuscolumn = " %l ",
+          cursorline = true,
+        },
+      },
       filter_kind = false,
       show_guides = true,
       nerd_font = true,

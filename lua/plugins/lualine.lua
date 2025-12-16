@@ -1,6 +1,5 @@
 return {
   "nvim-lualine/lualine.nvim",
-  dependencies = { "nvim-mini/mini.icons" },
   config = function()
     local function set_tab_hl()
       local tabline = vim.api.nvim_get_hl(0, { name = "TabLine", link = false })
@@ -29,11 +28,9 @@ return {
       vim.api.nvim_set_hl(0, "SepInactive", sep_hl.inactive)
     end
 
-    vim.schedule(set_tab_hl)
-
     local grp = vim.api.nvim_create_augroup("TablineHL", { clear = true })
 
-    vim.api.nvim_create_autocmd("ColorScheme", {
+    vim.api.nvim_create_autocmd({ "VimEnter", "ColorScheme" }, {
       group = grp,
       callback = function()
         vim.schedule(set_tab_hl)
@@ -65,59 +62,29 @@ return {
       vim.cmd("tabclose")
     end
 
-    local function tabs()
-      local tabsnr = vim.fn.tabpagenr("$")
-      if tabsnr == 0 then
-        return ""
-      end
-
-      local cur = vim.fn.tabpagenr()
-      local tabline = {}
-
-      for i = 1, tabsnr do
-        local winnr = vim.fn.tabpagewinnr(i)
-        local buflist = vim.fn.tabpagebuflist(i)
-        local bufnr = buflist[winnr]
-
-        local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(bufnr), ":t")
-        if name == "" then
-          name = "[No Name]"
-        end
-
-        local label = string.format(" %d  %s ", i, name)
-
-        local is_current = (i == cur)
-
-        local left_sep, right_sep
-        if is_current then
-          left_sep, right_sep = "", ""
-        elseif i < cur then
-          left_sep, right_sep = "", ""
-        else
-          left_sep, right_sep = "", ""
-        end
-
-        local label_hl = is_current and "%#LabelActive#" or "%#LabelInactive#"
-        local sep_hl = is_current and "%#SepActive#" or "%#SepInactive#"
-
-        local tab = sep_hl ..
-            left_sep ..
-            label_hl ..
-            "%" ..
-            i ..
-            "@v:lua.TablineSwitch@" ..
-            label .. "%X" .. "%" .. i .. "@v:lua.TablineClose@" .. "  " .. "%X" .. sep_hl .. right_sep
-
-        table.insert(tabline, tab)
-      end
-
-      table.insert(tabline, "%#TabLineFill#")
-      return table.concat(tabline, "")
-    end
+    local triangle = {
+      upper_right = "",
+      lower_right = "",
+      lower_left = "",
+      upper_left = "",
+    }
 
     require("lualine").setup({
       options = {
         always_divide_middle = false,
+      },
+      sections = {
+        lualine_c = { { "filename", path = 1 } },
+        lualine_x = { "filetype", "lsp_status" },
+        lualine_y = { "searchcount", "selectioncount", "progress" },
+      },
+      inactive_sections = {
+        lualine_c = {
+          {
+            "filename",
+            path = 1,
+          }
+        },
       },
       tabline = {
         lualine_a = {
@@ -125,12 +92,60 @@ return {
             function()
               return ""
             end,
-            separator = { right = "" },
+            separator = { right = triangle.upper_left },
           },
         },
         lualine_c = {
           {
-            tabs,
+            function()
+              local tabsnr = vim.fn.tabpagenr("$")
+              if tabsnr == 0 then
+                return ""
+              end
+
+              local cur = vim.fn.tabpagenr()
+              local tabline = {}
+
+              for i = 1, tabsnr do
+                local winnr = vim.fn.tabpagewinnr(i)
+                local buflist = vim.fn.tabpagebuflist(i)
+                local bufnr = buflist[winnr]
+
+                local name = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(bufnr), ":t")
+                if name == "" then
+                  name = "[No Name]"
+                end
+
+                local label = string.format(" %d  %s ", i, name)
+
+                local is_current = (i == cur)
+
+                local left_sep, right_sep
+                if is_current then
+                  left_sep, right_sep = triangle.lower_right, triangle.lower_left
+                elseif i < cur then
+                  left_sep, right_sep = triangle.lower_right, triangle.upper_left
+                else
+                  left_sep, right_sep = triangle.upper_right, triangle.lower_left
+                end
+
+                local label_hl = is_current and "%#LabelActive#" or "%#LabelInactive#"
+                local sep_hl = is_current and "%#SepActive#" or "%#SepInactive#"
+
+                local tab = sep_hl ..
+                    left_sep ..
+                    label_hl ..
+                    "%" ..
+                    i ..
+                    "@v:lua.TablineSwitch@" ..
+                    label .. "%X" .. "%" .. i .. "@v:lua.TablineClose@" .. "  " .. "%X" .. sep_hl .. right_sep
+
+                table.insert(tabline, tab)
+              end
+
+              table.insert(tabline, "%#TabLineFill#")
+              return table.concat(tabline, "")
+            end,
             mode = 2,
             max_length = vim.o.columns,
             separator = { left = "", right = "" },
