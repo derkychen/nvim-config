@@ -18,12 +18,12 @@ return {
       keymaps = {
         ["g?"] = { "actions.show_help", mode = "n" },
         ["<CR>"] = "actions.select",
-        ["<Leader>v"] = { "actions.select", opts = { vertical = true } },
-        ["<Leader>s"] = { "actions.select", opts = { horizontal = true } },
-        ["<Leader>t"] = { "actions.select", opts = { tab = true } },
-        ["<Leader>p"] = "actions.preview",
-        ["<Leader>x"] = { "actions.close", mode = "n" },
-        ["<Leader>r"] = "actions.refresh",
+        ["<Leader>ov"] = { "actions.select", opts = { vertical = true } },
+        ["<Leader>os"] = { "actions.select", opts = { horizontal = true } },
+        ["<Leader>ot"] = { "actions.select", opts = { tab = true } },
+        ["<Leader>op"] = "actions.preview",
+        ["<Leader>ox"] = { "actions.close", mode = "n" },
+        ["<Leader>or"] = "actions.refresh",
         ["-"] = { "actions.parent", mode = "n" },
         ["_"] = { "actions.open_cwd", mode = "n" },
         ["`"] = { "actions.cd", mode = "n" },
@@ -63,10 +63,8 @@ return {
       oil.open(vim.fn.getcwd())
     end
 
-    vim.api.nvim_create_user_command("CwdExplorer", _G.CwdExplorer
-      
-    , {})
+    vim.api.nvim_create_user_command("CwdExplorer", _G.CwdExplorer, {})
 
-    vim.keymap.set("n", "<Leader>o", oil.open, {})
+    vim.keymap.set("n", "<Leader>oo", oil.open, {})
   end,
 }

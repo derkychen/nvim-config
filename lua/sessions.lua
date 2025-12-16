@@ -8,6 +8,10 @@ if vim.fn.isdirectory(M.sessions_dir) == 0 then
   vim.fn.mkdir(M.sessions_dir, "p")
 end
 
+local function msg(...)
+  vim.notify(...)
+end
+
 -- File path from session name
 function M.get_session_path(session_name)
   return M.sessions_dir .. "/" .. session_name .. ".vim"
@@ -16,28 +20,28 @@ end
 -- Save session
 function M.save(path)
   vim.cmd("mksession! " .. vim.fn.fnameescape(path))
-  print("Session saved: " .. path)
+  msg("Session saved: " .. path)
 end
 
 -- Load session
 function M.load(path)
   if vim.fn.filereadable(path) == 0 then
-    print("No such session: " .. path)
+    msg("No such session: " .. path)
     return
   end
   vim.cmd("silent! source " .. vim.fn.fnameescape(path))
-  print("Session loaded: " .. path)
+  msg("Session loaded: " .. path)
 end
 
 -- Delete session
 function M.delete(path)
   if vim.fn.filereadable(path) == 0 then
-    print("No such session: " .. path)
+    msg("No such session: " .. path)
     return
   end
 
   vim.fn.delete(path)
-  print("Session deleted: " .. path)
+  msg("Session deleted: " .. path)
 end
 
 -- Save current session
@@ -49,12 +53,15 @@ end
 function M.delete_current()
   local current = vim.v.this_session
   if current == nil or current == "" then
-    print("No current session loaded")
+    msg("No current session loaded")
     return
   end
   M.delete(vim.v.this_session)
   vim.v.this_session = ""
 end
+
+vim.api.nvim_create_user_command("SessionSaveCurrent", M.save_current, {})
+vim.api.nvim_create_user_command("SessionDeleteCurrent", M.save_current, {})
 
 -- Return all session names
 function M.names()
@@ -81,7 +88,7 @@ function M.save_to_name()
   local items = vim.deepcopy(M.names())
   table.insert(items, 1, " Create new session")
 
-  vim.ui.select(items, { prompt = "Save or create new session: "}, function(choice, idx)
+  vim.ui.select(items, { prompt = "Save or create new session: " }, function(choice, idx)
     if not choice then return end
 
     if idx == 1 then
@@ -92,7 +99,9 @@ function M.save_to_name()
         if not name or name == "" then
           return
         end
-        M.save(M.get_session_path(name))
+        vim.defer_fn(function()
+          M.save(M.get_session_path(name))
+        end, 50)
       end)
     end
   end)
@@ -101,14 +110,18 @@ end
 function M.load_from_name()
   vim.ui.select(M.names(), { prompt = "Load session: " }, function(choice)
     if not choice or choice == "" then return end
-    M.load(M.get_session_path(choice))
+    vim.defer_fn(function()
+      M.load(M.get_session_path(choice))
+    end, 50)
   end)
 end
 
 function M.delete_by_name()
   vim.ui.select(M.names(), { prompt = "Delete session: " }, function(choice)
     if not choice or choice == "" then return end
-    M.delete(M.get_session_path(choice))
+    vim.defer_fn(function()
+      M.delete(M.get_session_path(choice))
+    end, 50)
   end)
 end
 
