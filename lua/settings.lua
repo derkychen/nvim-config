@@ -78,11 +78,11 @@ end
 
 -- Set window-local options
 local function set_winlocal()
-  if vim.bo.buftype == "" then
+  --if vim.bo.buftype == "" then
     for opt, val in pairs(winopts) do
       vim.opt_local[opt] = val
     end
-  end
+  --end
 end
 
 vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {

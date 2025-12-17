@@ -13,7 +13,7 @@ return {
         local name = names[i]
         table.insert(items, {
           name = name,
-          section = "Sessions",
+          section = "Recent sessions",
           action = function()
             pcall(starter.close)
             sessions.load(sessions.get_session_path(name))
@@ -25,10 +25,11 @@ return {
 
     local function fzf_items()
       return {
-        { action = "FzfLua files",       name = "file",             section = "Find" },
-        { action = "FzfLua oldfiles",    name = "recent files",     section = "Find" },
-        { action = "FzfLua live_grep",   name = "live grep",        section = "Find" },
-        { action = "TcdThenCwdExplorer", name = "change directory", section = "Find" },
+        { name = "file",             section = "Fuzzy find", action = "FzfLua files", },
+        { name = "recent files",     section = "Fuzzy find", action = "FzfLua oldfiles", },
+        { name = "live grep",        section = "Fuzzy find", action = "FzfLua live_grep", },
+        { name = "sessions",         section = "Fuzzy find", action = "SessionLoadByName" },
+        { name = "change directory", section = "Fuzzy find", action = "TcdThenCwdExplorer", },
       }
     end
 
