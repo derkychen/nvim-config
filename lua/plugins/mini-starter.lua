@@ -5,7 +5,16 @@ return {
     local starter = require("mini.starter")
     local sessions = require("sessions")
 
-    local function session_items(max)
+    local greeting = function()
+      local hour = tonumber(vim.fn.strftime("%H"))
+      local part_id = math.floor((hour) / 6) + 1
+      local day_part = ({ "morning", "morning", "afternoon", "evening" })[part_id]
+      local username = vim.loop.os_get_passwd()["username"] or "USERNAME"
+
+      return ("Good %s, %s"):format(day_part, username)
+    end
+
+    local session_items = function(max)
       max = max or 5
       local names = sessions.names()
       local items = {}
@@ -23,7 +32,7 @@ return {
       return items
     end
 
-    local function fzf_items()
+    local fzf_items = function()
       return {
         { name = "file",             section = "Fuzzy find", action = "FzfLua files", },
         { name = "recent files",     section = "Fuzzy find", action = "FzfLua oldfiles", },
@@ -34,37 +43,24 @@ return {
     end
 
     starter.setup({
+      evaluate_single = true,
+      header = greeting,
       items = {
-        session_items(),
-        fzf_items(),
+        session_items,
+        fzf_items,
       },
+      footer = "",
       content_hooks = {
         starter.gen_hook.adding_bullet(),
         starter.gen_hook.aligning("center", "center"),
       }
     })
-    vim.api.nvim_create_autocmd("TabNew", {
-      callback = function()
-        vim.schedule(function()
-          local win = vim.api.nvim_get_current_win()
-          local buf = vim.api.nvim_win_get_buf(win)
-          local name = vim.api.nvim_buf_get_name(buf)
-          local bt = vim.bo[buf].buftype
-          local modified = vim.bo[buf].modified
-          local line_count = vim.api.nvim_buf_line_count(buf)
 
-          if name == "" and bt == "" and not modified and line_count <= 1 then
-            starter.open()
-          end
-        end)
-      end,
-    })
-    vim.api.nvim_create_autocmd({ "VimEnter", "VimResized", "WinResized" }, {
+    vim.api.nvim_create_autocmd({ "WinResized", "FocusGained" }, {
       callback = function()
-        for _, win in ipairs(vim.api.nvim_list_wins()) do
-          local buf = vim.api.nvim_win_get_buf(win)
-          if vim.bo[buf].filetype == "ministarter" then
-            starter.refresh()
+        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+          if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype == "ministarter" then
+            starter.refresh(buf)
           end
         end
       end

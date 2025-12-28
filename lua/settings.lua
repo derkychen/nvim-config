@@ -25,8 +25,8 @@ vim.diagnostic.config({
   },
 })
 
--- Window-local options
-local winopts = {
+-- Window-local options for buffers loaded from disk
+local file_winopts = {
   -- Statuscolumn structure
   statuscolumn = " %s%l %C ",
 
@@ -59,44 +59,46 @@ local winopts = {
   },
 
   list = true,
-}
-
--- Set listchars
-local function set_listchars()
-  if vim.bo.buftype == "" and vim.wo.list then
+  listchars = function(win_id)
     local sw = vim.bo.shiftwidth
-    if sw == 0 then
-      sw = vim.bo.tabstop
-    end
-    vim.opt_local.listchars = {
+    if sw == 0 then sw = vim.bo.tabstop end
+    return {
       tab = "↦ ",
       leadmultispace = "│" .. string.rep(" ", math.max(sw - 1, 0)),
       trail = "⋅",
     }
+  end,
+}
+
+-- Set window-local options
+local function set_winlocal(win_id, winopts)
+  vim.api.nvim_win_call(win_id, function()
+    for opt, val in pairs(winopts) do
+      if type(val) == "function" then
+        val = val(win_id)
+      end
+      vim.opt_local[opt] = val
+    end
+  end)
+end
+
+-- Decide what window-local options to apply
+local function apply_winlocal(buf)
+  local buf_name = vim.api.nvim_buf_get_name(buf)
+
+  -- Apply window-local options for files if buffer in window is from disk
+  if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "" and buf_name ~= "" and buf_name ~= nil then
+    set_winlocal(vim.api.nvim_get_current_win(), file_winopts)
   end
 end
 
--- Set window-local options
-local function set_winlocal()
-  --if vim.bo.buftype == "" then
-    for opt, val in pairs(winopts) do
-      vim.opt_local[opt] = val
-    end
-  --end
-end
-
-vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
-  callback = set_winlocal,
+-- Set window-local options when buffer is shown in window, and when filetype is set
+vim.api.nvim_create_autocmd({ "BufWinEnter", "FileType" }, {
+  callback = function(ev) apply_winlocal(ev.buf) end,
 })
 
--- Set listchars after filetype is set
-vim.api.nvim_create_autocmd("FileType", {
-  callback = set_listchars,
-})
-
--- Adapt listchars when relevant options are set
+-- Adapt window-local options when relevant options are set
 vim.api.nvim_create_autocmd("OptionSet", {
   pattern = { "shiftwidth", "tabstop", "list" },
-  callback = set_listchars,
+  callback = function(ev) apply_winlocal(ev.buf) end,
 })
-

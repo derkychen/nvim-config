@@ -8,9 +8,11 @@ if vim.fn.isdirectory(M.sessions_dir) == 0 then
   vim.fn.mkdir(M.sessions_dir, "p")
 end
 
--- User messaging interface
+-- User messaging interface, delay to accommodate for vim.ui.select picker
 local function msg(s)
-  vim.notify(s)
+  vim.defer_fn(function()
+    vim.notify(s)
+  end, 50)
 end
 
 -- File path from session name
@@ -71,7 +73,7 @@ end
 
 -- Return all session names
 function M.names()
-  local paths = vim.fn.globpath(M.sessions_dir, "*.vim", false, true)
+  local paths = vim.fn.globpath(M.sessions_dir, "*.vim", false, true, true)
   local paths_and_times = {}
   for _, path in ipairs(paths) do
     local stat = vim.loop.fs_stat(path)
@@ -105,7 +107,10 @@ function M.save_to_name()
   table.insert(items, 1, " Create new session")
 
   vim.ui.select(items, { prompt = "Save or create new session > " }, function(choice, idx)
-    if not choice then return end
+    if not choice then
+      msg("Session save canceled.")
+      return
+    end
 
     if idx == 1 then
       vim.ui.input({
@@ -113,16 +118,13 @@ function M.save_to_name()
         default = vim.fn.fnamemodify(vim.fn.getcwd(), ":t"),
       }, function(name)
         if not name or name == "" then
+          msg("Session save canceled.")
           return
         end
-        vim.defer_fn(function()
-          M.save(M.get_session_path(name))
-        end, 50)
+        M.save(M.get_session_path(name))
       end)
     else
-      vim.defer_fn(function()
-        M.save(M.get_session_path(choice))
-      end, 50)
+      M.save(M.get_session_path(choice))
     end
   end)
 end
@@ -130,10 +132,11 @@ end
 -- Session loading
 function M.load_by_name()
   vim.ui.select(M.names(), { prompt = "Load session > " }, function(choice)
-    if not choice or choice == "" then return end
-    vim.defer_fn(function()
-      M.load(M.get_session_path(choice))
-    end, 50)
+    if not choice or choice == "" then
+      msg("Session load canceled.")
+      return
+    end
+    M.load(M.get_session_path(choice))
   end)
 end
 
@@ -150,10 +153,11 @@ end
 
 function M.delete_by_name()
   vim.ui.select(M.names(), { prompt = "Delete session > " }, function(choice)
-    if not choice or choice == "" then return end
-    vim.defer_fn(function()
-      M.delete(M.get_session_path(choice))
-    end, 50)
+    if not choice or choice == "" then
+      msg("Session delete canceled.")
+      return
+    end
+    M.delete(M.get_session_path(choice))
   end)
 end
 
@@ -173,18 +177,17 @@ function M.rename_current()
     default = old_name,
   }, function(new_name)
     if not new_name or new_name == "" or new_name == old_name then
+      msg("Session rename canceled.")
       return
     end
 
     local new_path = M.get_session_path(new_name)
 
     local function do_rename(overwrite)
-      vim.defer_fn(function()
-        M.rename(old_path, new_path, overwrite)
-        if vim.fn.filereadable(new_path) == 1 then
-          vim.v.this_session = new_path
-        end
-      end, 50)
+      M.rename(old_path, new_path, overwrite)
+      if vim.fn.filereadable(new_path) == 1 then
+        vim.v.this_session = new_path
+      end
     end
 
     if vim.fn.filereadable(new_path) == 1 then
@@ -211,6 +214,7 @@ function M.rename_by_name()
       default = choice,
     }, function(new_name)
       if not new_name or new_name == "" or new_name == choice then
+        msg("Session rename canceled.")
         return
       end
 
@@ -218,12 +222,10 @@ function M.rename_by_name()
       local new_path = M.get_session_path(new_name)
 
       local function do_rename(overwrite)
-        vim.defer_fn(function()
-          M.rename(old_path, new_path, overwrite)
-          if vim.v.this_session == old_path and vim.fn.filereadable(new_path) == 1 then
-            vim.v.this_session = new_path
-          end
-        end, 50)
+        M.rename(old_path, new_path, overwrite)
+        if vim.v.this_session == old_path and vim.fn.filereadable(new_path) == 1 then
+          vim.v.this_session = new_path
+        end
       end
 
       if vim.fn.filereadable(new_path) == 1 then

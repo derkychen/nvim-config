@@ -156,7 +156,7 @@ return {
         lualine_c = {
           {
             "aerial",
-            sep = "  ",
+            sep = "  ",
             separator = { left = "", right = "" },
           },
         },
