@@ -25,10 +25,10 @@ vim.diagnostic.config({
   },
 })
 
--- Window-local options for buffers loaded from disk
+-- Window-local options for windows onto buffers loaded from disk
 local file_winopts = {
-  -- Statuscolumn structure
-  statuscolumn = " %s%l %C ",
+  -- Diagnostics and git signs
+  signcolumn = "yes",
 
   -- Editor line numbers
   number = true,

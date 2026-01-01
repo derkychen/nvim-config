@@ -8,8 +8,10 @@ return {
     fzf_lua.register_ui_select()
 
     vim.keymap.set("n", "<Leader>ff", fzf_lua.files, {})
-    vim.keymap.set("n", "<Leader>fg", fzf_lua.live_grep, {})
     vim.keymap.set("n", "<Leader>fr", fzf_lua.oldfiles, {})
+    vim.keymap.set("n", "<Leader>fg", fzf_lua.live_grep, {})
+    vim.keymap.set("n", "<Leader>fb", fzf_lua.buffers, {})
+    vim.keymap.set("n", "<Leader>ft", fzf_lua.tabs, {})
 
     local home = vim.fn.expand("~")
 

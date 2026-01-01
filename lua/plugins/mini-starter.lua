@@ -5,7 +5,7 @@ return {
     local starter = require("mini.starter")
     local sessions = require("sessions")
 
-    local greeting = function()
+    local function greeting()
       local hour = tonumber(vim.fn.strftime("%H"))
       local part_id = math.floor((hour) / 6) + 1
       local day_part = ({ "morning", "morning", "afternoon", "evening" })[part_id]
@@ -14,7 +14,7 @@ return {
       return ("Good %s, %s"):format(day_part, username)
     end
 
-    local session_items = function(max)
+    local function session_items(max)
       max = max or 5
       local names = sessions.names()
       local items = {}
@@ -32,7 +32,7 @@ return {
       return items
     end
 
-    local fzf_items = function()
+    local function fzf_items()
       return {
         { name = "file",             section = "Fuzzy find", action = "FzfLua files", },
         { name = "recent files",     section = "Fuzzy find", action = "FzfLua oldfiles", },
@@ -53,17 +53,26 @@ return {
       content_hooks = {
         starter.gen_hook.adding_bullet(),
         starter.gen_hook.aligning("center", "center"),
-      }
+      },
+      silent = true,
     })
 
-    vim.api.nvim_create_autocmd({ "WinResized", "FocusGained" }, {
-      callback = function()
-        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-          if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].filetype == "ministarter" then
-            starter.refresh(buf)
-          end
-        end
-      end
+    vim.api.nvim_create_autocmd("User", {
+      pattern = "MiniStarterOpened",
+      callback = function(ev)
+        local buf = ev.buf
+
+        vim.api.nvim_create_autocmd({ "WinResized", "FocusGained" }, {
+          buffer = buf,
+          callback = function()
+            vim.schedule(function()
+              if not vim.api.nvim_buf_is_valid(buf) then return end
+              if vim.bo[buf].filetype ~= "ministarter" then return end
+              pcall(starter.refresh, buf)
+            end)
+          end,
+        })
+      end,
     })
   end,
 }
