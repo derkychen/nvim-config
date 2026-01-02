@@ -3,9 +3,6 @@ local icons = require("icons")
 -- <Leader> key
 vim.g.mapleader = " "
 
--- Always show tabline
-vim.opt.showtabline = 2
-
 -- Indentation settings
 vim.opt.expandtab = true
 vim.opt.smarttab = true

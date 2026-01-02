@@ -37,19 +37,18 @@ return {
         bright_fg = get_hl("Folded"),
         bright_bg = get_hl("Folded", true),
         git_branch = get_hl("Function"),
-        git_added = get_hl("@property"),
-        git_removed = get_hl("@variable.builtin"),
-        git_changed = get_hl("Function"),
+        git_added = get_hl("GitSignsAdd"),
+        git_removed = get_hl("GitSignsDelete"),
+        git_changed = get_hl("GitSignsChange"),
         diag_error = get_hl("DiagnosticError"),
         diag_warn = get_hl("DiagnosticWarn"),
         diag_info = get_hl("DiagnosticInfo"),
         diag_hint = get_hl("DiagnosticHint"),
         dimmed_fg = get_hl("SpecialKey"),
-        winbar_bg = get_hl("CursorLine", true),
         flag_fg = get_hl("@variable.parameter"),
         close = get_hl("@variable.builtin"),
         buffer_bufnr = get_hl("Function"),
-        buffer_active_fg = get_hl("Normal"),
+        buffer_active_fg = get_hl("TablineFill"),
         buffer_active_bg = get_hl("Folded", true),
         buffer_inactive_fg = get_hl("Tabline"),
         buffer_inactive_bg = get_hl("Tabline", true),
@@ -316,7 +315,7 @@ return {
         if is_default then self.icon, self.hl, _ = get_icon("filetype", self.filetype) end
       end,
       hl = function(self)
-        return { fg = self.hl }
+        return { fg = utils.get_highlight(self.hl).fg }
       end,
       {
         provider = function(self)
@@ -396,7 +395,54 @@ return {
       },
     }
 
-    local function BreadcrumbsItem(symbol)
+
+    local BreadcrumbsSep = { provider = "" }
+
+    local function BreadcrumbsPathItem(name, is_file)
+      local get_icon = require("mini.icons").get
+      is_file = is_file or false
+      local spacer
+      local icon, hl
+      icon, hl, _ = get_icon("directory", name)
+      if is_file then icon, hl = get_icon("file", name) end
+      if icon == "" then spacer = nil else spacer = Space end
+      if name ~= "" then
+        return {
+          Space,
+          {
+            provider = icon,
+            hl = { fg = utils.get_highlight(hl).fg },
+          },
+          spacer,
+          {
+            provider = name,
+          },
+          Space,
+        }
+      end
+    end
+
+    local BreadcrumbsPath = {
+      init = function(self)
+        local names = {}
+        for name in string.gmatch(vim.fn.expand('%'), "([^/]+)") do table.insert(names, name) end
+        local children = {}
+        for i, name in ipairs(names) do
+          if i ~= 1 then table.insert(children, BreadcrumbsSep) end
+          if i ~= #names then
+            table.insert(children, BreadcrumbsPathItem(name))
+          else
+            table.insert(children, BreadcrumbsPathItem(name, true))
+          end
+        end
+        self.child = self:new(children, 1)
+      end,
+      provider = function(self)
+        return self.child:eval()
+      end,
+    }
+
+    local function BreadcrumbsAerialItem(symbol)
       local spacer
       local icon = symbol.icon or ""
       local name = symbol.name or ""
@@ -424,9 +470,7 @@ return {
       end
     end
 
-    local BreadcrumbsSep = { provider = "" }
-
-    local Breadcrumbs = {
+    local BreadcrumbsAerial = {
       condition = function()
         local ok, aerial = pcall(require, "aerial")
         if not ok then return false end
@@ -436,9 +480,8 @@ return {
       init = function(self)
         local symbols = require("aerial").get_location(true) or {}
         local children = {}
-        for i, symbol in ipairs(symbols) do
-          if i ~= 1 then table.insert(children, BreadcrumbsSep) end
-          table.insert(children, BreadcrumbsItem(symbol))
+        for _, symbol in ipairs(symbols) do
+          table.insert(children, { BreadcrumbsSep, BreadcrumbsAerialItem(symbol) })
         end
         self.child = self:new(children, 1)
       end,
@@ -602,6 +645,8 @@ return {
       ModeBar
     )
 
+    local Breadcrumbs = { BreadcrumbsPath, BreadcrumbsAerial }
+
     local ModeNvim = utils.insert(Mode,
       ModeBar,
       Nvim,
@@ -628,7 +673,6 @@ return {
     }
 
     local ActiveWinbar = {
-      hl = { bg = "winbar_bg" },
       Breadcrumbs,
       Align,
     }
@@ -639,7 +683,16 @@ return {
       Align,
     }
 
-    local Tabline = { ModeNvim, Buffers, Align, Pad, Tabs }
+    local Tabline = {
+      callback = function()
+        return #vim.api.nvim_list_bufs() > 1 or #vim.api.nvim_list_tabpages() > 1
+      end,
+      ModeNvim,
+      Buffers,
+      Align,
+      Pad,
+      Tabs
+    }
 
     local function component(active, inactive)
       return {
@@ -667,7 +720,9 @@ return {
 
     require("heirline").setup({
       opts = {
-        disable_winbar_cb = function(ev) return not from_disk(ev.buf) end,
+        disable_winbar_cb = function(ev)
+          return not from_disk(ev.buf)
+        end,
         colors = get_colors,
       },
       statusline = component(ActiveStatusline, InactiveStatusline),
@@ -686,6 +741,23 @@ return {
     vim.api.nvim_create_autocmd("ColorScheme", {
       callback = function()
         utils.on_colorscheme(get_colors)
+      end,
+    })
+
+    vim.api.nvim_create_autocmd({
+      "BufAdd",
+      "BufDelete",
+      "BufEnter",
+      "BufWinEnter",
+      "TabNew",
+      "TabClosed",
+      "VimEnter",
+    }, {
+      callback = function()
+        local num_listed_bufs = #vim.fn.getbufinfo({ buflisted = 1 })
+        local num_tabs = #vim.api.nvim_list_tabpages()
+
+        vim.opt.showtabline = (num_listed_bufs > 1 or num_tabs > 1) and 2 or 0
       end,
     })
   end,

@@ -4,7 +4,6 @@ return {
   config = function()
     local aerial = require("aerial")
     aerial.setup({
-      backends = { "lsp", "treesitter", "markdown", "asciidoc", "man" },
       layout = {
         win_opts = {
           number = true,
@@ -13,7 +12,6 @@ return {
           cursorline = true,
         },
       },
-      filter_kind = false,
       show_guides = true,
       nerd_font = true,
     })
