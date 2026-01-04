@@ -24,9 +24,6 @@ vim.diagnostic.config({
 
 -- Window-local options for windows onto buffers loaded from disk
 local file_winopts = {
-  -- Diagnostics and git signs
-  signcolumn = "yes",
-
   -- Editor line numbers
   number = true,
   relativenumber = true,

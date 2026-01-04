@@ -7,18 +7,19 @@ return {
     -- Flexible component priorities
     local priorities = {
       FileDir = 1,
-      GitBranch = 2,
-      ModeText = 3,
+      GitBranch = 5,
+      ModeText = 2,
+      LspActive = 6,
+      NavPosition = 4,
+      NavPercentage = 3,
     }
 
     -- Colors
     local function get_colors()
       local function get_hl(name, get_bg)
         get_bg = get_bg or false
-
         local fallback_fg = utils.get_highlight("Normal").fg
         local fallback_bg = utils.get_highlight("Normal").bg
-
         local hl
         if get_bg then
           hl = utils.get_highlight(name).bg or fallback_bg
@@ -68,6 +69,7 @@ return {
       end,
     })
     local Pad = { provider = "    ", hl = { bg = "none" } }
+    local Trunc = { provider = "%<" }
     local Align = { provider = "%=" }
 
     local Mode = {
@@ -280,7 +282,7 @@ return {
 
     local FileDir = {
       init = function(self)
-        self.dir = vim.fn.fnamemodify(self.filename, ":.:h")
+        self.dir = vim.fn.fnamemodify(self.filename, ":~:.:h")
         if self.dir == "" then self.dir = "[No Name]" end
       end,
       flexible = priorities.FileDir,
@@ -362,39 +364,56 @@ return {
 
     local LspActive = {
       condition = conditions.lsp_attached,
-      Pad,
       {
-        provider = function()
-          local names = {}
-          for _, server in pairs(vim.lsp.get_clients({ bufnr = 0 })) do
-            table.insert(names, server.name)
-          end
-          return " " .. table.concat(names, ", ")
-        end,
+        flexible = priorities.LspActive,
+        {
+          Pad,
+          {
+            provider = function()
+              local names = {}
+              for _, server in pairs(vim.lsp.get_clients({ bufnr = 0 })) do
+                table.insert(names, server.name)
+              end
+              return " " .. table.concat(names, ", ")
+            end,
+          },
+        },
+        { Pad, { provider = "" } },
+        { provider = "" },
       },
     }
 
     local Nav = {}
 
-    local NavPosition = { provider = "%10(%l/%L:%c%)" }
-
-    local NavPercentage = {
-      { provider = "%P" },
-      Space,
-      {
-        static = {
-          sbar = { "🭶", "🭷", "🭸", "🭹", "🭺", "🭻" }
-        },
-        provider = function(self)
-          local curr_line = vim.api.nvim_win_get_cursor(0)[1]
-          local lines = vim.api.nvim_buf_line_count(0)
-          local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
-          return string.rep(self.sbar[i], 2)
-        end,
-        hl = { fg = "bright_fg", bg = "bright_bg" },
-      },
+    local NavPosition = {
+      flexible = priorities.NavPosition,
+      { Pad,          { provider = "%10(%l/%L:%c%)" } },
+      { Pad,          { provider = "%6(%l:%c%)" } },
+      { provider = "" },
     }
 
+    local NavPercentage = {
+      flexible = priorities.NavPercentage,
+      {
+        Pad,
+        { provider = "%P" },
+        Space,
+        {
+          static = {
+            sbar = { "🭶", "🭷", "🭸", "🭹", "🭺", "🭻" }
+          },
+          provider = function(self)
+            local curr_line = vim.api.nvim_win_get_cursor(0)[1]
+            local lines = vim.api.nvim_buf_line_count(0)
+            local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
+            return string.rep(self.sbar[i], 2)
+          end,
+          hl = { fg = "bright_fg", bg = "bright_bg" },
+        },
+      },
+      { Pad,          { provider = "%P" } },
+      { provider = "" },
+    }
 
     local BreadcrumbsSep = { provider = "" }
 
@@ -425,7 +444,9 @@ return {
     local BreadcrumbsPath = {
       init = function(self)
         local names = {}
-        for name in string.gmatch(vim.fn.expand('%'), "([^/]+)") do table.insert(names, name) end
+        for name in string.gmatch(vim.fn.fnamemodify(vim.fs.relpath(vim.fn.getcwd(self.winnr), vim.fn.expand("%")) or "", ":~:."), "([^/]+)") do
+          table.insert(names, name)
+        end
         local children = {}
         for i, name in ipairs(names) do
           if i ~= 1 then table.insert(children, BreadcrumbsSep) end
@@ -629,14 +650,11 @@ return {
       FileDir,
       FileIcon,
       FileName,
-      FileFlags,
-      Pad
+      FileFlags
     )
 
     Nav = utils.insert(Nav,
-      Pad,
       NavPosition,
-      Pad,
       NavPercentage
     )
 
@@ -665,11 +683,11 @@ return {
       TabCloseButton,
     }
 
-    local ActiveStatusline = { ModeLeft, Git, Diagnostics, StatuslineFile, Align, LspActive, Nav, ModeRight }
+    local ActiveStatusline = { ModeLeft, Git, Diagnostics, Trunc, StatuslineFile, Align, LspActive, Nav, ModeRight }
 
     local InactiveStatusline = {
       hl = { fg = "inactive_fg", bg = "inactive_bg", force = true },
-      { ModeBar, Pad, StatuslineFile, Align, Nav, Pad, ModeBar },
+      { ModeBar, Pad, Trunc, StatuslineFile, Align, Nav, Pad, ModeBar },
     }
 
     local ActiveWinbar = {
@@ -688,6 +706,7 @@ return {
         return #vim.api.nvim_list_bufs() > 1 or #vim.api.nvim_list_tabpages() > 1
       end,
       ModeNvim,
+      Trunc,
       Buffers,
       Align,
       Pad,
