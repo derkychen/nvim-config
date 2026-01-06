@@ -14,6 +14,42 @@ return {
       NavPercentage = 3,
     }
 
+    local function component(active, inactive)
+      return {
+        fallthrough = false,
+        {
+          condition = conditions.is_active,
+          active,
+        },
+        inactive,
+      }
+    end
+
+    local function from_disk_editable(buf)
+      local buf_name = vim.api.nvim_buf_get_name(buf)
+      return vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "" and buf_name ~= "" and
+          buf_name ~= nil
+    end
+
+    local function relpath(winnr)
+      local path, filename
+      local winid = vim.fn.win_getid(winnr)
+      local buf = vim.api.nvim_win_get_buf(winid)
+      if vim.api.nvim_win_is_valid(winid) then
+        filename = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(winid))
+      end
+      if from_disk_editable(buf) then
+        path = vim.fs.relpath(vim.fn.getcwd(winnr), filename)
+        if path == nil then
+          path = vim.fs.relpath(vim.env.HOME, filename)
+        end
+      end
+      if path == nil then
+        path = vim.fn.expand("%")
+      end
+      return path
+    end
+
     -- Colors
     local function get_colors()
       local function get_hl(name, get_bg)
@@ -274,16 +310,18 @@ return {
       return {
         init = function(self)
           self.buf = buf or 0
-          self.filename = vim.api.nvim_buf_get_name(self.buf)
-          self.filetype = vim.bo[self.buf].filetype
+          self.filename = relpath(self.winnr)
+          self.filetype = vim.api.nvim_buf_get_option(vim.api.nvim_win_get_buf(vim.fn.win_getid(self.winnr)), "filetype")
         end,
       }
     end
 
     local FileDir = {
       init = function(self)
-        self.dir = vim.fn.fnamemodify(self.filename, ":~:.:h")
-        if self.dir == "" then self.dir = "[No Name]" end
+        self.dir = vim.fn.fnamemodify(self.filename, ":h")
+        if from_disk_editable(self.buf) then
+          self.dir = vim.fs.dirname(self.filename)
+        end
       end,
       flexible = priorities.FileDir,
       hl = { fg = "dimmed_fg" },
@@ -330,6 +368,9 @@ return {
     local FileName = {
       provider = function(self)
         local filename = vim.fn.fnamemodify(self.filename, ":t")
+        if from_disk_editable(self.buf) then
+          filename = vim.fs.basename(self.filename)
+        end
         if filename == "" then return "[No Name]" end
         return filename
       end,
@@ -444,7 +485,7 @@ return {
     local BreadcrumbsPath = {
       init = function(self)
         local names = {}
-        for name in string.gmatch(vim.fn.fnamemodify(vim.fs.relpath(vim.fn.getcwd(self.winnr), vim.fn.expand("%")) or "", ":~:."), "([^/]+)") do
+        for name in string.gmatch(relpath(self.winnr), "([^/]+)") do
           table.insert(names, name)
         end
         local children = {}
@@ -713,25 +754,8 @@ return {
       Tabs
     }
 
-    local function component(active, inactive)
-      return {
-        fallthrough = false,
-        {
-          condition = conditions.is_active,
-          active,
-        },
-        inactive,
-      }
-    end
-
-    local function from_disk(buf)
-      local buf_name = vim.api.nvim_buf_get_name(buf)
-      return vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "" and buf_name ~= "" and
-          buf_name ~= nil
-    end
-
     local StatusColumn = {
-      condition = function() return from_disk(vim.api.nvim_get_current_buf()) end,
+      condition = function() return from_disk_editable(vim.api.nvim_get_current_buf()) end,
       SignColumn,
       NumberColumn,
       FoldColumn,
@@ -740,7 +764,7 @@ return {
     require("heirline").setup({
       opts = {
         disable_winbar_cb = function(ev)
-          return not from_disk(ev.buf)
+          return not from_disk_editable(ev.buf)
         end,
         colors = get_colors,
       },

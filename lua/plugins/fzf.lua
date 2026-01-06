@@ -4,8 +4,9 @@ return {
   config = function()
     local fzf_lua = require("fzf-lua")
 
-    fzf_lua.setup()
-    fzf_lua.register_ui_select()
+    fzf_lua.setup({
+      ui_select = true,
+    })
 
     vim.keymap.set("n", "<Leader>ff", fzf_lua.files, {})
     vim.keymap.set("n", "<Leader>fr", fzf_lua.oldfiles, {})
