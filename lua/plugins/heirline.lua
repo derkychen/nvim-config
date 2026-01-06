@@ -310,18 +310,16 @@ return {
       return {
         init = function(self)
           self.buf = buf or 0
-          self.filename = relpath(self.winnr)
-          self.filetype = vim.api.nvim_buf_get_option(vim.api.nvim_win_get_buf(vim.fn.win_getid(self.winnr)), "filetype")
+          self.filename = vim.api.nvim_buf_get_name(buf)
+          self.filetype = vim.bo[self.buf].filetype
         end,
       }
     end
 
     local FileDir = {
       init = function(self)
-        self.dir = vim.fn.fnamemodify(self.filename, ":h")
-        if from_disk_editable(self.buf) then
-          self.dir = vim.fs.dirname(self.filename)
-        end
+        local filepath = relpath(self.winnr)
+        self.dir = vim.fn.fnamemodify(filepath, ":h")
       end,
       flexible = priorities.FileDir,
       hl = { fg = "dimmed_fg" },
