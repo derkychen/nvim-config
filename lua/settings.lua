@@ -1,4 +1,5 @@
 local icons = require("icons")
+local utils = require("utils")
 
 -- <Leader> key
 vim.g.mapleader = " "
@@ -78,10 +79,7 @@ end
 
 -- Decide what window-local options to apply
 local function apply_winlocal(buf)
-  local buf_name = vim.api.nvim_buf_get_name(buf)
-
-  -- Apply window-local options for files if buffer in window is from disk and editable
-  if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "" and buf_name ~= "" and buf_name ~= nil then
+  if utils.valid_normal_buf(buf) then
     set_winlocal(vim.api.nvim_get_current_win(), file_winopts)
   end
 end

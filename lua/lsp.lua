@@ -14,3 +14,6 @@ vim.lsp.enable("clangd")
 -- Markdown
 vim.lsp.enable("marksman")
 vim.lsp.enable("remark_ls")
+
+-- R
+vim.lsp.enable("r_language_server")
