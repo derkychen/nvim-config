@@ -16,4 +16,4 @@ vim.lsp.enable("marksman")
 vim.lsp.enable("remark_ls")
 
 -- R
-vim.lsp.enable("r_language_server")
+vim.lsp.enable("air")
