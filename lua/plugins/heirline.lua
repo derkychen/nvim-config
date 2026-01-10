@@ -8,27 +8,45 @@ return {
 
     -- Flexible component priorities
     local priorities = {
-      FileDir = 1,
-      GitBranch = 5,
       ModeText = 2,
+      GitBranch = 5,
+      GitDiff = 5,
+      Diagnostic = 5,
+      FileDir = 1,
       LspActive = 6,
       NavPosition = 4,
       NavPercentage = 3,
     }
 
     -- Common components
-    local Space = setmetatable({ provider = " " }, {
-      __call = function(_, num)
-        return { provider = string.rep(" ", num or 1) }
-      end,
-    })
-    local Pad = { provider = "    ", hl = { bg = "none" } }
+    local function Space(num)
+      return { provider = string.rep(" ", num or 1) }
+    end
     local HalfPad = { provider = "  ", hl = { bg = "none" } }
     local Trunc = { provider = "%<" }
     local Align = { provider = "%=" }
     local Bar = { provider = "█" }
 
-    local function add_padding(component)
+    -- Pad leftmost components on the right
+    local function pad_right(component)
+      return {
+        condition = component.condition,
+        component,
+        HalfPad,
+      }
+    end
+
+    -- Pad rightmost components on the left
+    local function pad_left(component)
+      return {
+        condition = component.condition,
+        HalfPad,
+        component,
+      }
+    end
+
+    -- Pad middle components symmetrically
+    local function pad_symmetric(component)
       return {
         condition = component.condition,
         HalfPad,
@@ -37,7 +55,8 @@ return {
       }
     end
 
-    local function component(active, inactive)
+    -- Combine active and inactive versions of component
+    local function active_inactive_component(active, inactive)
       return {
         fallthrough = false,
         {
@@ -48,7 +67,7 @@ return {
       }
     end
 
-    -- Colors
+    -- Get colors from colorscheme highlights
     local function get_colors()
       local function get_hl(name, get_bg)
         get_bg = get_bg or false
@@ -96,6 +115,19 @@ return {
       }
     end
 
+    -- Parent component that stores window-local information
+    local WinInfo = {
+      init = function(self)
+        self.winid = vim.fn.win_getid(self.winnr)
+        self.buf = vim.api.nvim_win_get_buf(self.winid)
+        self.winrelpath = utils.winrelpath(self.winid)
+        self.winreldir = vim.fn.fnamemodify(self.winrelpath, ":h")
+        self.filename = vim.fn.fnamemodify(self.winrelpath, ":t")
+        self.filetype = vim.bo[self.buf].filetype
+      end,
+    }
+
+    -- Parent component that stores mode information
     local Mode = {
       static = {
         colors = {
@@ -174,7 +206,7 @@ return {
         }
       end,
       {
-        Space,
+        Space(),
         {
           provider = function(self)
             return "%9(" .. self.names[self.mode] .. "%)"
@@ -182,7 +214,7 @@ return {
         },
       },
       {
-        Space,
+        Space(),
         {
           provider = function(self)
             return self.names[self.mode]
@@ -190,7 +222,7 @@ return {
         },
       },
       {
-        Space,
+        Space(),
         {
           provider = function(self)
             return string.sub(self.names[self.mode], 1, 1)
@@ -212,7 +244,7 @@ return {
       flexible = priorities.GitBranch,
       hl = { fg = "git_branch" },
       {
-        Space,
+        Space(),
         {
           provider = function(self)
             local branch = self.status_dict.head
@@ -222,27 +254,39 @@ return {
             return " " .. branch
           end,
         },
-        Space,
+        Space(),
       },
       {
-        Space,
+        Space(),
         { provider = "" },
-        Space,
+        Space(),
       },
     }
 
-    local function GitDiff(icon, type)
+    local function GitDiff(type)
       return {
+        static = {
+          icons = {
+            added = "",
+            removed = "",
+            changed = "󰜥",
+          },
+        },
         condition = function(self)
           self.count = self.status_dict[type] or 0
           return self.count > 0
         end,
+        flexible = priorities.GitDiff,
         {
           hl = { fg = "git_" .. type },
-          { provider = icon },
-          Space,
+          { provider = function(self) return self.icons[type] end },
+          Space(),
           { provider = function(self) return self.count end },
-          Space,
+          Space(),
+        },
+        {
+          { provider = function(self) return self.count end },
+          Space(),
         },
       }
     end
@@ -252,26 +296,36 @@ return {
         return self.status_dict.added ~= 0 or self.status_dict.removed ~= 0 or self.status_dict.changed ~= 0
       end,
       {
-        GitDiff("", "added"),
-        GitDiff("", "removed"),
-        GitDiff("󰜥", "changed"),
+        GitDiff("added"),
+        GitDiff("removed"),
+        GitDiff("changed"),
       },
     }
 
     local function Diagnostic(type, last)
       local spacer
       last = last or false
-      if last then spacer = nil else spacer = Space end
+      if last then spacer = nil else spacer = Space() end
       local icon = vim.diagnostic.config().signs.text[vim.diagnostic.severity[string.upper(type)]]
       return {
         condition = function(self)
           self.count = self.c[vim.diagnostic.severity[string.upper(type)]] or 0
           return self.count > 0
         end,
+        flexible = priorities.Diagnostic,
         {
           {
             provider = function(self)
               return (icon .. " " .. self.count)
+            end,
+            hl = { fg = "diag_" .. type },
+          },
+          spacer,
+        },
+        {
+          {
+            provider = function(self)
+              return self.count
             end,
             hl = { fg = "diag_" .. type },
           },
@@ -285,7 +339,7 @@ return {
       init = function(self)
         self.c = vim.diagnostic.count(0)
       end,
-      add_padding({
+      pad_symmetric({
         Diagnostic("error"),
         Diagnostic("warn"),
         Diagnostic("info"),
@@ -293,41 +347,27 @@ return {
       }),
     }
 
-    local function File(buf)
-      return {
-        init = function(self)
-          self.buf = buf or 0
-          self.filename = vim.api.nvim_buf_get_name(buf)
-          self.filetype = vim.bo[self.buf].filetype
-        end,
-      }
-    end
-
     local FileDir = {
-      init = function(self)
-        local filepath = utils.winrelpath(self.winnr)
-        self.dir = vim.fn.fnamemodify(filepath, ":h")
-      end,
       flexible = priorities.FileDir,
       hl = { fg = "dimmed_fg" },
       {
         {
           provider = function(self)
-            local trail = self.dir:sub(-1) == "/" and "" or "/"
-            return self.dir .. trail
+            local trail = self.winreldir:sub(-1) == "/" and "" or "/"
+            return self.winreldir .. trail
           end,
         },
-        Space,
+        Space(),
       },
       {
         {
           provider = function(self)
-            local short_dir = vim.fn.pathshorten(self.dir)
+            local short_dir = vim.fn.pathshorten(self.winreldir)
             local trail = short_dir:sub(-1) == "/" and "" or "/"
             return short_dir .. trail
           end,
         },
-        Space,
+        Space(),
       },
       { provider = "" },
     }
@@ -347,15 +387,12 @@ return {
           return self.icon
         end,
       },
-      Space,
+      Space(),
     }
 
     local FileName = {
       provider = function(self)
-        local filename = vim.fn.fnamemodify(self.filename, ":t")
-        if utils.valid_normal_buf(self.buf) then
-          filename = vim.fs.basename(self.filename)
-        end
+        local filename = self.filename
         if filename == "" then return "[No Name]" end
         return filename
       end,
@@ -367,7 +404,7 @@ return {
           return vim.bo[self.buf].modified
         end,
         {
-          Space,
+          Space(),
           {
             provider = "[+]",
             hl = { fg = "flag_fg" },
@@ -379,7 +416,7 @@ return {
           return not vim.bo.modifiable or vim.bo.readonly
         end,
         {
-          Space,
+          Space(),
           {
             provider = "",
             hl = { fg = "dimmed_fg" },
@@ -392,7 +429,7 @@ return {
       condition = hconds.lsp_attached,
       {
         flexible = priorities.LspActive,
-        add_padding({
+        pad_symmetric({
           provider = function()
             local names = {}
             for _, server in pairs(vim.lsp.get_clients({ bufnr = 0 })) do
@@ -401,7 +438,7 @@ return {
             return " " .. table.concat(names, ", ")
           end,
         }),
-        add_padding({ provider = "" }),
+        pad_symmetric({ provider = "" }),
         { provider = "" },
       },
     }
@@ -410,16 +447,16 @@ return {
 
     local NavPosition = {
       flexible = priorities.NavPosition,
-      add_padding({ provider = "%10(%l/%L:%c%)" }),
-      add_padding({ provider = "%6(%l:%c%)" }),
+      pad_symmetric({ provider = "%10(%l/%L:%c%)" }),
+      pad_symmetric({ provider = "%6(%l:%c%)" }),
       { provider = "" },
     }
 
     local NavPercentage = {
       flexible = priorities.NavPercentage,
-      add_padding({
+      pad_symmetric({
         { provider = "%P" },
-        Space,
+        Space(),
         {
           static = {
             sbar = { "🭶", "🭷", "🭸", "🭹", "🭺", "🭻" }
@@ -433,26 +470,22 @@ return {
           hl = { fg = "bright_fg", bg = "bright_bg" },
         },
       }),
-      add_padding({ provider = "%P" }),
+      pad_symmetric({ provider = "%P" }),
       { provider = "" },
     }
 
     local BreadcrumbsSep = { provider = "" }
 
     -- figure out window vs buffer stuff
-    local function BreadcrumbsPathItem(name, is_file)
+    local function BreadcrumbsPathItem(name)
       local get_icon = require("mini.icons").get
-      is_file = is_file or false
       local spacer
       local icon, hl
       icon, hl, _ = get_icon("directory", name)
-      if is_file then
-        icon, hl = get_icon("file", name)
-      end
-      if icon == "" then spacer = nil else spacer = Space end
+      if icon == "" then spacer = nil else spacer = Space() end
       if name ~= "" then
         return {
-          Space,
+          Space(),
           {
             provider = icon,
             hl = { fg = hutils.get_highlight(hl).fg },
@@ -461,7 +494,7 @@ return {
           {
             provider = name,
           },
-          Space,
+          Space(),
         }
       end
     end
@@ -469,16 +502,21 @@ return {
     local BreadcrumbsPath = {
       init = function(self)
         local names = {}
-        for name in string.gmatch(utils.winrelpath(self.winnr), "([^/]+)") do
+        for name in string.gmatch(self.winrelpath, "([^/]+)") do
           table.insert(names, name)
         end
         local children = {}
         for i, name in ipairs(names) do
-          if i ~= 1 then table.insert(children, BreadcrumbsSep) end
           if i ~= #names then
             table.insert(children, BreadcrumbsPathItem(name))
+            table.insert(children, BreadcrumbsSep)
           else
-            table.insert(children, BreadcrumbsPathItem(name, true))
+            table.insert(children, {
+              Space(),
+              FileIcon,
+              FileName,
+              Space(),
+            })
           end
         end
         self.child = self:new(children, 1)
@@ -492,7 +530,7 @@ return {
       local spacer
       local icon = symbol.icon or ""
       local name = symbol.name or ""
-      if icon == "" then spacer = nil else spacer = Space end
+      if icon == "" then spacer = nil else spacer = Space() end
       local kind
       if type(symbol.kind) == "string" then
         kind = symbol.kind
@@ -501,7 +539,7 @@ return {
       end
       if name ~= "" then
         return {
-          Space,
+          Space(),
           {
             provider = icon,
             hl = { fg = hutils.get_highlight("Aerial" .. kind .. "Icon").fg },
@@ -511,7 +549,7 @@ return {
             provider = name,
             hl = { fg = hutils.get_highlight("Aerial" .. kind).fg },
           },
-          Space,
+          Space(),
         }
       end
     end
@@ -548,15 +586,9 @@ return {
 
     local BufferFile = {
       init = function(self)
-        self.child = self:new(hutils.insert(File(self.bufnr),
-          FileBufnr,
-          FileIcon,
-          FileName,
-          FileFlags
-        ), 1)
-      end,
-      provider = function(self)
-        return self.child:eval()
+        self.buf = self.bufnr or 0
+        self.filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(self.buf), ":t")
+        self.filetype = vim.bo[self.buf].filetype
       end,
       on_click = {
         callback = function(_, minwid, _, button)
@@ -575,6 +607,12 @@ return {
       },
       hl = {}
     }
+    BufferFile = hutils.insert(BufferFile,
+      FileBufnr,
+      FileIcon,
+      FileName,
+      FileFlags
+    )
 
     local BufferCloseButton = {
       condition = function(self)
@@ -600,7 +638,7 @@ return {
     }
 
     local Buffer = {
-      Space,
+      Space(),
       {
         hl = function(self)
           if self.is_active then
@@ -609,10 +647,10 @@ return {
             return { fg = "buffer_inactive_fg", bg = "buffer_inactive_bg", force = true }
           end
         end,
-        Space,
+        Space(),
         BufferFile,
         BufferCloseButton,
-        Space,
+        Space(),
       },
     }
 
@@ -646,41 +684,41 @@ return {
     local NumberColumn = {
       condition = function() return vim.opt_local.number end,
       { provider = "%l" },
-      Space,
+      Space(),
     }
 
     local FoldColumn = {
       condition = function() return vim.opt_local.foldenable and vim.v.virtnum == 0 end,
       { provider = "%C" },
-      Space,
+      Space(),
     }
 
 
-    local ModeIndicator = hutils.insert(Mode,
+    local ModeIndicatorLeft = pad_right(hutils.insert(Mode,
       ModeBar,
       ModeText
-    )
+    ))
 
-    Git = add_padding(hutils.insert(Git,
+    Git = pad_symmetric(hutils.insert(Git,
       GitBranch,
       GitDiffs
     ))
 
-    local StatuslineFile = add_padding(hutils.insert(File(0),
+    local StatuslineFile = pad_symmetric({
       FileDir,
       FileIcon,
       FileName,
       FileFlags
-    ))
+    })
 
     Nav = hutils.insert(Nav,
       NavPosition,
       NavPercentage
     )
 
-    local ModeRight = hutils.insert(Mode,
+    local ModeBarRight = pad_left(hutils.insert(Mode,
       ModeBar
-    )
+    ))
 
     local Breadcrumbs = { BreadcrumbsPath, BreadcrumbsAerial }
 
@@ -702,9 +740,8 @@ return {
       TabCloseButton,
     }
 
-    local ActiveStatusline = {
-      ModeIndicator,
-      HalfPad,
+    local ActiveStatusline = hutils.insert(WinInfo, {
+      ModeIndicatorLeft,
       Git,
       Diagnostics,
       Trunc,
@@ -712,33 +749,31 @@ return {
       Align,
       LspActive,
       Nav,
-      HalfPad,
-      ModeRight,
-    }
+      ModeBarRight,
+    })
 
-    local InactiveStatusline = {
+    local InactiveStatusline = hutils.insert(WinInfo, {
       hl = { fg = "inactive_fg", bg = "inactive_bg", force = true },
-      Bar,
-      HalfPad,
+      pad_right(Bar),
       Trunc,
       StatuslineFile,
       Align,
       Nav,
       Bar,
       HalfPad,
-      Bar,
-    }
+      pad_left(Bar),
+    })
 
-    local ActiveWinbar = {
+    local ActiveWinbar = hutils.insert(WinInfo, {
       Breadcrumbs,
       Align,
-    }
+    })
 
-    local InactiveWinbar = {
+    local InactiveWinbar = hutils.insert(WinInfo, {
       hl = { fg = "inactive_fg", bg = "inactive_bg", force = true },
       Breadcrumbs,
       Align,
-    }
+    })
 
     local Tabline = {
       callback = function()
@@ -748,19 +783,18 @@ return {
       Trunc,
       Buffers,
       Align,
-      Pad,
-      Tabs,
+      pad_left(Tabs),
     }
 
-    local StatusColumn = {
+    local StatusColumn = hutils.insert(WinInfo, {
       condition = function(self)
-        return utils.valid_normal_buf_winnr(self.winnr)
+        return utils.valid_normal_buf(self.buf)
       end,
-      Space,
+      Space(),
       SignColumn,
       NumberColumn,
       FoldColumn,
-    }
+    })
 
     require("heirline").setup({
       opts = {
@@ -769,8 +803,8 @@ return {
         end,
         colors = get_colors,
       },
-      statusline = component(ActiveStatusline, InactiveStatusline),
-      winbar = component(ActiveWinbar, InactiveWinbar),
+      statusline = active_inactive_component(ActiveStatusline, InactiveStatusline),
+      winbar = active_inactive_component(ActiveWinbar, InactiveWinbar),
       tabline = Tabline,
       statuscolumn = StatusColumn,
     })
@@ -786,23 +820,6 @@ return {
       callback = function()
         hutils.on_colorscheme(get_colors)
       end,
-    })
-
-    vim.api.nvim_create_autocmd({
-      "BufAdd",
-      "BufDelete",
-      "BufEnter",
-      "BufWinEnter",
-      "TabNew",
-      "TabClosed",
-      "VimEnter",
-    }, {
-      callback = vim.schedule_wrap(function()
-        local num_listed_bufs = #vim.fn.getbufinfo({ buflisted = 1 })
-        local num_tabs = #vim.api.nvim_list_tabpages()
-
-        vim.opt.showtabline = (num_listed_bufs > 1 or num_tabs > 1) and 2 or 0
-      end)
     })
   end,
 }
