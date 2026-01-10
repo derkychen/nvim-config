@@ -82,6 +82,6 @@ return {
       end,
     })
 
-    vim.keymap.set("n", "<Leader>oo", oil.open, {})
+    vim.keymap.set("n", "<Leader>oo", oil.open, { desc = "Open Oil" })
   end,
 }

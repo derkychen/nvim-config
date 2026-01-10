@@ -15,7 +15,7 @@ return {
       show_guides = true,
       nerd_font = true,
     })
-    vim.keymap.set("n", "<Leader>a", aerial.toggle, {})
-    vim.keymap.set("n", "<Leader>fs", aerial.fzf_lua_picker, {})
+    vim.keymap.set("n", "<Leader>a", aerial.toggle, { desc = "Toggle Aerial window" })
+    vim.keymap.set("n", "<Leader>fs", aerial.fzf_lua_picker, { desc = "Find symbol" })
   end,
 }

@@ -254,12 +254,12 @@ vim.api.nvim_create_user_command("SessionRenameCurrent", M.rename_current, {})
 vim.api.nvim_create_user_command("SessionRenameByName", M.rename_by_name, {})
 
 -- Keymaps
-vim.keymap.set("n", "<Leader>ss", M.save_current, {})
-vim.keymap.set("n", "<Leader>sa", M.save_to_name, {})
-vim.keymap.set("n", "<Leader>sl", M.load_by_name, {})
-vim.keymap.set("n", "<Leader>sdc", M.delete_current, {})
-vim.keymap.set("n", "<Leader>sdn", M.delete_by_name, {})
-vim.keymap.set("n", "<Leader>src", M.rename_current, {})
-vim.keymap.set("n", "<Leader>srn", M.rename_by_name, {})
+vim.keymap.set("n", "<Leader>ss", M.save_current, { desc = "Save current session" })
+vim.keymap.set("n", "<Leader>sa", M.save_to_name, { desc = "Save current session to name" })
+vim.keymap.set("n", "<Leader>sl", M.load_by_name, { desc = "Load session" })
+vim.keymap.set("n", "<Leader>sdc", M.delete_current, { desc = "Delete current session" })
+vim.keymap.set("n", "<Leader>sdn", M.delete_by_name, { desc = "Delete session by name" })
+vim.keymap.set("n", "<Leader>src", M.rename_current, { desc = "Rename current session" })
+vim.keymap.set("n", "<Leader>srn", M.rename_by_name, { desc = "Rename session by name" })
 
 return M

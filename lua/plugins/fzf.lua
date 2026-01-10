@@ -8,11 +8,11 @@ return {
       ui_select = true,
     })
 
-    vim.keymap.set("n", "<Leader>ff", fzf_lua.files, {})
-    vim.keymap.set("n", "<Leader>fr", fzf_lua.oldfiles, {})
-    vim.keymap.set("n", "<Leader>fg", fzf_lua.live_grep, {})
-    vim.keymap.set("n", "<Leader>fb", fzf_lua.buffers, {})
-    vim.keymap.set("n", "<Leader>ft", fzf_lua.tabs, {})
+    vim.keymap.set("n", "<Leader>ff", fzf_lua.files, { desc = "Find files" })
+    vim.keymap.set("n", "<Leader>fr", fzf_lua.oldfiles, { desc = "Find recent files" })
+    vim.keymap.set("n", "<Leader>fg", fzf_lua.live_grep, { desc = "Live grep" })
+    vim.keymap.set("n", "<Leader>fb", fzf_lua.buffers, { desc = "Find buffers" })
+    vim.keymap.set("n", "<Leader>ft", fzf_lua.tabs, { desc = "Find tabs" })
 
     local home = vim.fn.expand("~")
 
@@ -57,6 +57,6 @@ return {
 
     vim.keymap.set("n", "<Leader>fd", function()
       vim.cmd("TcdThenCwdExplorer")
-    end, {})
+    end, { desc = "Find, change to, explore directory" })
   end,
 }
