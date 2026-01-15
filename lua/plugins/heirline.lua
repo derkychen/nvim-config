@@ -8,6 +8,7 @@ return {
 
     -- Flexible component priorities
     local priorities = {
+      Pad = 7,
       ModeText = 2,
       GitBranch = 5,
       GitDiff = 5,
@@ -22,7 +23,12 @@ return {
     local function Space(num)
       return { provider = string.rep(" ", num or 1) }
     end
-    local HalfPad = { provider = "  ", hl = { bg = "none" } }
+    local HalfPad = {
+      hl = { bg = "none" },
+      flexible = priorities.Pad,
+      Space(2),
+      Space(),
+    }
     local Trunc = { provider = "%<" }
     local Align = { provider = "%=" }
     local Bar = { provider = "█" }
@@ -55,7 +61,7 @@ return {
       }
     end
 
-    -- Combine active and inactive versions of component
+    -- Combine active and inactive window versions of component
     local function active_inactive_component(active, inactive)
       return {
         fallthrough = false,
@@ -120,7 +126,7 @@ return {
       init = function(self)
         self.winid = vim.fn.win_getid(self.winnr)
         self.buf = vim.api.nvim_win_get_buf(self.winid)
-        self.winrelpath = utils.winrelpath(self.winid)
+        self.winrelpath = vim.fn.expand("%:~:.")
         self.winreldir = vim.fn.fnamemodify(self.winrelpath, ":h")
         self.filename = vim.fn.fnamemodify(self.winrelpath, ":t")
         self.filetype = vim.bo[self.buf].filetype
@@ -276,9 +282,9 @@ return {
           self.count = self.status_dict[type] or 0
           return self.count > 0
         end,
+        hl = { fg = "git_" .. type },
         flexible = priorities.GitDiff,
         {
-          hl = { fg = "git_" .. type },
           { provider = function(self) return self.icons[type] end },
           Space(),
           { provider = function(self) return self.count end },
@@ -412,8 +418,8 @@ return {
         },
       },
       {
-        condition = function()
-          return not vim.bo.modifiable or vim.bo.readonly
+        condition = function(self)
+          return not vim.bo[self.buf].modifiable or vim.bo[self.buf].readonly
         end,
         {
           Space(),
@@ -476,8 +482,7 @@ return {
 
     local BreadcrumbsSep = { provider = "" }
 
-    -- figure out window vs buffer stuff
-    local function BreadcrumbsPathItem(name)
+    local function BreadcrumbsDirItem(name)
       local get_icon = require("mini.icons").get
       local spacer
       local icon, hl
@@ -500,6 +505,9 @@ return {
     end
 
     local BreadcrumbsPath = {
+      condition = function (self)
+        return vim.fn.filereadable(self.buf)
+      end,
       init = function(self)
         local names = {}
         for name in string.gmatch(self.winrelpath, "([^/]+)") do
@@ -508,7 +516,7 @@ return {
         local children = {}
         for i, name in ipairs(names) do
           if i ~= #names then
-            table.insert(children, BreadcrumbsPathItem(name))
+            table.insert(children, BreadcrumbsDirItem(name))
             table.insert(children, BreadcrumbsSep)
           else
             table.insert(children, {
@@ -585,11 +593,6 @@ return {
     }
 
     local BufferFile = {
-      init = function(self)
-        self.buf = self.bufnr or 0
-        self.filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(self.buf), ":t")
-        self.filetype = vim.bo[self.buf].filetype
-      end,
       on_click = {
         callback = function(_, minwid, _, button)
           if (button == "m") then
@@ -605,14 +608,11 @@ return {
         end,
         name = "buffer_callback",
       },
-      hl = {}
-    }
-    BufferFile = hutils.insert(BufferFile,
       FileBufnr,
       FileIcon,
       FileName,
       FileFlags
-    )
+    }
 
     local BufferCloseButton = {
       condition = function(self)
@@ -638,6 +638,11 @@ return {
     }
 
     local Buffer = {
+      init = function(self)
+        self.buf = self.bufnr or 0
+        self.filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(self.buf), ":t")
+        self.filetype = vim.bo[self.buf].filetype
+      end,
       Space(),
       {
         hl = function(self)
@@ -661,22 +666,32 @@ return {
       provider = "",
     }
 
-    local Tab = {
+    local TabNumber = {
       provider = function(self)
         return "%" .. self.tabnr .. "T " .. self.tabpage .. " %T"
-      end,
-      hl = function(self)
-        if self.is_active then
-          return { fg = "tab_active_fg", bg = "tab_active_bg" }
-        else
-          return { fg = "tab_inactive_fg", bg = "tab_inactive_bg", force = true }
-        end
       end,
     }
 
     local TabCloseButton = {
-      provider = "%999X  %X",
-      hl = { fg = "close" },
+      provider = function(self)
+        return "%" .. self.tabnr .. "X%X"
+      end,
+    }
+
+    local Tab = {
+      Space(),
+      {
+        hl = function(self)
+          if self.is_active then
+            return { fg = "tab_active_fg", bg = "tab_active_bg" }
+          else
+            return { fg = "tab_inactive_fg", bg = "tab_inactive_bg", force = true }
+          end
+        end,
+        TabNumber,
+        TabCloseButton,
+        Space(),
+      },
     }
 
     local SignColumn = { provider = "%s" }
@@ -692,7 +707,6 @@ return {
       { provider = "%C" },
       Space(),
     }
-
 
     local ModeIndicatorLeft = pad_right(hutils.insert(Mode,
       ModeBar,
@@ -728,16 +742,13 @@ return {
       ModeBar
     )
 
-    local Buffers = {
-      hutils.make_buflist(Buffer),
-    }
+    local Buffers = hutils.make_buflist(Buffer)
 
     local Tabs = {
       condition = function()
-        return #vim.api.nvim_list_tabpages() >= 2
+        return #vim.api.nvim_list_tabpages() > 1
       end,
       hutils.make_tablist(Tab),
-      TabCloseButton,
     }
 
     local ActiveStatusline = hutils.insert(WinInfo, {
@@ -759,8 +770,6 @@ return {
       StatuslineFile,
       Align,
       Nav,
-      Bar,
-      HalfPad,
       pad_left(Bar),
     })
 
@@ -809,6 +818,7 @@ return {
       statuscolumn = StatusColumn,
     })
 
+    -- Redraw statusline and tabline on mode change to prevent delay
     vim.api.nvim_create_autocmd("ModeChanged", {
       callback = vim.schedule_wrap(function()
         vim.cmd.redrawstatus()
@@ -816,10 +826,24 @@ return {
       end)
     })
 
+    -- Update colors on colorscheme change
     vim.api.nvim_create_autocmd("ColorScheme", {
       callback = function()
         hutils.on_colorscheme(get_colors)
       end,
+    })
+
+    -- Show tabline based on if there are listed buffers other than the active one
+    vim.api.nvim_create_autocmd({
+      "BufAdd",
+      "BufDelete",
+      "BufEnter",
+      "BufWinEnter",
+    }, {
+      callback = vim.schedule_wrap(function()
+        local num_bufs = #vim.fn.getbufinfo({ buflisted = 1 }) + (not vim.bo.buflisted and 1 or 0)
+        vim.opt.showtabline = num_bufs > 1 and 2 or 1
+      end)
     })
   end,
 }
