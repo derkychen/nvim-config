@@ -12,6 +12,7 @@ vim.opt.softtabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.autoindent = true
 
+-- Diagnostic icons
 vim.diagnostic.config({
   signs = {
     text = {
@@ -23,74 +24,74 @@ vim.diagnostic.config({
   },
 })
 
--- Window-local options for windows onto buffers loaded from disk
-local file_winopts = {
-  -- Editor line numbers
-  number = true,
-  relativenumber = true,
+-- Generate window-local options
+local function winopts(winid)
+  local buf = vim.api.nvim_win_get_buf(winid)
 
-  -- Line and column highlighting
-  cursorline = true,
-  cursorcolumn = true,
+  local sw = vim.bo[buf].shiftwidth
+  if sw == 0 then sw = vim.bo[buf].tabstop end
 
-  -- Line wrap at words, match indent
-  linebreak = true,
-  breakindent = true,
+  return {
+    -- Editor line numbers
+    number = true,
+    relativenumber = true,
 
-  -- Code folding with Treesitter
-  foldmethod = "expr",
-  foldexpr = "v:lua.vim.treesitter.foldexpr()",
-  foldtext = "",
-  foldenable = true,
-  foldlevel = 99,
-  foldcolumn = "1",
+    -- Line and column highlighting
+    cursorline = true,
+    cursorcolumn = true,
 
-  fillchars = {
-    fold = " ",
-    foldopen = icons.arrows.down,
-    foldclose = icons.arrows.right,
-    -- foldinner = " ", -- only available next release
-    foldsep = " ",
-  },
+    -- Line wrap at words, match indent
+    linebreak = true,
+    breakindent = true,
 
-  list = true,
-  listchars = function(win_id)
-    local sw = vim.bo.shiftwidth
-    if sw == 0 then sw = vim.bo.tabstop end
-    return {
-      tab = "↦ ",
-      leadmultispace = "│" .. string.rep(" ", math.max(sw - 1, 0)),
-      trail = "⋅",
-    }
-  end,
-}
+    -- Code folding with Treesitter
+    foldmethod = "expr",
+    foldexpr = "v:lua.vim.treesitter.foldexpr()",
+    foldtext = "",
+    foldenable = true,
+    foldlevel = 99,
+    foldcolumn = "1",
 
--- Set window-local options
-local function set_winlocal(win_id, winopts)
-  vim.api.nvim_win_call(win_id, function()
-    for opt, val in pairs(winopts) do
-      if type(val) == "function" then
-        val = val(win_id)
-      end
-      vim.opt_local[opt] = val
-    end
-  end)
+    fillchars = "fold: ,"
+        .. "foldopen:" .. icons.arrows.down .. ","
+        .. "foldclose:" .. icons.arrows.right .. ","
+        -- .. "foldinner: ," -- only available next release
+        .. "foldsep: ,",
+
+    list = true,
+    listchars = "tab:↦ ,"
+        .. "leadmultispace:" .. "│" .. string.rep(" ", math.max(sw - 1, 0)) .. ","
+        .. "trail:⋅,",
+  }
 end
 
--- Decide what window-local options to apply
-local function apply_winlocal(buf)
-  if utils.valid_normal_buf(buf) then
-    set_winlocal(vim.api.nvim_get_current_win(), file_winopts)
+-- Set window-local options
+local function set_winlocal(winid)
+  for opt, val in pairs(winopts(winid)) do
+    vim.api.nvim_set_option_value(opt, val, {
+      win = winid,
+      scope = "local",
+    })
+  end
+end
+
+-- Decide what windows to apply window-local options for
+local function apply_winlocal()
+  for _, winid in ipairs(vim.api.nvim_list_wins()) do
+    local buf = vim.api.nvim_win_get_buf(winid)
+    if utils.valid_normal_buf(buf) then
+      set_winlocal(winid)
+    end
   end
 end
 
 -- Set window-local options when buffer is shown in window, and when filetype is set
 vim.api.nvim_create_autocmd({ "BufWinEnter", "FileType" }, {
-  callback = function(ev) apply_winlocal(ev.buf) end,
+  callback = apply_winlocal,
 })
 
 -- Adapt window-local options when relevant options are set
 vim.api.nvim_create_autocmd("OptionSet", {
   pattern = { "shiftwidth", "tabstop", "list" },
-  callback = function(ev) apply_winlocal(ev.buf) end,
+  callback = apply_winlocal,
 })
