@@ -57,22 +57,14 @@ return {
       silent = true,
     })
 
-    vim.api.nvim_create_autocmd("User", {
-      pattern = "MiniStarterOpened",
-      callback = function(ev)
-        local buf = ev.buf
-
-        vim.api.nvim_create_autocmd({ "WinResized", "FocusGained" }, {
-          buffer = buf,
-          callback = function()
-            vim.schedule(function()
-              if not vim.api.nvim_buf_is_valid(buf) then return end
-              if vim.bo[buf].filetype ~= "ministarter" then return end
-              pcall(starter.refresh, buf)
-            end)
-          end,
-        })
-      end,
+    vim.api.nvim_create_autocmd({ "WinResized", "FocusGained" }, {
+      callback = vim.schedule_wrap(function()
+        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+          if vim.bo[buf].filetype == "ministarter" then
+            pcall(starter.refresh, buf)
+          end
+        end
+      end),
     })
   end,
 }
