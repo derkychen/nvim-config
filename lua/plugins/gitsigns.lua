@@ -2,9 +2,15 @@ return {
   "lewis6991/gitsigns.nvim",
   opts = {},
   config = function()
-    require('gitsigns').setup()
+    local gs = require("gitsigns")
+    gs.setup({
+      current_line_blame = true,
+      current_line_blame_opts = {
+        delay = 500,
+      },
+    })
 
-    vim.keymap.set("n", "<Leader>gb", function() vim.cmd("Gitsigns blame") end, { desc = "Gitsigns blame" })
-    vim.keymap.set("n", "<Leader>gd", function() vim.cmd("Gitsigns diffthis") end, { desc = "Gitsigns diff" })
+    vim.keymap.set("n", "<Leader>gb", gs.blame, { desc = "Gitsigns blame" })
+    vim.keymap.set("n", "<Leader>gb", gs.diffthis, { desc = "Gitsigns diff" })
   end
 }
