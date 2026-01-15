@@ -23,40 +23,40 @@ end
 -- Save session
 function M.save(path)
   vim.cmd("mksession! " .. vim.fn.fnameescape(path))
-  msg("Session saved: " .. path)
+  msg("Session saved: " .. vim.fs.basename(path))
 end
 
 -- Load session
 function M.load(path)
   if vim.fn.filereadable(path) == 0 then
-    msg("No such session: " .. path)
+    msg("No such session: " .. vim.fs.basename(path))
     return
   end
   vim.cmd("silent! source " .. vim.fn.fnameescape(path))
-  msg("Session loaded: " .. path)
+  msg("Session loaded: " .. vim.fs.basename(path))
 end
 
 -- Delete session
 function M.delete(path)
   if vim.fn.filereadable(path) == 0 then
-    msg("No such session: " .. path)
+    msg("No such session: " .. vim.fs.basename(path))
     return
   end
 
   vim.fn.delete(path)
-  msg("Session deleted: " .. path)
+  msg("Session deleted: " .. vim.fs.basename(path))
 end
 
 -- Rename session
 function M.rename(old_path, new_path, overwrite)
   if vim.fn.filereadable(old_path) == 0 then
-    msg("No such session: " .. old_path)
+    msg("No such session: " .. vim.fs.basename(old_path))
     return
   end
 
   if vim.fn.filereadable(new_path) == 1 then
     if not overwrite then
-      msg("Session already exists: " .. new_path)
+      msg("Session already exists: " .. vim.fs.basename(new_path))
       return
     end
     vim.fn.delete(new_path)
@@ -64,11 +64,11 @@ function M.rename(old_path, new_path, overwrite)
 
   local ok = vim.fn.rename(old_path, new_path)
   if ok ~= 0 then
-    msg("Failed to rename session: " .. old_path .. " -> " .. new_path)
+    msg("Failed to rename session: " .. vim.fs.basename(old_path) .. " -> " .. vim.fs.basename(new_path))
     return
   end
 
-  msg("Session renamed: " .. old_path .. " -> " .. new_path)
+  msg("Session renamed: " .. vim.fs.basename(old_path) .. " -> " .. vim.fs.basename(new_path))
 end
 
 -- Return all session names
