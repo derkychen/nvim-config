@@ -48,7 +48,6 @@ local function winopts(winid)
     foldmethod = "expr",
     foldexpr = "v:lua.vim.treesitter.foldexpr()",
     foldtext = "",
-    foldenable = true,
     foldlevel = 99,
     foldcolumn = "1",
 

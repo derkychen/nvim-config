@@ -32,7 +32,7 @@ return {
       },
     })
 
-    vim.keymap.set("n", "<Leader>e", function()
+    vim.keymap.set("n", "<Leader>et", function()
       vim.cmd("NvimTreeToggle")
     end, {desc="Toggle nvim-tree"})
   end,

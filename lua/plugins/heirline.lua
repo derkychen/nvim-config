@@ -343,7 +343,7 @@ return {
     local Diagnostics = {
       condition = hconds.has_diagnostics,
       init = function(self)
-        self.c = vim.diagnostic.count(0)
+        self.c = vim.diagnostic.count(self.buf)
       end,
       pad_symmetric({
         Diagnostic("error"),
@@ -436,9 +436,9 @@ return {
       {
         flexible = priorities.LspActive,
         pad_symmetric({
-          provider = function()
+          provider = function(self)
             local names = {}
-            for _, server in pairs(vim.lsp.get_clients({ bufnr = 0 })) do
+            for _, server in pairs(vim.lsp.get_clients({ bufnr = self.buf })) do
               table.insert(names, server.name)
             end
             return " " .. table.concat(names, ", ")
@@ -468,8 +468,8 @@ return {
             sbar = { "🭶", "🭷", "🭸", "🭹", "🭺", "🭻" }
           },
           provider = function(self)
-            local curr_line = vim.api.nvim_win_get_cursor(0)[1]
-            local lines = vim.api.nvim_buf_line_count(0)
+            local curr_line = vim.api.nvim_win_get_cursor(self.winid)[1]
+            local lines = vim.api.nvim_buf_line_count(self.buf)
             local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
             return string.rep(self.sbar[i], 2)
           end,
@@ -505,28 +505,22 @@ return {
     end
 
     local BreadcrumbsPath = {
-      condition = function (self)
-        return vim.fn.filereadable(self.buf)
-      end,
       init = function(self)
-        local names = {}
-        for name in string.gmatch(self.winrelpath, "([^/]+)") do
-          table.insert(names, name)
-        end
         local children = {}
-        for i, name in ipairs(names) do
-          if i ~= #names then
-            table.insert(children, BreadcrumbsDirItem(name))
-            table.insert(children, BreadcrumbsSep)
-          else
-            table.insert(children, {
-              Space(),
-              FileIcon,
-              FileName,
-              Space(),
-            })
-          end
+        local dirs = {}
+        for dir in string.gmatch(self.winreldir, "([^/]+)") do
+          table.insert(dirs, dir)
         end
+        for _, name in ipairs(dirs) do
+          table.insert(children, BreadcrumbsDirItem(name))
+          table.insert(children, BreadcrumbsSep)
+        end
+        table.insert(children, {
+          Space(),
+          FileIcon,
+          FileName,
+          Space(),
+        })
         self.child = self:new(children, 1)
       end,
       provider = function(self)
@@ -697,13 +691,14 @@ return {
     local SignColumn = { provider = "%s" }
 
     local NumberColumn = {
-      condition = function() return vim.opt_local.number end,
+      condition = function(self) return vim.wo[self.winid].number or vim.wo[self.winid].relativenumber end,
       { provider = "%l" },
       Space(),
     }
 
     local FoldColumn = {
-      condition = function() return vim.opt_local.foldenable and vim.v.virtnum == 0 end,
+      condition = function(self) return vim.wo[self.winid].foldenable and vim.wo[self.winid].foldcolumn ~= "0" and
+        vim.v.virtnum == 0 end,
       { provider = "%C" },
       Space(),
     }
@@ -808,7 +803,9 @@ return {
     require("heirline").setup({
       opts = {
         disable_winbar_cb = function(ev)
-          return not utils.valid_normal_buf(ev.buf)
+          local buf = ev.buf
+          local bufname = vim.api.nvim_buf_get_name(buf)
+          return not (utils.valid_normal_buf(buf) and vim.uv.fs_stat(bufname))
         end,
         colors = get_colors,
       },

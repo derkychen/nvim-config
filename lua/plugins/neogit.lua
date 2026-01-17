@@ -9,5 +9,14 @@ return {
   cmd = "Neogit",
   keys = {
     { "<leader>gg", "<cmd>Neogit<cr>", desc = "Show Neogit UI" }
-  }
+  },
+  config = function()
+    require("diffview").setup({
+      view = {
+        default = {
+          winbar_info = true,
+        }
+      }
+    })
+  end
 }

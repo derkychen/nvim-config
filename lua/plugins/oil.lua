@@ -18,12 +18,12 @@ return {
       keymaps = {
         ["g?"] = { "actions.show_help", mode = "n" },
         ["<CR>"] = "actions.select",
-        ["<Leader>ov"] = { "actions.select", opts = { vertical = true } },
-        ["<Leader>os"] = { "actions.select", opts = { horizontal = true } },
-        ["<Leader>ot"] = { "actions.select", opts = { tab = true } },
-        ["<Leader>op"] = "actions.preview",
-        ["<Leader>ox"] = { "actions.close", mode = "n" },
-        ["<Leader>or"] = "actions.refresh",
+        ["<Leader>ev"] = { "actions.select", opts = { vertical = true } },
+        ["<Leader>es"] = { "actions.select", opts = { horizontal = true } },
+        ["<Leader>et"] = { "actions.select", opts = { tab = true } },
+        ["<Leader>ep"] = "actions.preview",
+        ["<Leader>ex"] = { "actions.close", mode = "n" },
+        ["<Leader>er"] = "actions.refresh",
         ["-"] = { "actions.parent", mode = "n" },
         ["_"] = { "actions.open_cwd", mode = "n" },
         ["`"] = { "actions.cd", mode = "n" },
@@ -82,6 +82,6 @@ return {
       end,
     })
 
-    vim.keymap.set("n", "<Leader>oo", oil.open, { desc = "Open Oil" })
+    vim.keymap.set("n", "<Leader>eo", oil.open, { desc = "Open Oil" })
   end,
 }
