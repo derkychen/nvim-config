@@ -15,7 +15,7 @@ return {
     end
 
     local function session_items(max)
-      max = max or 5
+      max = max or 3
       local names = sessions.names()
       local items = {}
       for i = 1, math.min(max, #names) do

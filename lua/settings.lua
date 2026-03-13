@@ -4,7 +4,10 @@ local utils = require("utils")
 -- <Leader> key
 vim.g.mapleader = " "
 
--- Buffer indent options
+-- Global statusline
+vim.opt.laststatus = 3
+
+-- Global buffer indentation options
 vim.opt.expandtab = true
 vim.opt.tabstop = 2
 vim.opt.softtabstop = 2

@@ -6,6 +6,12 @@ return {
     local oil = require("oil")
     local border = "rounded"
     oil.setup({
+      columns = {
+        "icon",
+        "permissions",
+        "size",
+        "mtime",
+      },
       win_options = {
         number = true,
         relativenumber = true,
