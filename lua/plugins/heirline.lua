@@ -101,12 +101,12 @@ return {
         buffer_active_fg = get_hl("TabLineSel"),
         buffer_active_bg = get_hl("TabLineSel", true),
         buffer_inactive_fg = get_hl("TabLine"),
-        buffer_inactive_bg = get_hl("TabLine", true),
+        buffer_inactive_bg = get_hl("TabLineFill", true),
         tab_active_highlight = get_hl("Function"),
         tab_active_fg = get_hl("StatusLine"),
         tab_active_bg = get_hl("EndOfBuffer", true),
         tab_inactive_fg = get_hl("TabLine"),
-        tab_inactive_bg = get_hl("TabLine", true),
+        tab_inactive_bg = get_hl("TabLineFill", true),
         statusline_inactive_fg = get_hl("StatusLineNC"),
         statusline_inactive_bg = get_hl("StatusLineNC", true),
         winbar_inactive_fg = get_hl("WinbarNC"),
@@ -300,6 +300,7 @@ return {
       }
     end
 
+    -- Git diffs, displayed only when applicable
     local GitDiffs = hutils.insert(Git, {
       condition = function(self)
         local types = { "added", "removed", "changed" }
@@ -451,7 +452,6 @@ return {
       },
     }
 
-
     local Position = {
       flexible = priorities.NavPosition,
       pad_symmetric({ provider = "%21(Ln %l of %L, Col %c%)" }),
@@ -573,9 +573,13 @@ return {
     }
 
     local FileBufnr = {
-      provider = function(self)
-        return tostring(self.buf)
-      end,
+      Space(),
+      {
+        provider = function(self)
+          return tostring(self.buf)
+        end,
+      },
+      Space(),
     }
 
     local BufferFile = {
@@ -595,7 +599,6 @@ return {
         name = "buffer_callback",
       },
       FileBufnr,
-      Space(),
       FileIcon,
       FileName,
       FileFlags,
@@ -624,25 +627,21 @@ return {
     }
 
     local Buffer = {
+      init = function(self)
+        self.buf = self.bufnr or 0
+        self.filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(self.buf), ":t")
+        self.filetype = vim.bo[self.buf].filetype
+      end,
+      hl = function(self)
+        if self.is_active then
+          return { fg = "buffer_active_fg", bg = "buffer_active_bg", force = true }
+        else
+          return { fg = "buffer_inactive_fg", bg = "buffer_inactive_bg", force = true }
+        end
+      end,
+      BufferFile,
+      BufferCloseButton,
       Space(),
-      {
-        init = function(self)
-          self.buf = self.bufnr or 0
-          self.filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(self.buf), ":t")
-          self.filetype = vim.bo[self.buf].filetype
-        end,
-        hl = function(self)
-          if self.is_active then
-            return { fg = "buffer_active_fg", bg = "buffer_active_bg", force = true }
-          else
-            return { fg = "buffer_inactive_fg", bg = "buffer_inactive_bg", force = true }
-          end
-        end,
-        Space(),
-        BufferFile,
-        BufferCloseButton,
-        Space(),
-      },
     }
 
     local ModeNvim = {
@@ -674,20 +673,17 @@ return {
     }
 
     local Tab = {
+      hl = function(self)
+        if self.is_active then
+          return { fg = "tab_active_fg", bg = "tab_active_bg" }
+        else
+          return { fg = "tab_inactive_fg", bg = "tab_inactive_bg", force = true }
+        end
+      end,
+      TabLine,
+      TabNumber,
+      TabCloseButton,
       Space(),
-      {
-        hl = function(self)
-          if self.is_active then
-            return { fg = "tab_active_fg", bg = "tab_active_bg" }
-          else
-            return { fg = "tab_inactive_fg", bg = "tab_inactive_bg", force = true }
-          end
-        end,
-        TabLine,
-        TabNumber,
-        TabCloseButton,
-        Space(),
-      },
     }
 
     local SignColumn = { provider = "%s" }
@@ -717,29 +713,35 @@ return {
       hutils.make_tablist(Tab),
     }
 
-    local StatuslineFile = pad_symmetric({
+    local ModeTabline = hutils.insert(Mode,
+      ModeBar,
+      ModeNvim,
+      ModeBar
+    )
+
+    local StatusLineFile = pad_symmetric({
       FileDir,
       FileIcon,
       FileName,
       FileFlags,
     })
 
-    local ActiveStatusline = hutils.insert(WinInfo,
+    local ActiveStatusLine = hutils.insert(WinInfo,
       ModeIndicatorLeft,
       GitBranch,
       Trunc,
-      StatuslineFile,
+      StatusLineFile,
       Align,
       Position,
       Scrollbar,
       ModeBarRight
     )
 
-    local InactiveStatusline = hutils.insert(WinInfo, {
+    local InactiveStatusLine = hutils.insert(WinInfo, {
       hl = { fg = "statusline_inactive_fg", bg = "statusline_inactive_bg", force = true },
       pad_right(Bar),
       Trunc,
-      StatuslineFile,
+      StatusLineFile,
       Align,
       Position,
       pad_left(Bar),
@@ -762,20 +764,16 @@ return {
       pad_left(WindowCloseButton)
     })
 
-    local ModeTabline = hutils.insert(Mode,
-      ModeBar,
-      ModeNvim,
-      ModeBar
-    )
-
     local Tabline = {
       ModeTabline,
+      Space(),
       Trunc,
       Buffers,
       Align,
       Tabs,
     }
 
+    -- Statuscolumn elements
     local Statuscolumn = hutils.insert(WinInfo, {
       condition = function(self)
         return utils.valid_normal_buf(self.buf)
@@ -796,7 +794,7 @@ return {
         end,
         colors = get_colors,
       },
-      statusline = active_inactive_win_component(ActiveStatusline, InactiveStatusline),
+      statusline = active_inactive_win_component(ActiveStatusLine, InactiveStatusLine),
       winbar = active_inactive_win_component(ActiveWinbar, InactiveWinbar),
       tabline = Tabline,
       statuscolumn = Statuscolumn,
