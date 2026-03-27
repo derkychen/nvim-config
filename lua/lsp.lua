@@ -17,3 +17,12 @@ vim.lsp.enable("remark_ls")
 
 -- R
 vim.lsp.enable("air")
+
+-- Web dev
+vim.lsp.enable("biome")
+
+-- Shell scripting
+vim.lsp.enable("bashls")
+
+-- TOML
+vim.lsp.enable("tombi")
