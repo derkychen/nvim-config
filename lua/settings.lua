@@ -56,7 +56,7 @@ local function winlocal_opts(winid)
     fillchars = "fold: ,"
         .. "foldopen:" .. icons.arrows.down .. ","
         .. "foldclose:" .. icons.arrows.right .. ","
-        -- .. "foldinner: ," -- only available next release
+        .. "foldinner: ,"
         .. "foldsep: ,",
 
     list = true,
