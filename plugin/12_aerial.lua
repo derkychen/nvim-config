@@ -1,15 +1,14 @@
-vim.pack.add({"https://github.com/stevearc/aerial.nvim"})
+vim.pack.add({ "https://github.com/stevearc/aerial.nvim" })
 
 local aerial = require("aerial")
 
 aerial.setup({
   layout = {
+    max_width = { 40, 0.25 },
     win_opts = {
-      number = true,
-      relativenumber = true,
-      statuscolumn = " %l ",
       cursorline = true,
     },
+    default_direction = "float",
   },
   show_guides = true,
   nerd_font = true,
