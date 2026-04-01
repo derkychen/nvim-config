@@ -84,8 +84,8 @@ local function get_colors()
     command = get_hl("@variable.parameter"),
     replace = get_hl("@variable.builtin"),
     terminal = get_hl("@property"),
-    bright_fg = get_hl("Folded"),
-    bright_bg = get_hl("Folded", true),
+    accented_fg = get_hl("Folded"),
+    accented_bg = get_hl("Folded", true),
     git_branch = get_hl("Function"),
     git_added = get_hl("GitSignsAdd"),
     git_removed = get_hl("GitSignsDelete"),
@@ -245,7 +245,7 @@ local Git = {
   init = function(self)
     self.status_dict = vim.b[self.buf].gitsigns_status_dict
   end,
-  hl = { bg = "bright_bg" },
+  hl = { bg = "accented_bg" },
 }
 
 local GitBranch = hutils.insert(Git, {
@@ -474,7 +474,7 @@ local Scrollbar = {
         local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
         return string.rep(self.sbar[i], 2)
       end,
-      hl = { fg = "bright_fg", bg = "bright_bg" },
+      hl = { fg = "accented_fg", bg = "accented_bg" },
     },
   }),
   pad_symmetric({ provider = "%P" }),
