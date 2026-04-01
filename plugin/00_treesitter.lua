@@ -3,6 +3,7 @@ vim.pack.add({ "https://github.com/nvim-treesitter/nvim-treesitter" })
 local ensure_languages = {
   "lua",
   "latex",
+  "bibtex",
   "r",
   "c",
   "python",
