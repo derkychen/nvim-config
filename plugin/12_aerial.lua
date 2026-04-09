@@ -3,6 +3,7 @@ vim.pack.add({ "https://github.com/stevearc/aerial.nvim" })
 local aerial = require("aerial")
 
 aerial.setup({
+  backends = { "lsp", "treesitter", "markdown", "asciidoc", "man" },
   layout = {
     max_width = { 40, 0.25 },
     win_opts = {
@@ -10,8 +11,8 @@ aerial.setup({
     },
     default_direction = "float",
   },
-  show_guides = true,
   nerd_font = true,
+  show_guides = true,
 })
 
 vim.keymap.set("n", "<Leader>a", aerial.toggle, { desc = "Toggle Aerial window" })
