@@ -4,7 +4,6 @@ local ensure_languages = {
   "lua",
   "latex",
   "bibtex",
-  "r",
   "c",
   "python",
   "markdown",
