@@ -9,7 +9,7 @@ vim.g.mapleader = " "
 
 -- Global UI options
 vim.o.laststatus = 3
-vim.o.winborder = 'rounded'
+vim.o.winborder = "rounded"
 
 -- Global buffer indentation options
 vim.o.expandtab = true
