@@ -11,9 +11,6 @@ oil.setup({
     "mtime",
   },
   win_options = {
-    number = true,
-    relativenumber = true,
-    statuscolumn = " %l ",
     conceallevel = 0,
     cursorline = true,
     cursorcolumn = true,
