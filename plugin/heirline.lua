@@ -11,9 +11,8 @@ local priorities = {
   ModeText = 2,
   GitBranch = 5,
   GitDiff = 5,
-  Diagnostic = 5,
   FileDir = 1,
-  LspActive = 6,
+  LSPInfo = 5,
   NavPosition = 4,
   NavPercentage = 3,
 }
@@ -116,13 +115,13 @@ end
 -- Parent component that stores window-local information
 local WinInfo = {
   init = function(self)
-    self.winid = vim.fn.win_getid(self.winnr)
-    self.buf = vim.api.nvim_win_get_buf(self.winid)
+    self.win = vim.fn.win_getid(self.winnr)
+    self.buf = vim.api.nvim_win_get_buf(self.win)
     self.bufname = vim.api.nvim_buf_get_name(self.buf)
     self.winrelpath = vim.fn.expand("%:~:.")
     self.winreldir = vim.fn.fnamemodify(self.winrelpath, ":h")
     self.filename = vim.fn.fnamemodify(self.winrelpath, ":t")
-    self.filetype = vim.bo[self.buf].filetype
+    self.filetype = vim.api.nvim_get_option_value("filetype", { buf = self.buf })
   end,
 }
 
@@ -317,23 +316,6 @@ local GitDiffs = hutils.insert(Git, {
   }),
 })
 
-local LspActive = {
-  condition = hconds.lsp_attached,
-  init = function(self)
-    self.names = {}
-    for _, server in pairs(vim.lsp.get_clients({ bufnr = self.buf })) do
-      table.insert(self.names, server.name)
-    end
-  end,
-  flexible = priorities.LspActive,
-  {
-    provider = function(self)
-      return " " .. table.concat(self.names, ", ")
-    end,
-  },
-  { provider = "LSP" },
-}
-
 local function Diagnostic(type)
   local icon = vim.diagnostic.config().signs.text[vim.diagnostic.severity[string.upper(type)]]
   return {
@@ -341,7 +323,7 @@ local function Diagnostic(type)
       self.count = self.c[vim.diagnostic.severity[string.upper(type)]] or 0
       return self.count > 0
     end,
-    flexible = priorities.Diagnostic,
+    flexible = priorities.LSPInfo,
     {
       Space(),
       {
@@ -363,15 +345,45 @@ local function Diagnostic(type)
   }
 end
 
-local Diagnostics = {
+local LSPInfo = {
   init = function(self)
     self.c = vim.diagnostic.count(self.buf)
+    local total = 0
+    local types = { "error", "warn", "info", "hint" }
+    for _, type in pairs(types) do
+      total = total + (self.c[vim.diagnostic.severity[string.upper(type)]] or 0)
+    end
+    self.nonzero_diagnostics = total ~= 0
   end,
   pad_symmetric({
-    LspActive,
     {
-      condition = hconds.has_diagnostics,
-      provider = ":"
+      condition = hconds.lsp_attached,
+      init = function(self)
+        self.names = {}
+        for _, server in pairs(vim.lsp.get_clients({ bufnr = self.buf })) do
+          table.insert(self.names, server.name)
+        end
+      end,
+      flexible = priorities.LSPInfo,
+      {
+        {
+          provider = function(self)
+            return " " .. table.concat(self.names, ", ")
+          end,
+        },
+        {
+          condition = hconds.has_diagnostics,
+          provider = ":"
+        },
+      },
+      {
+        provider = function(self)
+          if self.nonzero_diagnostics then
+            return "󰨰"
+          end
+          return ""
+        end
+      },
     },
     Diagnostic("error"),
     Diagnostic("warn"),
@@ -434,14 +446,15 @@ local FileName = {
 local FileFlags = {
   {
     condition = function(self)
-      return vim.bo[self.buf].modified
+      return vim.api.nvim_get_option_value("modified", { buf = self.buf })
     end,
     Space(),
     { provider = "", },
   },
   {
     condition = function(self)
-      return not vim.bo[self.buf].modifiable or vim.bo[self.buf].readonly
+      return not vim.api.nvim_get_option_value("modifiable", { buf = self.buf })
+          or vim.api.nvim_get_option_value("readonly", { buf = self.buf })
     end,
     Space(),
     {
@@ -469,7 +482,7 @@ local Scrollbar = {
         sbar = { "🭶", "🭷", "🭸", "🭹", "🭺", "🭻" }
       },
       provider = function(self)
-        local curr_line = vim.api.nvim_win_get_cursor(self.winid)[1]
+        local curr_line = vim.api.nvim_win_get_cursor(self.win)[1]
         local lines = vim.api.nvim_buf_line_count(self.buf)
         local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
         return string.rep(self.sbar[i], 2)
@@ -563,7 +576,7 @@ local WindowCloseButton = {
       end)
     end,
     minwid = function(self)
-      return self.winid
+      return self.win
     end,
     name = "window_close_callback",
   },
@@ -629,7 +642,7 @@ local Buffer = {
   init = function(self)
     self.buf = self.bufnr or 0
     self.filename = vim.fn.fnamemodify(vim.api.nvim_buf_get_name(self.buf), ":t")
-    self.filetype = vim.bo[self.buf].filetype
+    self.filetype = vim.api.nvim_get_option_value("filetype", { buf = self.buf })
   end,
   hl = function(self)
     if self.is_active then
@@ -688,15 +701,19 @@ local Tab = {
 local SignColumn = { provider = "%s" }
 
 local NumberColumn = {
-  condition = function(self) return vim.wo[self.winid].number or vim.wo[self.winid].relativenumber end,
+  condition = function(self)
+    return vim.api.nvim_get_option_value("number", { win = self.win })
+        or vim.api.nvim_get_option_value("relativenumber", { win = self.win })
+  end,
   { provider = "%l" },
   Space(),
 }
 
 local FoldColumn = {
   condition = function(self)
-    return vim.wo[self.winid].foldenable and vim.wo[self.winid].foldcolumn ~= "0" and
-        vim.v.virtnum == 0
+    return vim.api.nvim_get_option_value("foldenable", { win = self.win })
+        and vim.api.nvim_get_option_value("foldcolumn", { win = self.win }) ~= 0
+        and vim.v.virtnum == 0
   end,
   { provider = "%C" },
   Space(),
@@ -749,7 +766,7 @@ local InactiveStatusLine = hutils.insert(WinInfo, {
 local ActiveWinbar = hutils.insert(WinInfo,
   pad_right(Breadcrumbs),
   Align,
-  Diagnostics,
+  LSPInfo,
   GitDiffs,
   pad_left(WindowCloseButton)
 )
@@ -758,7 +775,7 @@ local InactiveWinbar = hutils.insert(WinInfo, {
   hl = { fg = "winbar_inactive_fg", bg = "winbar_inactive_bg", force = true },
   pad_right(Breadcrumbs),
   Align,
-  Diagnostics,
+  LSPInfo,
   GitDiffs,
   pad_left(WindowCloseButton)
 })
@@ -799,8 +816,11 @@ require("heirline").setup({
   statuscolumn = Statuscolumn,
 })
 
--- Redraw statusline and tabline on mode change to prevent delay
-vim.api.nvim_create_autocmd("ModeChanged", {
+-- Redraw statusline and tabline on these events to prevent delay
+vim.api.nvim_create_autocmd({
+  "ModeChanged",
+  "BufEnter"
+}, {
   callback = vim.schedule_wrap(function()
     vim.cmd.redrawstatus()
     vim.cmd.redrawtabline()
