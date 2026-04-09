@@ -12,11 +12,8 @@ vim.lsp.enable("latexindent")
 vim.lsp.enable("clangd")
 
 -- Markdown
-vim.lsp.enable("marksman")
+vim.lsp.enable("markdown_oxide")
 vim.lsp.enable("remark_ls")
-
--- R
-vim.lsp.enable("air")
 
 -- Web dev
 vim.lsp.enable("biome")
