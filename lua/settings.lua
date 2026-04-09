@@ -1,6 +1,9 @@
 local icons = require("icons")
 local utils = require("utils")
 
+-- Enable UI2
+require("vim._core.ui2").enable()
+
 -- <Leader> key
 vim.g.mapleader = " "
 
@@ -53,24 +56,26 @@ local function winlocal_opts(winid)
     foldlevel = 99,
     foldcolumn = "1",
 
+    -- Window UI icons and characters
     fillchars = "fold: ,"
         .. "foldopen:" .. icons.arrows.down .. ","
         .. "foldclose:" .. icons.arrows.right .. ","
         .. "foldinner: ,"
         .. "foldsep: ,",
-
     list = true,
     listchars = "tab:↦ ,"
         .. "leadmultispace:" .. "│" .. string.rep(" ", math.max(sw - 1, 0)) .. ","
-        .. "trail:⋅,",
+        .. "trail:⋅,"
+        .. "precedes:,"
+        .. "extends:,",
   }
 end
 
 -- Set window-local options
-local function set_winlocal_opts(winid)
-  for opt, val in pairs(winlocal_opts(winid)) do
+local function set_winlocal_opts(win)
+  for opt, val in pairs(winlocal_opts(win)) do
     vim.api.nvim_set_option_value(opt, val, {
-      win = winid,
+      win = win,
       scope = "local",
     })
   end
@@ -78,16 +83,16 @@ end
 
 -- Decide what windows to apply window-local options for
 local function apply_winlocal_opts()
-  for _, winid in ipairs(vim.api.nvim_list_wins()) do
-    local buf = vim.api.nvim_win_get_buf(winid)
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local buf = vim.api.nvim_win_get_buf(win)
     if utils.valid_normal_buf(buf) then
-      set_winlocal_opts(winid)
+      set_winlocal_opts(win)
     end
   end
 end
 
--- Set window-local options when buffer is shown in window, and when filetype is set
-vim.api.nvim_create_autocmd({ "BufWinEnter", "FileType" }, {
+-- Set window-local options when buffer is enters a window
+vim.api.nvim_create_autocmd("BufWinEnter", {
   callback = apply_winlocal_opts,
 })
 
