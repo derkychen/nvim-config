@@ -1,3 +1,7 @@
 vim.pack.add({ "https://github.com/mason-org/mason.nvim" })
 
-require("mason").setup()
+require("mason").setup({
+  ui = {
+    backdrop = 100,
+  },
+})

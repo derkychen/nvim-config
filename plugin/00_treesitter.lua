@@ -1,4 +1,4 @@
-vim.pack.add({ "https://github.com/romus204/tree-sitter-manager.nvim" })
+vim.pack.add({ "https://github.com/nvim-treesitter/nvim-treesitter" })
 
 local languages = {
   "lua",
@@ -14,11 +14,12 @@ local languages = {
   "toml",
 }
 
-require("tree-sitter-manager").setup({
-  ensure_installed = languages,
-})
+local isnt_installed = function(lang) return #vim.api.nvim_get_runtime_file("parser/" .. lang .. ".*", false) == 0 end
+local to_install = vim.tbl_filter(isnt_installed, languages)
+if #to_install > 0 then require("nvim-treesitter").install(to_install) end
 
 local filetypes = vim.iter(languages):map(vim.treesitter.language.get_filetypes):flatten():totable()
+vim.list_extend(filetypes, { "markdown", "quarto" })
 
 vim.api.nvim_create_autocmd("FileType", {
   pattern = filetypes,
