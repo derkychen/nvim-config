@@ -1,12 +1,15 @@
 -- Tabs
-vim.keymap.set("n", "<Leader>tn", function()
-  vim.cmd("tabnew")
-end, {})
+vim.keymap.set("n", "<Leader>tn", vim.cmd.tabnew, {})
 vim.keymap.set("n", "<Leader>tx", function()
   if vim.fn.tabpagenr("$") > 1 then
-    vim.cmd("tabclose")
+    vim.cmd.tabclose()
   else
-    vim.cmd("confirm qa")
+    vim.api.nvim_cmd({
+      cmd = "qa",
+      mods = {
+        confirm = true,
+      },
+    }, {})
   end
 end, {})
 

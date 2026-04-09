@@ -22,7 +22,10 @@ end
 
 -- Save session
 function M.save(path)
-  vim.cmd("mksession! " .. vim.fn.fnameescape(path))
+  vim.cmd.mksession({
+    bang = true,
+    args = { path },
+  })
   msg("Session saved: " .. vim.fs.basename(path))
 end
 
@@ -32,7 +35,14 @@ function M.load(path)
     msg("No such session: " .. vim.fs.basename(path))
     return
   end
-  vim.cmd("silent! source " .. vim.fn.fnameescape(path))
+  vim.api.nvim_cmd({
+    cmd = "source",
+    args = { path },
+    mods = {
+      silent = true,
+      emsg_silent = true,
+    },
+  }, {})
   msg("Session loaded: " .. vim.fs.basename(path))
 end
 

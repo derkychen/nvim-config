@@ -32,9 +32,7 @@ local function fzf_tcd(opts)
           vim.notify("Not a directory: " .. dir, vim.log.levels.WARN)
           return
         end
-
-        vim.cmd("tcd " .. vim.fn.fnameescape(dir))
-
+        vim.cmd.tcd(dir)
         if on_done then
           vim.schedule(function()
             on_done(dir)
@@ -45,14 +43,14 @@ local function fzf_tcd(opts)
   })
 end
 
-vim.api.nvim_create_user_command("TcdThenCwdExplorer", function()
+function tcd_then_cwd_explorer()
   fzf_tcd({
     on_done = function(_dir)
       _G.CwdExplorer()
     end,
   })
-end, {})
+end
 
-vim.keymap.set("n", "<Leader>fd", function()
-  vim.cmd("TcdThenCwdExplorer")
-end, { desc = "Find, change to, explore directory" })
+vim.api.nvim_create_user_command("TcdThenCwdExplorer", tcd_then_cwd_explorer, {})
+
+vim.keymap.set("n", "<Leader>fd", tcd_then_cwd_explorer, { desc = "Find, change to, explore directory" })
