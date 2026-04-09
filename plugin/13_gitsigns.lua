@@ -10,4 +10,4 @@ gs.setup({
 })
 
 vim.keymap.set("n", "<Leader>gb", gs.blame, { desc = "Gitsigns blame" })
-vim.keymap.set("n", "<Leader>gb", gs.diffthis, { desc = "Gitsigns diff" })
+vim.keymap.set("n", "<Leader>gd", gs.diffthis, { desc = "Gitsigns diff" })
