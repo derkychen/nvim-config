@@ -7,8 +7,9 @@ require("vim._core.ui2").enable()
 -- <Leader> key
 vim.g.mapleader = " "
 
--- Global statusline
+-- Global UI options
 vim.o.laststatus = 3
+vim.o.winborder = 'rounded'
 
 -- Global buffer indentation options
 vim.o.expandtab = true

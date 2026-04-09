@@ -1,7 +1,6 @@
 vim.pack.add({ "https://github.com/stevearc/oil.nvim" })
 
 local oil = require("oil")
-local border = "rounded"
 
 oil.setup({
   columns = {
@@ -37,26 +36,6 @@ oil.setup({
   use_default_keymaps = false,
   view_options = {
     show_hidden = true,
-  },
-  float = {
-    border = border,
-  },
-  preview_win = {
-    win_options = {
-      number = true,
-    },
-  },
-  confirmation = {
-    border = border,
-  },
-  progress = {
-    border = border,
-  },
-  ssh = {
-    border = border,
-  },
-  keymaps_help = {
-    border = border,
   },
 })
 
