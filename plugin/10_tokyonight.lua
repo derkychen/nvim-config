@@ -1,5 +1,6 @@
 vim.pack.add({ "https://github.com/folke/tokyonight.nvim" })
 
+-- Highlight adjustments
 require("tokyonight").setup({
   on_highlights = function(hl, c)
     hl.TabLineFill = { bg = c.bg_dark1 }
