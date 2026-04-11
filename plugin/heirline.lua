@@ -18,13 +18,8 @@ local priorities = {
 }
 
 -- Common components
-local function Space(num)
-  return { provider = string.rep(" ", num or 1) }
-end
-local HalfPad = {
-  hl = { bg = "none" },
-  Space(2),
-}
+local Space = { provider = " " }
+local HalfPad = { hl = { bg = "none" }, provider = "  " }
 local Trunc = { provider = "%<" }
 local Align = { provider = "%=" }
 local Bar = { provider = "█" }
@@ -150,6 +145,66 @@ local Mode = {
   end,
 }
 
+-- Parent component that stores Git information
+local Git = {
+  condition = hconds.is_git_repo,
+  init = function(self)
+    self.status_dict = vim.b[self.buf].gitsigns_status_dict
+  end,
+  hl = { bg = "accented_bg" },
+}
+
+-- Universal component for file icons
+local FileIcon = {
+  init = function(self)
+    local get_icon = require("mini.icons").get
+    local is_default = false
+    self.icon, self.hl, is_default = get_icon("file", self.filename)
+    if is_default then self.icon, self.hl = get_icon("filetype", self.filetype) end
+  end,
+  hl = function(self)
+    return { fg = hutils.get_highlight(self.hl).fg }
+  end,
+  {
+    provider = function(self)
+      return self.icon
+    end,
+  },
+  Space,
+}
+
+-- Universal component for file name
+local FileName = {
+  provider = function(self)
+    local filename = self.filename
+    if filename == "" then return "[No Name]" end
+    return filename
+  end,
+}
+
+-- Universal component for file flags
+local FileFlags = {
+  {
+    condition = function(self)
+      return vim.api.nvim_get_option_value("modified", { buf = self.buf })
+    end,
+    Space,
+    { provider = "", },
+  },
+  {
+    condition = function(self)
+      return not vim.api.nvim_get_option_value("modifiable", { buf = self.buf })
+          or vim.api.nvim_get_option_value("readonly", { buf = self.buf })
+    end,
+    Space,
+    {
+      provider = "",
+      hl = { fg = "dimmed_fg" },
+    },
+  },
+}
+
+-- Status line mode bars
 local ModeBar = {
   hl = function(self) return { fg = self.color } end,
   Bar,
@@ -204,7 +259,7 @@ local ModeText = {
     }
   end,
   {
-    Space(),
+    Space,
     {
       provider = function(self)
         return "%9(" .. self.names[self.mode] .. "%)"
@@ -212,7 +267,7 @@ local ModeText = {
     },
   },
   {
-    Space(),
+    Space,
     {
       provider = function(self)
         return self.names[self.mode]
@@ -220,7 +275,7 @@ local ModeText = {
     },
   },
   {
-    Space(),
+    Space,
     {
       provider = function(self)
         return string.sub(self.names[self.mode], 1, 1)
@@ -235,23 +290,11 @@ local ModeIndicatorLeft = pad_right(hutils.insert(Mode,
   ModeText
 ))
 
-local ModeBarRight = pad_left(hutils.insert(Mode,
-  ModeBar
-))
-
-local Git = {
-  condition = hconds.is_git_repo,
-  init = function(self)
-    self.status_dict = vim.b[self.buf].gitsigns_status_dict
-  end,
-  hl = { bg = "accented_bg" },
-}
-
 local GitBranch = hutils.insert(Git, {
   flexible = priorities.GitBranch,
   hl = { fg = "git_branch" },
   pad_symmetric({
-    Space(),
+    Space,
     {
       provider = function(self)
         local branch = self.status_dict.head
@@ -261,15 +304,178 @@ local GitBranch = hutils.insert(Git, {
         return " " .. branch
       end,
     },
-    Space(),
+    Space,
   }),
   pad_symmetric({
-    Space(),
+    Space,
     { provider = "" },
-    Space(),
+    Space,
   }),
 })
 
+local FileDir = {
+  flexible = priorities.FileDir,
+  hl = { fg = "dimmed_fg" },
+  {
+    {
+      provider = function(self)
+        local trail = self.winreldir:sub(-1) == "/" and "" or "/"
+        return self.winreldir .. trail
+      end,
+    },
+    Space
+  },
+  {
+    {
+      provider = function(self)
+        local short_dir = vim.fn.pathshorten(self.winreldir)
+        local trail = short_dir:sub(-1) == "/" and "" or "/"
+        return short_dir .. trail
+      end,
+    },
+    Space,
+  },
+  Empty,
+}
+local StatusLineFile = pad_symmetric({
+  FileDir,
+  FileIcon,
+  FileName,
+  FileFlags,
+})
+
+local Position = {
+  flexible = priorities.NavPosition,
+  pad_symmetric({ provider = "%21(Ln %l of %L, Col %c%)" }),
+  pad_symmetric({ provider = "%10(%l/%L:%c%)" }),
+  pad_symmetric({ provider = "%6(%l:%c%)" }),
+  Empty,
+}
+
+local Scrollbar = {
+  flexible = priorities.NavPercentage,
+  pad_symmetric({
+    { provider = "%P" },
+    Space,
+    {
+      static = {
+        sbar = { "🭶", "🭷", "🭸", "🭹", "🭺", "🭻" }
+      },
+      provider = function(self)
+        local curr_line = vim.api.nvim_win_get_cursor(self.win)[1]
+        local lines = vim.api.nvim_buf_line_count(self.buf)
+        local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
+        return string.rep(self.sbar[i], 2)
+      end,
+      hl = { fg = "accented_fg", bg = "accented_bg" },
+    },
+  }),
+  pad_symmetric({ provider = "%P" }),
+  Empty,
+}
+
+local ModeBarRight = pad_left(hutils.insert(Mode,
+  ModeBar
+))
+
+-- Active statusline elements
+local ActiveStatusLine = hutils.insert(WinInfo,
+  ModeIndicatorLeft,
+  GitBranch,
+  Trunc,
+  StatusLineFile,
+  Align,
+  Position,
+  Scrollbar,
+  ModeBarRight
+)
+
+-- Inactive statusline elements (currently unused)
+local InactiveStatusLine = hutils.insert(WinInfo, {
+  hl = { fg = "statusline_inactive_fg", bg = "statusline_inactive_bg", force = true },
+  pad_right(Bar),
+  Trunc,
+  StatusLineFile,
+  Align,
+  Position,
+  pad_left(Bar),
+})
+
+local BreadcrumbsSep = { Space, { provider = icons.arrows.right }, Space }
+
+local function BreadcrumbsDirItem(name)
+  local get_icon = require("mini.icons").get
+  local spacer
+  local icon, hl
+  icon, hl, _ = get_icon("directory", name)
+  if icon == "" then spacer = nil else spacer = Space end
+  if name ~= "" then
+    return {
+      {
+        provider = icon,
+        hl = { fg = hutils.get_highlight(hl).fg },
+      },
+      spacer,
+      {
+        hl = { fg = "dimmed_fg" },
+        provider = name,
+      },
+    }
+  end
+end
+
+local function BreadcrumbsAerialItem(symbol)
+  local spacer
+  local icon = symbol.icon or ""
+  local name = symbol.name or ""
+  if icon == "" then spacer = nil else spacer = Space end
+  local kind
+  if type(symbol.kind) == "string" then
+    kind = symbol.kind
+  elseif type(symbol.kind) == "number" then
+    kind = vim.lsp.protocol.SymbolKind[symbol.kind] or "Unknown"
+  end
+  if name ~= "" then
+    return {
+      {
+        provider = icon,
+        hl = { fg = hutils.get_highlight("Aerial" .. kind .. "Icon").fg },
+      },
+      spacer,
+      {
+        provider = name,
+        hl = { fg = hutils.get_highlight("Aerial" .. kind).fg },
+      },
+    }
+  end
+end
+
+local Breadcrumbs = {
+  Space,
+  {
+    init = function(self)
+      local symbols = {}
+      if utils.valid_normal_buf(self.buf) and vim.uv.fs_stat(self.bufname) then
+        for symbol in string.gmatch(self.winreldir, "([^/]+)") do
+          table.insert(symbols, BreadcrumbsDirItem(symbol))
+          table.insert(symbols, BreadcrumbsSep)
+        end
+      end
+      table.insert(symbols, { FileIcon, FileName, FileFlags })
+      for _, symbol in ipairs(require("aerial").get_location(true)) do
+        table.insert(symbols, BreadcrumbsSep)
+        table.insert(symbols, BreadcrumbsAerialItem(symbol))
+      end
+      local children = symbols
+      self.child = self:new(children, 1)
+    end,
+    provider = function(self)
+      return self.child:eval()
+    end,
+  },
+}
+
+-- Window bar Git diffs
 local function GitDiff(type)
   return {
     static = {
@@ -287,13 +493,13 @@ local function GitDiff(type)
     flexible = priorities.GitDiff,
     {
       { provider = function(self) return self.icons[type] end },
-      Space(),
+      Space,
       { provider = function(self) return self.count end },
-      Space(),
+      Space,
     },
     {
       { provider = function(self) return self.count end },
-      Space(),
+      Space,
     },
   }
 end
@@ -309,7 +515,7 @@ local GitDiffs = hutils.insert(Git, {
     return false
   end,
   pad_symmetric({
-    Space(),
+    Space,
     GitDiff("added"),
     GitDiff("removed"),
     GitDiff("changed"),
@@ -325,7 +531,7 @@ local function Diagnostic(type)
     end,
     flexible = priorities.LSPInfo,
     {
-      Space(),
+      Space,
       {
         provider = function(self)
           return icon .. " " .. self.count
@@ -334,7 +540,7 @@ local function Diagnostic(type)
       },
     },
     {
-      Space(),
+      Space,
       {
         provider = function(self)
           return self.count
@@ -392,181 +598,6 @@ local LSPInfo = {
   }),
 }
 
-local FileDir = {
-  flexible = priorities.FileDir,
-  hl = { fg = "dimmed_fg" },
-  {
-    {
-      provider = function(self)
-        local trail = self.winreldir:sub(-1) == "/" and "" or "/"
-        return self.winreldir .. trail
-      end,
-    },
-    Space()
-  },
-  {
-    {
-      provider = function(self)
-        local short_dir = vim.fn.pathshorten(self.winreldir)
-        local trail = short_dir:sub(-1) == "/" and "" or "/"
-        return short_dir .. trail
-      end,
-    },
-    Space(),
-  },
-  Empty,
-}
-
-local FileIcon = {
-  init = function(self)
-    local get_icon = require("mini.icons").get
-    local is_default = false
-    self.icon, self.hl, is_default = get_icon("file", self.filename)
-    if is_default then self.icon, self.hl = get_icon("filetype", self.filetype) end
-  end,
-  hl = function(self)
-    return { fg = hutils.get_highlight(self.hl).fg }
-  end,
-  {
-    provider = function(self)
-      return self.icon
-    end,
-  },
-  Space(),
-}
-
-local FileName = {
-  provider = function(self)
-    local filename = self.filename
-    if filename == "" then return "[No Name]" end
-    return filename
-  end,
-}
-
-local FileFlags = {
-  {
-    condition = function(self)
-      return vim.api.nvim_get_option_value("modified", { buf = self.buf })
-    end,
-    Space(),
-    { provider = "", },
-  },
-  {
-    condition = function(self)
-      return not vim.api.nvim_get_option_value("modifiable", { buf = self.buf })
-          or vim.api.nvim_get_option_value("readonly", { buf = self.buf })
-    end,
-    Space(),
-    {
-      provider = "",
-      hl = { fg = "dimmed_fg" },
-    },
-  },
-}
-
-local Position = {
-  flexible = priorities.NavPosition,
-  pad_symmetric({ provider = "%21(Ln %l of %L, Col %c%)" }),
-  pad_symmetric({ provider = "%10(%l/%L:%c%)" }),
-  pad_symmetric({ provider = "%6(%l:%c%)" }),
-  Empty,
-}
-
-local Scrollbar = {
-  flexible = priorities.NavPercentage,
-  pad_symmetric({
-    { provider = "%P" },
-    Space(),
-    {
-      static = {
-        sbar = { "🭶", "🭷", "🭸", "🭹", "🭺", "🭻" }
-      },
-      provider = function(self)
-        local curr_line = vim.api.nvim_win_get_cursor(self.win)[1]
-        local lines = vim.api.nvim_buf_line_count(self.buf)
-        local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
-        return string.rep(self.sbar[i], 2)
-      end,
-      hl = { fg = "accented_fg", bg = "accented_bg" },
-    },
-  }),
-  pad_symmetric({ provider = "%P" }),
-  Empty,
-}
-
-local BreadcrumbsSep = { Space(), { provider = icons.arrows.right }, Space() }
-
-local function BreadcrumbsDirItem(name)
-  local get_icon = require("mini.icons").get
-  local spacer
-  local icon, hl
-  icon, hl, _ = get_icon("directory", name)
-  if icon == "" then spacer = nil else spacer = Space() end
-  if name ~= "" then
-    return {
-      {
-        provider = icon,
-        hl = { fg = hutils.get_highlight(hl).fg },
-      },
-      spacer,
-      {
-        hl = { fg = "dimmed_fg" },
-        provider = name,
-      },
-    }
-  end
-end
-
-local function BreadcrumbsAerialItem(symbol)
-  local spacer
-  local icon = symbol.icon or ""
-  local name = symbol.name or ""
-  if icon == "" then spacer = nil else spacer = Space() end
-  local kind
-  if type(symbol.kind) == "string" then
-    kind = symbol.kind
-  elseif type(symbol.kind) == "number" then
-    kind = vim.lsp.protocol.SymbolKind[symbol.kind] or "Unknown"
-  end
-  if name ~= "" then
-    return {
-      {
-        provider = icon,
-        hl = { fg = hutils.get_highlight("Aerial" .. kind .. "Icon").fg },
-      },
-      spacer,
-      {
-        provider = name,
-        hl = { fg = hutils.get_highlight("Aerial" .. kind).fg },
-      },
-    }
-  end
-end
-
-local Breadcrumbs = {
-  Space(),
-  {
-    init = function(self)
-      local symbols = {}
-      if utils.valid_normal_buf(self.buf) and vim.uv.fs_stat(self.bufname) then
-        for symbol in string.gmatch(self.winreldir, "([^/]+)") do
-          table.insert(symbols, BreadcrumbsDirItem(symbol))
-          table.insert(symbols, BreadcrumbsSep)
-        end
-      end
-      table.insert(symbols, { FileIcon, FileName, FileFlags })
-      for _, symbol in ipairs(require("aerial").get_location(true)) do
-        table.insert(symbols, BreadcrumbsSep)
-        table.insert(symbols, BreadcrumbsAerialItem(symbol))
-      end
-      local children = symbols
-      self.child = self:new(children, 1)
-    end,
-    provider = function(self)
-      return self.child:eval()
-    end,
-  },
-}
 
 local WindowCloseButton = {
   on_click = {
@@ -581,17 +612,45 @@ local WindowCloseButton = {
     name = "window_close_callback",
   },
   { provider = "" },
-  Space(),
+  Space,
 }
 
+-- Active window bar elements
+local ActiveWinbar = hutils.insert(WinInfo,
+  pad_right(Breadcrumbs),
+  Align,
+  LSPInfo,
+  GitDiffs,
+  pad_left(WindowCloseButton)
+)
+
+-- Inactive window bar elements
+local InactiveWinbar = hutils.insert(WinInfo, {
+  hl = { fg = "winbar_inactive_fg", bg = "winbar_inactive_bg", force = true },
+  pad_right(Breadcrumbs),
+  Align,
+  LSPInfo,
+  GitDiffs,
+  pad_left(WindowCloseButton)
+})
+
+-- Tabline mode indicator
+local ModeTabline = hutils.insert(Mode, {
+  hl = function(self)
+    return { fg = "black", bg = self.color }
+  end,
+  provider = "  ",
+})
+
+-- Tabline Buffers
 local FileBufnr = {
-  Space(),
+  Space,
   {
     provider = function(self)
       return tostring(self.buf)
     end,
   },
-  Space(),
+  Space,
 }
 
 local BufferFile = {
@@ -620,7 +679,7 @@ local BufferCloseButton = {
   condition = function(self)
     return not vim.api.nvim_get_option_value("modified", { buf = self.buf })
   end,
-  Space(),
+  Space,
   {
     on_click = {
       callback = function(_, minwid)
@@ -653,16 +712,12 @@ local Buffer = {
   end,
   BufferFile,
   BufferCloseButton,
-  Space(),
+  Space,
 }
 
-local ModeNvim = {
-  hl = function(self)
-    return { fg = "black", bg = self.color }
-  end,
-  provider = "",
-}
+local Buffers = hutils.make_buflist(Buffer)
 
+-- Tabline tabs
 local TabLine = {
   hl = { fg = "tab_active_highlight" },
   provider = function(self)
@@ -695,32 +750,8 @@ local Tab = {
   TabLine,
   TabNumber,
   TabCloseButton,
-  Space(),
+  Space,
 }
-
-local SignColumn = { provider = "%s" }
-
-local NumberColumn = {
-  condition = function(self)
-    return vim.api.nvim_get_option_value("number", { win = self.win })
-        or vim.api.nvim_get_option_value("relativenumber", { win = self.win })
-  end,
-  { provider = "%l" },
-  Space(),
-}
-
-local FoldColumn = {
-  condition = function(self)
-    return vim.api.nvim_get_option_value("foldenable", { win = self.win })
-        and vim.api.nvim_get_option_value("foldcolumn", { win = self.win }) ~= 0
-        and vim.v.virtnum == 0
-  end,
-  { provider = "%C" },
-  Space(),
-}
-
-
-local Buffers = hutils.make_buflist(Buffer)
 
 local Tabs = {
   condition = function()
@@ -729,64 +760,38 @@ local Tabs = {
   hutils.make_tablist(Tab),
 }
 
-local ModeTabline = hutils.insert(Mode,
-  ModeBar,
-  ModeNvim,
-  ModeBar
-)
-
-local StatusLineFile = pad_symmetric({
-  FileDir,
-  FileIcon,
-  FileName,
-  FileFlags,
-})
-
-local ActiveStatusLine = hutils.insert(WinInfo,
-  ModeIndicatorLeft,
-  GitBranch,
-  Trunc,
-  StatusLineFile,
-  Align,
-  Position,
-  Scrollbar,
-  ModeBarRight
-)
-
-local InactiveStatusLine = hutils.insert(WinInfo, {
-  hl = { fg = "statusline_inactive_fg", bg = "statusline_inactive_bg", force = true },
-  pad_right(Bar),
-  Trunc,
-  StatusLineFile,
-  Align,
-  Position,
-  pad_left(Bar),
-})
-
-local ActiveWinbar = hutils.insert(WinInfo,
-  pad_right(Breadcrumbs),
-  Align,
-  LSPInfo,
-  GitDiffs,
-  pad_left(WindowCloseButton)
-)
-
-local InactiveWinbar = hutils.insert(WinInfo, {
-  hl = { fg = "winbar_inactive_fg", bg = "winbar_inactive_bg", force = true },
-  pad_right(Breadcrumbs),
-  Align,
-  LSPInfo,
-  GitDiffs,
-  pad_left(WindowCloseButton)
-})
-
+-- Tabline elements
 local Tabline = {
   ModeTabline,
-  Space(),
+  Space,
   Trunc,
-  Buffers,
+  pad_right(Buffers),
   Align,
-  Tabs,
+  pad_left(Tabs),
+}
+
+-- Sign column
+local Signcolumn = { provider = "%s" }
+
+-- Line number column
+local Numbercolumn = {
+  condition = function(self)
+    return vim.api.nvim_get_option_value("number", { win = self.win })
+        or vim.api.nvim_get_option_value("relativenumber", { win = self.win })
+  end,
+  { provider = "%l" },
+  Space,
+}
+
+-- Code folds column
+local Foldcolumn = {
+  condition = function(self)
+    return vim.api.nvim_get_option_value("foldenable", { win = self.win })
+        and vim.api.nvim_get_option_value("foldcolumn", { win = self.win }) ~= 0
+        and vim.v.virtnum == 0
+  end,
+  { provider = "%C" },
+  Space,
 }
 
 -- Statuscolumn elements
@@ -794,10 +799,10 @@ local Statuscolumn = hutils.insert(WinInfo, {
   condition = function(self)
     return utils.valid_normal_buf(self.buf)
   end,
-  Space(),
-  SignColumn,
-  NumberColumn,
-  FoldColumn,
+  Space,
+  Signcolumn,
+  Numbercolumn,
+  Foldcolumn,
 })
 
 -- Setup plugin
@@ -816,25 +821,39 @@ require("heirline").setup({
   statuscolumn = Statuscolumn,
 })
 
--- Redraw statusline and tabline on these events to prevent delay
-vim.api.nvim_create_autocmd({
-  "ModeChanged",
-  "BufEnter"
-}, {
-  callback = vim.schedule_wrap(function()
-    vim.cmd.redrawstatus()
-    vim.cmd.redrawtabline()
-  end)
+-- Schedule redrawing of status line and tab pages line on these events to
+-- prevent a delay
+local heirline_redraw_group = vim.api.nvim_create_augroup("HeirlineRedraw", { clear = true })
+
+local schedule_redraw_all = vim.schedule_wrap(function()
+  vim.cmd.redrawstatus()
+  vim.cmd.redrawtabline()
+end)
+
+vim.api.nvim_create_autocmd("ModeChanged", {
+  callback = schedule_redraw_all,
+  group = heirline_redraw_group,
+})
+
+vim.api.nvim_create_autocmd("User", {
+  callback = schedule_redraw_all,
+  group = heirline_redraw_group,
+  pattern = "GitSignsUpdate",
 })
 
 -- Update colors on colorscheme change
+local heirline_colors_group = vim.api.nvim_create_augroup("HeirlineColors", { clear = true })
+
 vim.api.nvim_create_autocmd("ColorScheme", {
   callback = function()
     hutils.on_colorscheme(get_colors)
   end,
+  group = heirline_colors_group,
 })
 
--- Show tabline based on if there are listed buffers that are not visible
+-- Show tab pages line based on if there are listed buffers that are not visible
+local heirline_tabline_group = vim.api.nvim_create_augroup("HeirlineTabLine", { clear = true })
+
 vim.api.nvim_create_autocmd({
   "BufAdd",
   "BufDelete",
@@ -857,5 +876,6 @@ vim.api.nvim_create_autocmd({
       end
     end
     vim.opt.showtabline = not all_bufs_visible and 2 or 1
-  end)
+  end),
+  group = heirline_tabline_group,
 })
