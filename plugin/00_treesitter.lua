@@ -1,3 +1,5 @@
+-- TODO: Migrate to tree-sitter-manager.nvim if it becomes stable enough, and if
+-- nvim-treesitter stayes archived
 vim.pack.add({ "https://github.com/nvim-treesitter/nvim-treesitter" })
 
 local languages = {
