@@ -1,8 +1,7 @@
+require("ui2")
+
 local icons = require("icons")
 local utils = require("utils")
-
--- Enable UI2
-require("vim._core.ui2").enable()
 
 -- <Leader> key
 vim.g.mapleader = " "
@@ -11,14 +10,7 @@ vim.g.mapleader = " "
 vim.o.laststatus = 3
 vim.o.winborder = "rounded"
 
--- Global buffer indentation options
-vim.o.expandtab = true
-vim.o.tabstop = 2
-vim.o.softtabstop = 2
-vim.o.shiftwidth = 2
-vim.o.autoindent = true
-
--- Diagnostic icons
+-- Global diagnostic icons
 vim.diagnostic.config({
   signs = {
     text = {
@@ -30,12 +22,21 @@ vim.diagnostic.config({
   },
 })
 
+-- Global buffer indentation options
+vim.o.expandtab = true
+vim.o.tabstop = 2
+vim.o.softtabstop = 2
+vim.o.shiftwidth = 2
+vim.o.autoindent = true
+
 -- Generate window-local options
-local function winlocal_opts(winid)
-  local buf = vim.api.nvim_win_get_buf(winid)
+local function winlocal_opts(win)
+  local buf = vim.api.nvim_win_get_buf(win)
 
   local sw = vim.api.nvim_get_option_value("shiftwidth", { buf = buf })
-  if sw == 0 then sw = vim.api.nvim_get_option_value("tabstop", { buf = buf }) end
+  if sw == 0 then
+    sw = vim.api.nvim_get_option_value("tabstop", { buf = buf })
+  end
 
   return {
     -- Editor line numbers
@@ -59,46 +60,51 @@ local function winlocal_opts(winid)
 
     -- Window UI icons and characters
     fillchars = "fold: ,"
-        .. "foldopen:" .. icons.arrows.down .. ","
-        .. "foldclose:" .. icons.arrows.right .. ","
-        .. "foldinner: ,"
-        .. "foldsep: ,",
+      .. "foldopen:"
+      .. icons.arrows.down
+      .. ","
+      .. "foldclose:"
+      .. icons.arrows.right
+      .. ","
+      .. "foldinner: ,"
+      .. "foldsep: ,",
     list = true,
-    listchars = "tab:↦ ,"
-        .. "leadmultispace:" .. "│" .. string.rep(" ", math.max(sw - 1, 0)) .. ","
-        .. "trail:⋅,"
-        .. "precedes:,"
-        .. "extends:,",
+    listchars = "tab:↦ ," .. "leadmultispace:" .. "│" .. string.rep(
+      " ",
+      math.max(sw - 1, 0)
+    ) .. "," .. "trail:⋅," .. "precedes:," .. "extends:,",
   }
 end
 
--- Set window-local options
-local function set_winlocal_opts(win)
-  for opt, val in pairs(winlocal_opts(win)) do
-    vim.api.nvim_set_option_value(opt, val, {
-      win = win,
-      scope = "local",
-    })
-  end
-end
-
--- Decide what windows to apply window-local options for
-local function apply_winlocal_opts()
+-- Set window-local options for windows containing valid, normal buffers
+-- TODO: Optimize once the ev.win field is implemented:
+-- https://github.com/neovim/neovim/issues/23581
+local function set_winlocal_opts()
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     local buf = vim.api.nvim_win_get_buf(win)
     if utils.valid_normal_buf(buf) then
-      set_winlocal_opts(win)
+      for opt, val in pairs(winlocal_opts(win)) do
+        vim.api.nvim_set_option_value(opt, val, {
+          win = win,
+          scope = "local",
+        })
+      end
     end
   end
 end
 
--- Set window-local options when buffer is enters a window
+-- Apply window-local options when a buffer is displayed in a window, or when
+-- relevant options are set
+local winlocal_opts_group =
+  vim.api.nvim_create_augroup("WindowLocalOptions", { clear = true })
+
 vim.api.nvim_create_autocmd("BufWinEnter", {
-  callback = apply_winlocal_opts,
+  callback = set_winlocal_opts,
+  group = winlocal_opts_group,
 })
 
--- Adapt window-local options when relevant options are set
 vim.api.nvim_create_autocmd("OptionSet", {
+  callback = set_winlocal_opts,
+  group = winlocal_opts_group,
   pattern = { "shiftwidth", "tabstop", "list" },
-  callback = apply_winlocal_opts,
 })
