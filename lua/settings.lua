@@ -59,20 +59,21 @@ local function winlocal_opts(win)
     foldcolumn = "1",
 
     -- Window UI icons and characters
-    fillchars = "fold: ,"
-      .. "foldopen:"
-      .. icons.arrows.down
-      .. ","
-      .. "foldclose:"
-      .. icons.arrows.right
-      .. ","
-      .. "foldinner: ,"
-      .. "foldsep: ,",
+    fillchars =
+        "fold: ," ..
+        "foldopen:" .. icons.arrows.down .. "," ..
+        "foldclose:" .. icons.arrows.right .. "," ..
+        "foldinner: ," ..
+        "foldsep: ,",
     list = true,
-    listchars = "tab:↦ ," .. "leadmultispace:" .. "│" .. string.rep(
-      " ",
-      math.max(sw - 1, 0)
-    ) .. "," .. "trail:⋅," .. "precedes:," .. "extends:,",
+    listchars =
+        "tab:↦ ," ..
+        "leadmultispace:" .. "│" .. string.rep(
+          " ", math.max(sw - 1, 0)
+        ) .. "," ..
+        "trail:⋅," ..
+        "precedes:," ..
+        "extends:,",
   }
 end
 
@@ -96,7 +97,7 @@ end
 -- Apply window-local options when a buffer is displayed in a window, or when
 -- relevant options are set
 local winlocal_opts_group =
-  vim.api.nvim_create_augroup("WindowLocalOptions", { clear = true })
+    vim.api.nvim_create_augroup("WindowLocalOptions", { clear = true })
 
 vim.api.nvim_create_autocmd("BufWinEnter", {
   callback = set_winlocal_opts,
