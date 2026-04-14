@@ -45,6 +45,9 @@ end
 
 vim.api.nvim_create_user_command("CwdExplorer", _G.CwdExplorer, {})
 
+-- Open Oil on a new tab page
+local oil_open_group = vim.api.nvim_create_augroup("OilOpen", { clear = true })
+
 vim.api.nvim_create_autocmd("TabNew", {
   callback = function()
     vim.schedule(function()
@@ -60,6 +63,7 @@ vim.api.nvim_create_autocmd("TabNew", {
       end
     end)
   end,
+  group = oil_open_group,
 })
 
 vim.keymap.set("n", "<Leader>eo", oil.open, { desc = "Open Oil" })
