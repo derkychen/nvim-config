@@ -1,4 +1,5 @@
 require("settings")
+require("ui2")
 require("keymaps")
 require("lsp")
 require("sessions")
