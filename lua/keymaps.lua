@@ -1,4 +1,4 @@
--- Tabs
+-- Tab page controls
 vim.keymap.set("n", "<Leader>tn", vim.cmd.tabnew, {})
 vim.keymap.set("n", "<Leader>tx", function()
   if vim.fn.tabpagenr("$") > 1 then
