@@ -7,7 +7,7 @@ ui2.enable({
   },
 })
 
--- Defensively load `cmdline` module 
+-- Defensively load `cmdline` module
 local ok, cmdline = pcall(require, "vim._core.ui2.cmdline")
 if not ok then
   return
@@ -98,7 +98,7 @@ end
 
 -- State storing variables
 local cmdline_type = nil ---@type string|nil
-local original_ui_cmdline_pos = nil ---@type table|nil
+local original_ui_cmdline_pos = vim.g.ui_cmdline_pos ---@type table|nil
 local orig_cmd_win_config = nil ---@type table|nil
 
 local function get_cmd_win()
