@@ -27,37 +27,32 @@ vim.o.softtabstop = 2
 vim.o.shiftwidth = 2
 vim.o.autoindent = true
 
-
 -- Set static window-local options
 local function set_static_winlocal_opts(win)
   local static_winlocal_opts = {
-    -- Editor line numbers
-    number = true,
-    relativenumber = true,
+    number = true,                                -- Current line number
+    relativenumber = true,                        -- Relative line numbers
 
-    -- Line and column highlighting
-    cursorline = true,
-    cursorcolumn = true,
+    cursorline = true,                            -- Highlight current line
+    cursorcolumn = true,                          -- Highlight current column
 
-    -- Line wrap at words, match indent
-    linebreak = true,
-    breakindent = true,
+    linebreak = true,                             -- Wrap lines at words
+    breakindent = true,                           -- Indent wrapped lines
 
-    -- Code folding with Treesitter
-    foldmethod = "expr",
-    foldexpr = "v:lua.vim.treesitter.foldexpr()",
-    foldtext = "",
-    foldlevel = 99,
-    foldcolumn = "1",
+    foldmethod = "expr",                          -- Custom code folding
+    foldexpr = "v:lua.vim.treesitter.foldexpr()", -- Fold code with Tree-sitter
+    foldtext = "",                                -- No text for closed fold
+    foldlevel = 99,                               -- Allow 99 levels of nesting
+    foldcolumn = "1",                             -- Width of fold column
 
-    -- Window UI icons and characters
     fillchars =
-        "fold: ," ..
-        "foldopen:" .. icons.arrows.down .. "," ..
-        "foldclose:" .. icons.arrows.right .. "," ..
-        "foldinner: ," ..
-        "foldsep: ,",
-    list = true,
+        "fold: ," ..                                 -- Fill closed fold
+        "foldopen:" .. icons.arrows.down .. "," ..   -- Arrow for opened fold
+        "foldclose:" .. icons.arrows.right .. "," .. -- Arrow for closed fold
+        "foldinner: ," ..                            -- No foldlevel indicator
+        "foldsep: ,",                                -- No open fold indicator
+
+    list = true,                                     -- Show blank characters
   }
 
   for opt, val in pairs(static_winlocal_opts) do
@@ -76,13 +71,17 @@ local function set_adaptive_winlocal_opts(win)
 
   local adaptive_winlocal_opts = {
     listchars =
-        "tab:↦ ," ..
+        "eol:󰌑," .. -- End of line
+        "tab:↦ ," .. -- Tab character
+
+        -- Compute indentation indicators for spaces only
         "leadmultispace:" .. "│" .. string.rep(
           " ", math.max(sw - 1, 0)
         ) .. "," ..
-        "trail:⋅," ..
-        "precedes:," ..
-        "extends:,",
+
+        "trail:⋅," .. -- Trailing spaces
+        "extends:," .. -- Hidden right columns when line wrapping is off
+        "precedes:,", -- Hidden left columns when line wrapping is off
   }
 
   for opt, val in pairs(adaptive_winlocal_opts) do
