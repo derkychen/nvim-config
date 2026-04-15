@@ -74,11 +74,13 @@ function M.rename(old_path, new_path, overwrite)
 
   local ok = vim.fn.rename(old_path, new_path)
   if ok ~= 0 then
-    msg("Failed to rename session: " .. vim.fs.basename(old_path) .. " -> " .. vim.fs.basename(new_path))
+    msg("Failed to rename session: " ..
+      vim.fs.basename(old_path) .. " -> " .. vim.fs.basename(new_path))
     return
   end
 
-  msg("Session renamed: " .. vim.fs.basename(old_path) .. " -> " .. vim.fs.basename(new_path))
+  msg("Session renamed: " ..
+    vim.fs.basename(old_path) .. " -> " .. vim.fs.basename(new_path))
 end
 
 -- Return all session names
@@ -116,27 +118,31 @@ function M.save_to_name()
   local items = vim.deepcopy(M.names())
   table.insert(items, 1, " Create new session")
 
-  vim.ui.select(items, { prompt = "Save or create new session > " }, function(choice, idx)
-    if not choice then
-      msg("Session save canceled.")
-      return
-    end
+  vim.ui.select(
+    items,
+    { prompt = "Save or create new session > " },
+    function(choice, idx)
+      if not choice then
+        msg("Session save canceled.")
+        return
+      end
 
-    if idx == 1 then
-      vim.ui.input({
-        prompt = "Session name: ",
-        default = vim.fn.fnamemodify(vim.fn.getcwd(), ":t"),
-      }, function(name)
-        if not name or name == "" then
-          msg("Session save canceled.")
-          return
-        end
-        M.save(M.get_session_path(name))
-      end)
-    else
-      M.save(M.get_session_path(choice))
+      if idx == 1 then
+        vim.ui.input({
+          prompt = "Session name: ",
+          default = vim.fn.fnamemodify(vim.fn.getcwd(), ":t"),
+        }, function(name)
+          if not name or name == "" then
+            msg("Session save canceled.")
+            return
+          end
+          M.save(M.get_session_path(name))
+        end)
+      else
+        M.save(M.get_session_path(choice))
+      end
     end
-  end)
+  )
 end
 
 -- Session loading
@@ -217,7 +223,9 @@ end
 
 function M.rename_by_name()
   vim.ui.select(M.names(), { prompt = "Rename session > " }, function(choice)
-    if not choice or choice == "" then return end
+    if not choice or choice == "" then
+      return
+    end
 
     vim.ui.input({
       prompt = "Rename '" .. choice .. "' to: ",
@@ -233,7 +241,8 @@ function M.rename_by_name()
 
       local function do_rename(overwrite)
         M.rename(old_path, new_path, overwrite)
-        if vim.v.this_session == old_path and vim.fn.filereadable(new_path) == 1 then
+        if vim.v.this_session == old_path and
+            vim.fn.filereadable(new_path) == 1 then
           vim.v.this_session = new_path
         end
       end
@@ -264,12 +273,19 @@ vim.api.nvim_create_user_command("SessionRenameCurrent", M.rename_current, {})
 vim.api.nvim_create_user_command("SessionRenameByName", M.rename_by_name, {})
 
 -- Keymaps
-vim.keymap.set("n", "<Leader>ss", M.save_current, { desc = "Save current session" })
-vim.keymap.set("n", "<Leader>sa", M.save_to_name, { desc = "Save current session to name" })
-vim.keymap.set("n", "<Leader>sl", M.load_by_name, { desc = "Load session" })
-vim.keymap.set("n", "<Leader>sdc", M.delete_current, { desc = "Delete current session" })
-vim.keymap.set("n", "<Leader>sdn", M.delete_by_name, { desc = "Delete session by name" })
-vim.keymap.set("n", "<Leader>src", M.rename_current, { desc = "Rename current session" })
-vim.keymap.set("n", "<Leader>srn", M.rename_by_name, { desc = "Rename session by name" })
+vim.keymap.set("n", "<Leader>ss", M.save_current,
+  { desc = "Save current session" })
+vim.keymap.set("n", "<Leader>sa", M.save_to_name,
+  { desc = "Save current session to name" })
+vim.keymap.set("n", "<Leader>sl", M.load_by_name,
+  { desc = "Load session by name" })
+vim.keymap.set("n", "<Leader>sdc", M.delete_current,
+  { desc = "Delete current session" })
+vim.keymap.set("n", "<Leader>sdn", M.delete_by_name,
+  { desc = "Delete session by name" })
+vim.keymap.set("n", "<Leader>src", M.rename_current,
+  { desc = "Rename current session" })
+vim.keymap.set("n", "<Leader>srn", M.rename_by_name,
+  { desc = "Rename session by name" })
 
 return M
