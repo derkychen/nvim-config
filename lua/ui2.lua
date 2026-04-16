@@ -101,6 +101,7 @@ local cmdline_type = nil ---@type string|nil
 local original_ui_cmdline_pos = vim.g.ui_cmdline_pos ---@type table|nil
 local orig_cmd_win_config = nil ---@type table|nil
 
+-- Return command-line window ID
 local function get_cmdline_win()
   if not ui2 then
     return
@@ -109,7 +110,8 @@ local function get_cmdline_win()
   return (win and vim.api.nvim_win_is_valid(win)) and win or nil
 end
 
-local function reposition()
+-- Configure command-line window and provide anchor for completion
+local function float_cmdline()
   if not cmdline_type then
     return
   end
@@ -119,6 +121,7 @@ local function reposition()
     return
   end
 
+  -- Store original window configuration
   if not orig_cmd_win_config then
     orig_cmd_win_config = vim.api.nvim_win_get_config(win)
   end
@@ -154,8 +157,8 @@ cmdline.cmdline_show = function(...)
   if not cmdline_type then
     return ret
   end
-  reposition()
 
+  float_cmdline()
   return ret
 end
 
@@ -183,6 +186,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
   group = group,
 })
 
+-- Update the command-line window on entering and leaving
 vim.api.nvim_create_autocmd("CmdlineEnter", {
   callback = function()
     cmdline_type = vim.fn.getcmdtype()
@@ -201,16 +205,5 @@ vim.api.nvim_create_autocmd("CmdlineLeave", {
       vim.wo[win].winhighlight = cmdline_bottom_winhighlight
     end
   end,
-  group = group,
-})
-
-vim.api.nvim_create_autocmd("FileType", {
-  callback = vim.schedule_wrap(reposition),
-  group = group,
-  pattern = "cmd",
-})
-
-vim.api.nvim_create_autocmd({ "VimResized", "TabEnter" }, {
-  callback = vim.schedule_wrap(reposition),
   group = group,
 })
