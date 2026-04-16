@@ -101,7 +101,7 @@ local cmdline_type = nil ---@type string|nil
 local original_ui_cmdline_pos = vim.g.ui_cmdline_pos ---@type table|nil
 local orig_cmd_win_config = nil ---@type table|nil
 
-local function get_cmd_win()
+local function get_cmdline_win()
   if not ui2 then
     return
   end
@@ -114,7 +114,7 @@ local function reposition()
     return
   end
 
-  local win = get_cmd_win()
+  local win = get_cmdline_win()
   if not win then
     return
   end
@@ -123,6 +123,7 @@ local function reposition()
     orig_cmd_win_config = vim.api.nvim_win_get_config(win)
   end
 
+  vim.wo[win].wrap = false
   vim.wo[win].winhighlight = cmdline_float_winhighlight
 
   local content_height = math.max(1, vim.api.nvim_win_get_height(win))
@@ -193,7 +194,8 @@ vim.api.nvim_create_autocmd("CmdlineLeave", {
   callback = function()
     cmdline_type = nil
     vim.g.ui_cmdline_pos = original_ui_cmdline_pos
-    local win = get_cmd_win()
+    local win = get_cmdline_win()
+
     if win and orig_cmd_win_config then
       pcall(vim.api.nvim_win_set_config, win, orig_cmd_win_config)
       vim.wo[win].winhighlight = cmdline_bottom_winhighlight
