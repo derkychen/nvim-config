@@ -40,19 +40,25 @@ local function set_static_winlocal_opts(win)
     breakindent = true,                           -- Indent wrapped lines
 
     foldmethod = "expr",                          -- Custom code folding
-    foldexpr = "v:lua.vim.treesitter.foldexpr()", -- Fold code with Tree-sitter
+    foldexpr = "v:lua.vim.treesitter.foldexpr()", -- Fold with Tree-sitter
     foldtext = "",                                -- No text for closed fold
-    foldlevel = 99,                               -- Allow 99 levels of nesting
+    foldlevel = 99,                               -- Maximum nested folds
     foldcolumn = "1",                             -- Width of fold column
 
     fillchars =
         "fold: ," ..                                 -- Fill closed fold
         "foldopen:" .. icons.arrows.down .. "," ..   -- Arrow for opened fold
         "foldclose:" .. icons.arrows.right .. "," .. -- Arrow for closed fold
-        "foldinner: ," ..                            -- No foldlevel indicator
-        "foldsep: ,",                                -- No open fold indicator
+        "foldinner: ," ..                            -- No foldlevel number
+        "foldsep: ," ..                              -- No open fold indicator
+        "eob: ,",                                    -- End of buffer
 
-    list = true,                                     -- Show blank characters
+    list = true,
+    listchars =
+        "tab:↦ ," .. -- Tab character
+        "trail:⋅," .. -- Trailing spaces
+        "extends:," .. -- Indicate right continuation when line wrapping off
+        "precedes:,", -- Indicate left continuation when line wrapping off
   }
 
   for opt, val in pairs(static_winlocal_opts) do
@@ -60,33 +66,37 @@ local function set_static_winlocal_opts(win)
   end
 end
 
--- Set adaptive window-local options
-local function set_adaptive_winlocal_opts(win)
+-- Set adaptive window-local options: If these options are set by others, they
+-- will be overridden every time an option listed in the `OptionSet` automatic
+-- command is set
+local function set_adaptive_override_winlocal_opts(win)
   local buf = vim.api.nvim_win_get_buf(win)
 
+  -- Update `leadmultispace` (only for indentation with spaces)
   local sw = vim.api.nvim_get_option_value("shiftwidth", { buf = buf })
   if sw == 0 then
     sw = vim.api.nvim_get_option_value("tabstop", { buf = buf })
   end
+  local leadmultispace =
+      "leadmultispace:" .. "│" .. string.rep(" ", math.max(sw - 1, 0))
 
-  local adaptive_winlocal_opts = {
-    listchars =
-        "eol:󰌑," .. -- End of line
-        "tab:↦ ," .. -- Tab character
+  local listchars = vim.api.nvim_get_option_value("listchars", {
+    win = win,
+    scope = "local",
+  })
 
-        -- Compute indentation indicators for spaces only
-        "leadmultispace:" .. "│" .. string.rep(
-          " ", math.max(sw - 1, 0)
-        ) .. "," ..
-
-        "trail:⋅," .. -- Trailing spaces
-        "extends:," .. -- Hidden right columns when line wrapping is off
-        "precedes:,", -- Hidden left columns when line wrapping is off
-  }
-
-  for opt, val in pairs(adaptive_winlocal_opts) do
-    vim.api.nvim_set_option_value(opt, val, { win = win, scope = "local" })
+  -- Replace or append `leadmultispace`
+  if listchars:find("leadmultispace:", 1, true) then
+    listchars = listchars:gsub("leadmultispace:[^,]*", leadmultispace, 1)
+  else
+    if listchars ~= "" and not listchars:match(",$") then
+      listchars = listchars .. ","
+    end
+    listchars = listchars .. leadmultispace
   end
+
+  vim.api.nvim_set_option_value("listchars", listchars,
+    { win = win, scope = "local" })
 end
 
 -- Track windows whose default local options have been set
@@ -132,14 +142,14 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
         set_static_winlocal_opts(win)
         mark_initialized(win, buf)
       end
-      set_adaptive_winlocal_opts(win)
+      set_adaptive_override_winlocal_opts(win)
     end
   end,
   group = winlocal_opts_group,
 })
 
--- Refresh adaptive window-local options for all windows since OptionSet does
--- not provide an `ev.buf`.
+-- Refresh adaptive window-local options for all windows since `OptionSet` does
+-- not provide an `ev.buf`
 vim.api.nvim_create_autocmd("OptionSet", {
   group = winlocal_opts_group,
   pattern = { "shiftwidth", "tabstop", "list" },
@@ -147,7 +157,7 @@ vim.api.nvim_create_autocmd("OptionSet", {
     for _, win in ipairs(vim.api.nvim_list_wins()) do
       local buf = vim.api.nvim_win_get_buf(win)
       if utils.valid_normal_buf(buf) then
-        set_adaptive_winlocal_opts(win)
+        set_adaptive_override_winlocal_opts(win)
       end
     end
   end,
