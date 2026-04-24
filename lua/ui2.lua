@@ -8,13 +8,10 @@ ui2.enable({
 })
 
 -- Defensively load `cmdline` module
-local ok, cmdline = pcall(require, "vim._core.ui2.cmdline")
-if not ok then
-  return
-end
+local cmdline = require("vim._core.ui2.cmdline")
 
 -- Floating command-line
--- Based on and many thanks to tiny-cmdline.nvim:
+-- Based on and only possible thanks to tiny-cmdline.nvim:
 -- https://github.com/rachartier/tiny-cmdline.nvim
 local cmdline_config = {
   width = {
@@ -51,9 +48,8 @@ local cmdline_float_winhighlight = make_winhighlight({
 })
 
 -- Highlights for regular command-line window
-local cmdline_bottom_winhighlight = make_winhighlight({
-  Normal = "CmdlineBottomNormal",
-  FloatBorder = "CmdlineFloatBorder",
+local cmdline_regular_winhighlight = make_winhighlight({
+  Normal = "CmdlineNormal",
   Search = "None",
   CurSearch = "None",
   IncSearch = "None",
@@ -97,9 +93,9 @@ local function geometry(content_height)
 end
 
 -- State storing variables
-local cmdline_type = nil ---@type string|nil
-local original_ui_cmdline_pos = vim.g.ui_cmdline_pos ---@type table|nil
-local orig_cmd_win_config = nil ---@type table|nil
+local cmdline_type = nil
+local original_ui_cmdline_pos = vim.g.ui_cmdline_pos
+local orig_cmd_win_config = nil
 
 -- Return command-line window ID
 local function get_cmdline_win()
@@ -172,7 +168,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
       fg = vim.api.nvim_get_hl(0, { name = "MsgArea" }).fg,
       bg = vim.api.nvim_get_hl(0, { name = "NormalFloat" }).bg,
     })
-    vim.api.nvim_set_hl(0, "CmdlineBottomNormal",
+    vim.api.nvim_set_hl(0, "CmdlineNormal",
       { link = "MsgArea", default = true })
     vim.api.nvim_set_hl(0, "CmdlineFloatBorder",
       { link = "FloatBorder", default = true })
@@ -196,7 +192,7 @@ vim.api.nvim_create_autocmd("CmdlineLeave", {
 
     if win and orig_cmd_win_config then
       pcall(vim.api.nvim_win_set_config, win, orig_cmd_win_config)
-      vim.wo[win].winhighlight = cmdline_bottom_winhighlight
+      vim.wo[win].winhighlight = cmdline_regular_winhighlight
     end
   end,
   group = group,
