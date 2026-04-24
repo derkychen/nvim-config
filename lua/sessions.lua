@@ -1,18 +1,13 @@
 local M = {}
 
+local utils = require("utils")
+
 -- Session storage directory
 M.sessions_dir = vim.fn.stdpath("data") .. "/sessions"
 
 -- Ensure session storage directory exists
 if vim.fn.isdirectory(M.sessions_dir) == 0 then
   vim.fn.mkdir(M.sessions_dir, "p")
-end
-
--- User messaging interface, delay to accommodate for vim.ui.select picker
-local function msg(s)
-  vim.defer_fn(function()
-    vim.notify(s)
-  end, 50)
 end
 
 -- File path from session name
@@ -38,13 +33,13 @@ function M.save(path)
     data = { path = path },
   })
 
-  msg("Session saved: " .. vim.fs.basename(path))
+  vim.notify("Session saved: " .. vim.fs.basename(path))
 end
 
 -- Load session
 function M.load(path)
   if vim.fn.filereadable(path) == 0 then
-    msg("No such session: " .. vim.fs.basename(path))
+    vim.notify("No such session: " .. vim.fs.basename(path))
     return
   end
 
@@ -69,30 +64,30 @@ function M.load(path)
     data = { path = path },
   })
 
-  msg("Session loaded: " .. vim.fs.basename(path))
+  vim.notify("Session loaded: " .. vim.fs.basename(path))
 end
 
 -- Delete session
 function M.delete(path)
   if vim.fn.filereadable(path) == 0 then
-    msg("No such session: " .. vim.fs.basename(path))
+    vim.notify("No such session: " .. vim.fs.basename(path))
     return
   end
 
   vim.fn.delete(path)
-  msg("Session deleted: " .. vim.fs.basename(path))
+  vim.notify("Session deleted: " .. vim.fs.basename(path))
 end
 
 -- Rename session
 function M.rename(old_path, new_path, overwrite)
   if vim.fn.filereadable(old_path) == 0 then
-    msg("No such session: " .. vim.fs.basename(old_path))
+    vim.notify("No such session: " .. vim.fs.basename(old_path))
     return
   end
 
   if vim.fn.filereadable(new_path) == 1 then
     if not overwrite then
-      msg("Session already exists: " .. vim.fs.basename(new_path))
+      vim.notify("Session already exists: " .. vim.fs.basename(new_path))
       return
     end
     vim.fn.delete(new_path)
@@ -100,12 +95,12 @@ function M.rename(old_path, new_path, overwrite)
 
   local ok = vim.fn.rename(old_path, new_path)
   if ok ~= 0 then
-    msg("Failed to rename session: " ..
+    vim.notify("Failed to rename session: " ..
       vim.fs.basename(old_path) .. " -> " .. vim.fs.basename(new_path))
     return
   end
 
-  msg("Session renamed: " ..
+  vim.notify("Session renamed: " ..
     vim.fs.basename(old_path) .. " -> " .. vim.fs.basename(new_path))
 end
 
@@ -149,7 +144,7 @@ function M.save_to_name()
     { prompt = "Save or create new session > " },
     function(choice, idx)
       if not choice then
-        msg("Session save canceled.")
+        vim.notify("Session save canceled.")
         return
       end
 
@@ -159,7 +154,7 @@ function M.save_to_name()
           default = vim.fn.fnamemodify(vim.fn.getcwd(), ":t"),
         }, function(name)
           if not name or name == "" then
-            msg("Session save canceled.")
+            vim.notify("Session save canceled.")
             return
           end
           M.save(M.get_session_path(name))
@@ -175,7 +170,7 @@ end
 function M.load_by_name()
   vim.ui.select(M.names(), { prompt = "Load session > " }, function(choice)
     if not choice or choice == "" then
-      msg("Session load canceled.")
+      vim.notify("Session load canceled.")
       return
     end
     M.load(M.get_session_path(choice))
@@ -186,7 +181,7 @@ end
 function M.delete_current()
   local current = vim.v.this_session
   if current == nil or current == "" then
-    msg("No current session loaded")
+    vim.notify("No current session loaded")
     return
   end
   M.delete(vim.v.this_session)
@@ -196,7 +191,7 @@ end
 function M.delete_by_name()
   vim.ui.select(M.names(), { prompt = "Delete session > " }, function(choice)
     if not choice or choice == "" then
-      msg("Session delete canceled.")
+      vim.notify("Session delete canceled.")
       return
     end
     M.delete(M.get_session_path(choice))
@@ -207,7 +202,7 @@ end
 function M.rename_current()
   local current = vim.v.this_session
   if current == nil or current == "" then
-    msg("No current session")
+    vim.notify("No current session")
     return
   end
 
@@ -219,7 +214,7 @@ function M.rename_current()
     default = old_name,
   }, function(new_name)
     if not new_name or new_name == "" or new_name == old_name then
-      msg("Session rename canceled.")
+      vim.notify("Session rename canceled.")
       return
     end
 
@@ -258,7 +253,7 @@ function M.rename_by_name()
       default = choice,
     }, function(new_name)
       if not new_name or new_name == "" or new_name == choice then
-        msg("Session rename canceled.")
+        vim.notify("Session rename canceled.")
         return
       end
 
@@ -289,16 +284,6 @@ function M.rename_by_name()
   end)
 end
 
--- Commands
-vim.api.nvim_create_user_command("SessionSaveCurrent", M.save_current, {})
-vim.api.nvim_create_user_command("SessionSaveToName", M.save_to_name, {})
-vim.api.nvim_create_user_command("SessionLoadByName", M.load_by_name, {})
-vim.api.nvim_create_user_command("SessionDeleteCurrent", M.delete_current, {})
-vim.api.nvim_create_user_command("SessionDeleteByName", M.delete_by_name, {})
-vim.api.nvim_create_user_command("SessionRenameCurrent", M.rename_current, {})
-vim.api.nvim_create_user_command("SessionRenameByName", M.rename_by_name, {})
-
--- Keymaps
 vim.keymap.set("n", "<Leader>ss", M.save_current,
   { desc = "Save current session" })
 vim.keymap.set("n", "<Leader>sa", M.save_to_name,
