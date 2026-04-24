@@ -23,19 +23,19 @@ vim.diagnostic.config({
   },
 })
 
--- Set static buffer-local options
-local function set_static_buflocal_opts(buf)
-  local static_buflocal_opts = {
+-- Set default buffer-local options
+local function set_default_buflocal_opts(buf)
+  local default_buflocal_opts = {
     expandtab = true,                     -- Convert tabs to spaces
-    tabstop = 2,                          -- Number of spaces to display a tab
-    softtabstop = 2,                      -- Spaces between soft tab stops
-    shiftwidth = 2,                       -- Indentation level in spaces
-    autoindent = true,                    -- Copy indent on new line
-    spelllang = "en_ca",                  -- Spelling locale
+    tabstop = 2,                          -- Columns per tab
+    softtabstop = 2,                      -- Columns per soft tab stop
+    shiftwidth = 2,                       -- Columns per indentation level
+    autoindent = true,                    -- Copy previous indent on new line
+    spelllang = "en_ca",                  -- Spelling language and locale
     spelloptions = "camel,noplainbuffer", -- Handle camel casing and syntax
   }
 
-  for opt, val in pairs(static_buflocal_opts) do
+  for opt, val in pairs(default_buflocal_opts) do
     vim.api.nvim_set_option_value(opt, val, { buf = buf, scope = "local" })
   end
 end
@@ -55,9 +55,9 @@ local function clear_buflocal_initialized(buf)
   buflocal_initialized[buf] = nil
 end
 
--- Set static window-local options
-local function set_static_winlocal_opts(win)
-  local static_winlocal_opts = {
+-- Set default window-local options
+local function set_default_winlocal_opts(win)
+  local default_winlocal_opts = {
     number = true,                                   -- Current line number
     relativenumber = true,                           -- Relative line numbers
     cursorline = true,                               -- Highlight current line
@@ -78,7 +78,6 @@ local function set_static_winlocal_opts(win)
         "foldsep: ,",                                -- No open fold indicator
     list = true,
     listchars =
-        "eol:󰌑," .. -- End of line
         "tab:↦ ," .. -- Tab character
         "trail:⋅," .. -- Trailing spaces
         "extends:," .. -- Line continuing to the right when line wrapping off
@@ -86,7 +85,7 @@ local function set_static_winlocal_opts(win)
     spell = true, -- Enable spell-check
   }
 
-  for opt, val in pairs(static_winlocal_opts) do
+  for opt, val in pairs(default_winlocal_opts) do
     vim.api.nvim_set_option_value(opt, val, { win = win, scope = "local" })
   end
 end
@@ -157,7 +156,7 @@ vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
   callback = function(ev)
     local buf = ev.buf
     if not is_buflocal_initialized(buf) then
-      set_static_buflocal_opts(buf)
+      set_default_buflocal_opts(buf)
       mark_buflocal_initialized(buf)
     end
   end,
@@ -176,7 +175,7 @@ vim.api.nvim_create_autocmd("BufWinEnter", {
         return
       end
       if not is_winlocal_initialized(win, buf) then
-        set_static_winlocal_opts(win)
+        set_default_winlocal_opts(win)
         mark_winlocal_initialized(win, buf)
       end
       set_adaptive_override_winlocal_opts(win)
