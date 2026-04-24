@@ -172,16 +172,10 @@ vim.api.nvim_create_autocmd("ColorScheme", {
       fg = vim.api.nvim_get_hl(0, { name = "MsgArea" }).fg,
       bg = vim.api.nvim_get_hl(0, { name = "NormalFloat" }).bg,
     })
-    vim.api.nvim_set_hl(
-      0,
-      "CmdlineBottomNormal",
-      { link = "MsgArea", default = true }
-    )
-    vim.api.nvim_set_hl(
-      0,
-      "CmdlineFloatBorder",
-      { link = "FloatBorder", default = true }
-    )
+    vim.api.nvim_set_hl(0, "CmdlineBottomNormal",
+      { link = "MsgArea", default = true })
+    vim.api.nvim_set_hl(0, "CmdlineFloatBorder",
+      { link = "FloatBorder", default = true })
   end,
   group = group,
 })
