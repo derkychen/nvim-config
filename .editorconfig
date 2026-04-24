@@ -1,3 +1,4 @@
 [*.lua]
 max_line_length = 80
 quote_style = double
+trailing_table_separator = smart
