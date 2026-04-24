@@ -22,10 +22,22 @@ end
 
 -- Save session
 function M.save(path)
+  vim.api.nvim_exec_autocmds("User", {
+    pattern = "SessionSavePre",
+    modeline = false,
+  })
+
   vim.cmd.mksession({
     bang = true,
     args = { path },
   })
+
+  vim.api.nvim_exec_autocmds("User", {
+    pattern = "SessionSavePost",
+    modeline = false,
+    data = { path = path },
+  })
+
   msg("Session saved: " .. vim.fs.basename(path))
 end
 
@@ -35,6 +47,13 @@ function M.load(path)
     msg("No such session: " .. vim.fs.basename(path))
     return
   end
+
+  vim.api.nvim_exec_autocmds("User", {
+    pattern = "SessionLoadPre",
+    modeline = false,
+    data = { path = path },
+  })
+
   vim.api.nvim_cmd({
     cmd = "source",
     args = { path },
@@ -43,6 +62,13 @@ function M.load(path)
       emsg_silent = true,
     },
   }, {})
+
+  vim.api.nvim_exec_autocmds("User", {
+    pattern = "SessionLoadPost",
+    modeline = false,
+    data = { path = path },
+  })
+
   msg("Session loaded: " .. vim.fs.basename(path))
 end
 
