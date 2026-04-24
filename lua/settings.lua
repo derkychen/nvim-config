@@ -78,6 +78,7 @@ local function set_static_winlocal_opts(win)
         "foldsep: ,",                                -- No open fold indicator
     list = true,
     listchars =
+        "eol:󰌑," .. -- End of line
         "tab:↦ ," .. -- Tab character
         "trail:⋅," .. -- Trailing spaces
         "extends:," .. -- Line continuing to the right when line wrapping off
