@@ -8,6 +8,9 @@ vim.g.mapleader = " "
 vim.o.laststatus = 3
 vim.o.winborder = "rounded"
 
+-- UI2 (experimental feature) settings and setup
+require("ui2").config()
+
 -- Editing
 vim.o.smarttab = true
 
