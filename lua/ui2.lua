@@ -1,14 +1,7 @@
 local ui2 = require("vim._core.ui2")
-
--- Enable UI2
-ui2.enable({
-  msg = {
-    targets = "msg", -- Messages appear in a floating window at the bottom right
-  },
-})
-
--- Defensively load `cmdline` module
 local cmdline = require("vim._core.ui2.cmdline")
+
+local M = {}
 
 -- Floating command-line
 -- Based on and only possible thanks to tiny-cmdline.nvim:
@@ -28,6 +21,12 @@ local cmdline_config = {
   title_pos = "center",
   menu_col_offset = 3,
 }
+
+-- State storing variables
+local cmdline_type = nil
+local orig_cmdline_show = nil
+local orig_ui_cmdline_pos = vim.g.ui_cmdline_pos
+local orig_cmd_win_config = nil
 
 -- Construct `winhighlight` option from map of highlights
 local function make_winhighlight(win_hl_map)
@@ -67,9 +66,8 @@ end
 -- Size and position of window
 local function geometry(content_height)
   local cols, lines = vim.o.columns, vim.o.lines
-  local b = (cmdline_config.border == "" or cmdline_config.border == "none")
-      and 0
-      or 1
+  local b = (cmdline_config.border == "" or cmdline_config.border == "none") and
+      0 or 1
 
   local width = math.max(
     cmdline_config.width.min,
@@ -80,22 +78,13 @@ local function geometry(content_height)
   )
   width = math.min(width, cols - 4)
 
-  local row = math.max(
-    0,
-    parse_dimension(cmdline_config.position.y, lines - content_height - b * 2)
-  )
-  local col = math.max(
-    0,
-    parse_dimension(cmdline_config.position.x, cols - width - b * 2)
-  )
+  local row = math.max(0,
+    parse_dimension(cmdline_config.position.y, lines - content_height - b * 2))
+  local col = math.max(0,
+    parse_dimension(cmdline_config.position.x, cols - width - b * 2))
 
   return width, row, col, b
 end
-
--- State storing variables
-local cmdline_type = nil
-local original_ui_cmdline_pos = vim.g.ui_cmdline_pos
-local orig_cmd_win_config = nil
 
 -- Return command-line window ID
 local function get_cmdline_win()
@@ -122,8 +111,9 @@ local function float_cmdline()
     orig_cmd_win_config = vim.api.nvim_win_get_config(win)
   end
 
-  vim.wo[win].wrap = false
-  vim.wo[win].winhighlight = cmdline_float_winhighlight
+  vim.api.nvim_set_option_value("wrap", false, { win = win })
+  vim.api.nvim_set_option_value("winhighlight", cmdline_float_winhighlight,
+    { win = win })
 
   local content_height = math.max(1, vim.api.nvim_win_get_height(win))
   local width, row, col, b = geometry(content_height)
@@ -145,55 +135,70 @@ local function float_cmdline()
   }
 end
 
--- Wrap the `cmdline_show` function
-local orig = cmdline.cmdline_show
-cmdline.cmdline_show = function(...)
-  local ret = orig(...)
+function M.config()
+  -- Enable UI2
+  ui2.enable({
+    msg = {
+      targets = "msg", -- Messages appear in a floating window at the bottom right
+    },
+  })
 
-  if not cmdline_type then
-    return ret
+  -- Wrap the `cmdline_show` function once
+  if not orig_cmdline_show then
+    orig_cmdline_show = cmdline.cmdline_show
+    cmdline.cmdline_show = function(...)
+      local ret = orig_cmdline_show(...)
+
+      if not cmdline_type then
+        return ret
+      end
+
+      float_cmdline()
+      return ret
+    end
   end
 
-  float_cmdline()
-  return ret
+  local group =
+      vim.api.nvim_create_augroup("UI2FloatingCmdline", { clear = true })
+
+  -- Set highlights on colorscheme change
+  vim.api.nvim_create_autocmd("ColorScheme", {
+    callback = function()
+      vim.api.nvim_set_hl(0, "CmdlineFloatNormal", {
+        fg = vim.api.nvim_get_hl(0, { name = "MsgArea" }).fg,
+        bg = vim.api.nvim_get_hl(0, { name = "NormalFloat" }).bg,
+      })
+      vim.api.nvim_set_hl(0, "CmdlineNormal",
+        { link = "MsgArea", default = true })
+      vim.api.nvim_set_hl(0, "CmdlineFloatBorder",
+        { link = "FloatBorder", default = true })
+    end,
+    group = group,
+  })
+
+  -- Update the command-line window on entering and leaving
+  vim.api.nvim_create_autocmd("CmdlineEnter", {
+    callback = function()
+      cmdline_type = vim.fn.getcmdtype()
+    end,
+    group = group,
+  })
+
+  vim.api.nvim_create_autocmd("CmdlineLeave", {
+    callback = function()
+      cmdline_type = nil
+      vim.g.ui_cmdline_pos = orig_ui_cmdline_pos
+      local win = get_cmdline_win()
+
+      if win and orig_cmd_win_config then
+        pcall(vim.api.nvim_win_set_config, win, orig_cmd_win_config)
+        vim.api.nvim_set_option_value("winhighlight",
+          cmdline_regular_winhighlight,
+          { win = win })
+      end
+    end,
+    group = group,
+  })
 end
 
-local group =
-    vim.api.nvim_create_augroup("UI2FloatingCmdline", { clear = true })
-
--- Set highlights on colorscheme change
-vim.api.nvim_create_autocmd("ColorScheme", {
-  callback = function()
-    vim.api.nvim_set_hl(0, "CmdlineFloatNormal", {
-      fg = vim.api.nvim_get_hl(0, { name = "MsgArea" }).fg,
-      bg = vim.api.nvim_get_hl(0, { name = "NormalFloat" }).bg,
-    })
-    vim.api.nvim_set_hl(0, "CmdlineNormal",
-      { link = "MsgArea", default = true })
-    vim.api.nvim_set_hl(0, "CmdlineFloatBorder",
-      { link = "FloatBorder", default = true })
-  end,
-  group = group,
-})
-
--- Update the command-line window on entering and leaving
-vim.api.nvim_create_autocmd("CmdlineEnter", {
-  callback = function()
-    cmdline_type = vim.fn.getcmdtype()
-  end,
-  group = group,
-})
-
-vim.api.nvim_create_autocmd("CmdlineLeave", {
-  callback = function()
-    cmdline_type = nil
-    vim.g.ui_cmdline_pos = original_ui_cmdline_pos
-    local win = get_cmdline_win()
-
-    if win and orig_cmd_win_config then
-      pcall(vim.api.nvim_win_set_config, win, orig_cmd_win_config)
-      vim.wo[win].winhighlight = cmdline_regular_winhighlight
-    end
-  end,
-  group = group,
-})
+return M
