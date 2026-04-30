@@ -1,7 +1,5 @@
 local M = {}
 
-local utils = require("utils")
-
 -- Session storage directory
 M.sessions_dir = vim.fn.stdpath("data") .. "/sessions"
 
@@ -283,20 +281,5 @@ function M.rename_by_name()
     end)
   end)
 end
-
-vim.keymap.set("n", "<Leader>ss", M.save_current,
-  { desc = "Save current session" })
-vim.keymap.set("n", "<Leader>sa", M.save_to_name,
-  { desc = "Save current session to name" })
-vim.keymap.set("n", "<Leader>sl", M.load_by_name,
-  { desc = "Load session by name" })
-vim.keymap.set("n", "<Leader>sdc", M.delete_current,
-  { desc = "Delete current session" })
-vim.keymap.set("n", "<Leader>sdn", M.delete_by_name,
-  { desc = "Delete session by name" })
-vim.keymap.set("n", "<Leader>src", M.rename_current,
-  { desc = "Rename current session" })
-vim.keymap.set("n", "<Leader>srn", M.rename_by_name,
-  { desc = "Rename session by name" })
 
 return M
