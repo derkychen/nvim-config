@@ -5,6 +5,7 @@ local gs = require("gitsigns")
 gs.setup({
   current_line_blame = true,
   current_line_blame_opts = {
+    virt_text_pos = "eol_right_align",
     delay = 500,
   },
 })

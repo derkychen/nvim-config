@@ -1,18 +1,19 @@
 -- TODO: Migrate to tree-sitter-manager.nvim if it becomes stable enough, and if
--- nvim-treesitter stayes archived
+-- nvim-treesitter stays archived
 vim.pack.add({ "https://github.com/nvim-treesitter/nvim-treesitter" })
 
 local languages = {
-  "lua",
-  "latex",
+  "bash",
   "bibtex",
   "c",
-  "python",
-  "markdown",
-  "html",
   "css",
+  "csv",
+  "html",
   "javascript",
-  "bash",
+  "latex",
+  "lua",
+  "markdown",
+  "python",
   "toml",
 }
 

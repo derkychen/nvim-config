@@ -3,18 +3,22 @@ local utils = require("utils")
 
 vim.pack.add({ "https://github.com/rebelot/heirline.nvim" })
 
+-- Utilities
 local hconds = require("heirline.conditions")
 local hutils = require("heirline.utils")
+
+local micons = require("mini.icons")
+local aerial = require("aerial")
 
 -- Flexible component priorities
 local priorities = {
   ModeText = 2,
   GitBranch = 5,
-  GitDiff = 5,
   FileDir = 1,
-  LSPInfo = 5,
   NavPosition = 4,
   NavPercentage = 3,
+  LSPInfo = 5,
+  GitDiff = 5,
 }
 
 -- Common components
@@ -64,46 +68,81 @@ end
 
 -- Get colors from colorscheme highlights
 local function get_colors()
-  local function get_hl(hl, get_bg)
-    get_bg = get_bg or false
-    if get_bg then
-      return hutils.get_highlight(hl).bg or hutils.get_highlight("Normal").bg
-    end
-    return hutils.get_highlight(hl).fg or hutils.get_highlight("Normal").fg
+  local function get_hl(hl)
+    return hutils.get_highlight(hl) or hutils.get_highlight("StatusLine")
   end
+
+  local c = {
+    fg = get_hl("StatusLine").fg,
+    editor_bg = get_hl("Normal").bg,
+    blue_fg = get_hl("Function").fg,
+    green_fg = get_hl("Character").fg,
+    purple_fg = get_hl("Identifier").fg,
+    yellow_fg = get_hl("WarningMsg").fg,
+    red_fg = get_hl("DiagnosticError").fg,
+    dark_green_fg = get_hl("DiagnosticHint").fg,
+    accented_bg = get_hl("Folded").bg,
+    diff = {
+      added = get_hl("GitSignsAdd").fg,
+      removed = get_hl("GitSignsDelete").fg,
+      changed = get_hl("GitSignsChange").fg,
+    },
+    diagnostics = {
+      error = get_hl("DiagnosticError").fg,
+      warn = get_hl("DiagnosticWarn").fg,
+      info = get_hl("DiagnosticInfo").fg,
+      hint = get_hl("DiagnosticHint").fg,
+    },
+    unaccented_fg = get_hl("SpecialKey").fg,
+    tabline = {
+      blue = get_hl("TabLineSel").bg,
+      black = get_hl("TabLineSel").fg,
+      inactive_fg = get_hl("TabLine").fg,
+      fill = get_hl("TabLineFill").bg,
+    },
+    nc = {
+      statusline_fg = get_hl("StatusLineNC").fg,
+      statusline_bg = get_hl("StatusLineNC").bg,
+      winbar_fg = get_hl("WinBarNC").fg,
+      winbar_bg = get_hl("WinBarNC").bg,
+    },
+  }
+
   return {
-    normal = get_hl("Function"),
-    insert = get_hl("Character"),
-    visual = get_hl("Conditional"),
-    command = get_hl("@variable.parameter"),
-    replace = get_hl("@variable.builtin"),
-    terminal = get_hl("@property"),
-    accented_fg = get_hl("Folded"),
-    accented_bg = get_hl("Folded", true),
-    git_branch = get_hl("Function"),
-    git_added = get_hl("GitSignsAdd"),
-    git_removed = get_hl("GitSignsDelete"),
-    git_changed = get_hl("GitSignsChange"),
-    diag_error = get_hl("DiagnosticError"),
-    diag_warn = get_hl("DiagnosticWarn"),
-    diag_info = get_hl("DiagnosticInfo"),
-    diag_hint = get_hl("DiagnosticHint"),
-    dimmed_fg = get_hl("SpecialKey"),
-    flag_fg = get_hl("@variable.parameter"),
-    buffer_bufnr = get_hl("Function"),
-    buffer_active_fg = get_hl("TabLineSel"),
-    buffer_active_bg = get_hl("TabLineSel", true),
-    buffer_inactive_fg = get_hl("TabLine"),
-    buffer_inactive_bg = get_hl("TabLineFill", true),
-    tab_active_highlight = get_hl("Function"),
-    tab_active_fg = get_hl("StatusLine"),
-    tab_active_bg = get_hl("EndOfBuffer", true),
-    tab_inactive_fg = get_hl("TabLine"),
-    tab_inactive_bg = get_hl("TabLineFill", true),
-    statusline_inactive_fg = get_hl("StatusLineNC"),
-    statusline_inactive_bg = get_hl("StatusLineNC", true),
-    winbar_inactive_fg = get_hl("WinbarNC"),
-    winbar_inactive_bg = get_hl("WinbarNC", true),
+    normal = c.blue_fg,
+    insert = c.green_fg,
+    visual = c.purple_fg,
+    command = c.yellow_fg,
+    replace = c.red_fg,
+    terminal = c.dark_green_fg,
+    git_bg = c.accented_bg,
+    git_branch = c.blue_fg,
+    git_added = c.diff.added,
+    git_removed = c.diff.removed,
+    git_changed = c.diff.changed,
+    diagnostics_error = c.diagnostics.error,
+    diagnostics_warn = c.diagnostics.warn,
+    diagnostics_info = c.diagnostics.info,
+    diagnostics_hint = c.diagnostics.hint,
+    dir_fg = c.unaccented_fg,
+    unmodifiable_fg = c.unaccented_fg,
+    scrollbar_fg = c.blue_fg,
+    scrollbar_bg = c.accented_bg,
+    breadcrumbs_dir_fg = c.unaccented_fg,
+    buffer_bufnr = c.tabline.black,
+    buffer_active_fg = c.tabline.black,
+    buffer_active_bg = c.tabline.blue,
+    buffer_inactive_fg = c.tabline.inactive_fg,
+    buffer_inactive_bg = c.tabline.fill,
+    tab_active_highlight = c.tabline.blue,
+    tab_active_fg = c.fg,
+    tab_active_bg = c.editor_bg,
+    tab_inactive_fg = c.tabline.inactive_fg,
+    tab_inactive_bg = c.tabline.fill,
+    statusline_inactive_fg = c.nc.statusline_fg,
+    statusline_inactive_bg = c.nc.statusline_bg,
+    winbar_inactive_fg = c.nc.winbar_fg,
+    winbar_inactive_bg = c.nc.winbar_bg,
   }
 end
 
@@ -152,13 +191,13 @@ local Git = {
   init = function(self)
     self.status_dict = vim.b[self.buf].gitsigns_status_dict
   end,
-  hl = { bg = "accented_bg" },
+  hl = { bg = "git_bg" },
 }
 
 -- Universal component for file icons
 local FileIcon = {
   init = function(self)
-    local get_icon = require("mini.icons").get
+    local get_icon = micons.get
     local is_default = false
     self.icon, self.hl, is_default = get_icon("file", self.filename)
     if is_default then
@@ -206,8 +245,8 @@ local FileFlags = {
     end,
     Space,
     {
-      provider = "",
-      hl = { fg = "dimmed_fg" },
+      provider = "󰌾",
+      hl = { fg = "unmodifiable_fg" },
     },
   },
 }
@@ -322,7 +361,7 @@ local GitBranch = hutils.insert(Git, {
 
 local FileDir = {
   flexible = priorities.FileDir,
-  hl = { fg = "dimmed_fg" },
+  hl = { fg = "dir_fg" },
   {
     {
       provider = function(self)
@@ -344,6 +383,7 @@ local FileDir = {
   },
   Empty,
 }
+
 local StatusLineFile = pad_symmetric({
   FileDir,
   FileIcon,
@@ -374,7 +414,7 @@ local Scrollbar = {
         local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
         return string.rep(self.sbar[i], 2)
       end,
-      hl = { fg = "accented_fg", bg = "accented_bg" },
+      hl = { fg = "scrollbar_fg", bg = "scrollbar_bg" },
     },
   }),
   pad_symmetric({ provider = "%P" }),
@@ -431,7 +471,7 @@ local function BreadcrumbsDirItem(name)
       },
       spacer,
       {
-        hl = { fg = "dimmed_fg" },
+        hl = { fg = "breadcrumbs_dir_fg" },
         provider = name,
       },
     }
@@ -480,7 +520,7 @@ local Breadcrumbs = {
         end
       end
       table.insert(symbols, { FileIcon, FileName, FileFlags })
-      for _, symbol in ipairs(require("aerial").get_location(true)) do
+      for _, symbol in ipairs(aerial.get_location(true)) do
         table.insert(symbols, BreadcrumbsSep)
         table.insert(symbols, BreadcrumbsAerialItem(symbol))
       end
@@ -498,9 +538,9 @@ local function GitDiff(type)
   return {
     static = {
       icons = {
-        added = "",
-        removed = "",
-        changed = "󰜥",
+        added = "",
+        removed = "",
+        changed = "",
       },
     },
     condition = function(self)
@@ -571,7 +611,7 @@ local function Diagnostic(type)
         provider = function(self)
           return icon .. " " .. self.count
         end,
-        hl = { fg = "diag_" .. type },
+        hl = { fg = "diagnostics_" .. type },
       },
     },
     {
@@ -580,7 +620,7 @@ local function Diagnostic(type)
         provider = function(self)
           return self.count
         end,
-        hl = { fg = "diag_" .. type },
+        hl = { fg = "diagnostics_" .. type },
       },
     },
   }
@@ -867,25 +907,17 @@ require("heirline").setup({
   statuscolumn = Statuscolumn,
 })
 
--- Schedule redrawing of status line and tab pages line on these events to
+-- Schedule redrawing of status line and tab pages line on mode change to
 -- prevent a delay
 local heirline_redraw_group =
     vim.api.nvim_create_augroup("HeirlineRedraw", { clear = true })
 
-local schedule_redraw_all = vim.schedule_wrap(function()
-  vim.cmd.redrawstatus({ bang = true })
-  vim.cmd.redrawtabline()
-end)
-
 vim.api.nvim_create_autocmd("ModeChanged", {
-  callback = schedule_redraw_all,
+  callback = vim.schedule_wrap(function()
+    vim.cmd.redrawstatus({ bang = true })
+    vim.cmd.redrawtabline()
+  end),
   group = heirline_redraw_group,
-})
-
-vim.api.nvim_create_autocmd("User", {
-  callback = schedule_redraw_all,
-  group = heirline_redraw_group,
-  pattern = "GitSignsUpdate",
 })
 
 -- Update colors on colorscheme change

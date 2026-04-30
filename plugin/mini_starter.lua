@@ -2,6 +2,7 @@ vim.pack.add({ "https://github.com/nvim-mini/mini.starter" })
 
 local starter = require("mini.starter")
 local sessions = require("sessions")
+local fzf_lua = require("fzf-lua")
 
 local function greeting()
   local hour = tonumber(vim.fn.strftime("%H"))
@@ -30,13 +31,13 @@ local function session_items(max)
   return items
 end
 
-local function fzf_items()
+local function fzf_lua_items()
   return {
-    { name = "file",             section = "Fuzzy find", action = "FzfLua files", },
-    { name = "recent files",     section = "Fuzzy find", action = "FzfLua oldfiles", },
-    { name = "live grep",        section = "Fuzzy find", action = "FzfLua live_grep", },
-    { name = "sessions",         section = "Fuzzy find", action = "SessionLoadByName" },
-    { name = "change directory", section = "Fuzzy find", action = "TcdThenCwdExplorer", },
+    { name = "file",             section = "Fuzzy find", action = fzf_lua.files },
+    { name = "recent files",     section = "Fuzzy find", action = fzf_lua.oldfiles },
+    { name = "live grep",        section = "Fuzzy find", action = fzf_lua.live_grep },
+    { name = "sessions",         section = "Fuzzy find", action = sessions.load_by_name },
+    { name = "change directory", section = "Fuzzy find", action = fzf_lua.tcd },
   }
 end
 
@@ -45,7 +46,7 @@ starter.setup({
   header = greeting,
   items = {
     session_items,
-    fzf_items,
+    fzf_lua_items,
   },
   footer = "",
   content_hooks = {
@@ -58,7 +59,8 @@ starter.setup({
 vim.api.nvim_create_autocmd({ "WinResized", "FocusGained" }, {
   callback = vim.schedule_wrap(function()
     for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-      if vim.bo[buf].filetype == "ministarter" then
+      local filetype = vim.api.nvim_get_option_value("filetype", { buf = buf })
+      if filetype == "ministarter" then
         pcall(starter.refresh, buf)
       end
     end
