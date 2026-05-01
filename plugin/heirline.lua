@@ -68,43 +68,47 @@ end
 
 -- Get colors from colorscheme highlights
 local function get_colors()
-  local function get_hl(hl)
-    return hutils.get_highlight(hl) or hutils.get_highlight("StatusLine")
+  local function get_fg(hl)
+    return hutils.get_highlight(hl).fg or hutils.get_highlight("StatusLine").fg
+  end
+
+  local function get_bg(hl)
+    return hutils.get_highlight(hl).bg or hutils.get_highlight("StatusLine").bg
   end
 
   local c = {
-    fg = get_hl("StatusLine").fg,
-    editor_bg = get_hl("Normal").bg,
-    blue_fg = get_hl("Function").fg,
-    green_fg = get_hl("Character").fg,
-    purple_fg = get_hl("Identifier").fg,
-    yellow_fg = get_hl("WarningMsg").fg,
-    red_fg = get_hl("DiagnosticError").fg,
-    dark_green_fg = get_hl("DiagnosticHint").fg,
-    accented_bg = get_hl("Folded").bg,
+    fg = get_fg("StatusLine"),
+    editor_bg = get_bg("Normal"),
+    blue_fg = get_fg("Function"),
+    green_fg = get_fg("Character"),
+    purple_fg = get_fg("Identifier"),
+    yellow_fg = get_fg("WarningMsg"),
+    red_fg = get_fg("DiagnosticError"),
+    dark_green_fg = get_fg("DiagnosticHint"),
+    accented_bg = get_bg("Folded"),
     diff = {
-      added = get_hl("GitSignsAdd").fg,
-      removed = get_hl("GitSignsDelete").fg,
-      changed = get_hl("GitSignsChange").fg,
+      added = get_fg("GitSignsAdd"),
+      removed = get_fg("GitSignsDelete"),
+      changed = get_fg("GitSignsChange"),
     },
     diagnostics = {
-      error = get_hl("DiagnosticError").fg,
-      warn = get_hl("DiagnosticWarn").fg,
-      info = get_hl("DiagnosticInfo").fg,
-      hint = get_hl("DiagnosticHint").fg,
+      error = get_fg("DiagnosticError"),
+      warn = get_fg("DiagnosticWarn"),
+      info = get_fg("DiagnosticInfo"),
+      hint = get_fg("DiagnosticHint"),
     },
-    unaccented_fg = get_hl("SpecialKey").fg,
+    unaccented_fg = get_fg("SpecialKey"),
     tabline = {
-      blue = get_hl("TabLineSel").bg,
-      black = get_hl("TabLineSel").fg,
-      inactive_fg = get_hl("TabLine").fg,
-      fill = get_hl("TabLineFill").bg,
+      blue = get_bg("TabLineSel"),
+      black = get_fg("TabLineSel"),
+      inactive_fg = get_fg("TabLine"),
+      fill = get_bg("TabLineFill"),
     },
     nc = {
-      statusline_fg = get_hl("StatusLineNC").fg,
-      statusline_bg = get_hl("StatusLineNC").bg,
-      winbar_fg = get_hl("WinBarNC").fg,
-      winbar_bg = get_hl("WinBarNC").bg,
+      statusline_fg = get_fg("StatusLineNC"),
+      statusline_bg = get_bg("StatusLineNC"),
+      winbar_fg = get_fg("WinBarNC"),
+      winbar_bg = get_bg("WinBarNC"),
     },
   }
 
