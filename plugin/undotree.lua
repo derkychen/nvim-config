@@ -1,5 +1,11 @@
-vim.cmd.packadd("nvim.undotree")
+local lazyload = require("lazyload")
 
-vim.keymap.set("n", "<leader>u", function()
-  vim.cmd.Undotree()
-end, { desc = "Toggle undotree" })
+lazyload.lazyadd("nvim.undotree", {
+  event = "BufEnter",
+  group_name = "UndoTreeLazyLoad",
+  config = function()
+    vim.keymap.set("n", "<leader>u", function()
+      vim.cmd.Undotree()
+    end, { desc = "Toggle undotree" })
+  end,
+})

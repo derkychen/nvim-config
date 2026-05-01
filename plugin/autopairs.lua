@@ -1,12 +1,19 @@
-vim.pack.add({ "https://github.com/windwp/nvim-autopairs" })
+local lazyload = require("lazyload")
 
-local Rule = require("nvim-autopairs.rule")
-local npairs = require("nvim-autopairs")
+lazyload.vimpack_lazyadd({
+  spec = { "https://github.com/windwp/nvim-autopairs" },
+  event = "InsertEnter",
+  group_name = "AutopairsLazyLoad",
+  config = function()
+    local Rule = require("nvim-autopairs.rule")
+    local npairs = require("nvim-autopairs")
 
-npairs.setup()
+    npairs.setup()
 
--- Equation brackets in LaTeX
-npairs.add_rules({
-  Rule("\\(", "\\)", "tex"),
-  Rule("\\[", "\\]", "tex")
+    -- Equation brackets in LaTeX
+    npairs.add_rules({
+      Rule("\\(", "\\)", "tex"),
+      Rule("\\[", "\\]", "tex"),
+    })
+  end,
 })
