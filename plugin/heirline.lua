@@ -156,9 +156,9 @@ local WinInfo = {
     self.win = vim.fn.win_getid(self.winnr)
     self.buf = vim.api.nvim_win_get_buf(self.win)
     self.bufname = vim.api.nvim_buf_get_name(self.buf)
-    self.winrelpath = vim.fn.expand("%:~:.")
-    self.winreldir = vim.fn.fnamemodify(self.winrelpath, ":h")
-    self.filename = vim.fn.fnamemodify(self.winrelpath, ":t")
+    self.winrelpath = utils.winrelpath(self.win)
+    self.winreldir = vim.fs.dirname(self.winrelpath)
+    self.filename = vim.fs.basename(self.winrelpath)
     self.filetype =
         vim.api.nvim_get_option_value("filetype", { buf = self.buf })
   end,
@@ -780,7 +780,7 @@ local Buffer = {
   init = function(self)
     self.buf = self.bufnr or 0
     self.filename =
-        vim.fn.fnamemodify(vim.api.nvim_buf_get_name(self.buf), ":t")
+        vim.fs.basename(vim.api.nvim_buf_get_name(self.buf))
     self.filetype =
         vim.api.nvim_get_option_value("filetype", { buf = self.buf })
   end,
