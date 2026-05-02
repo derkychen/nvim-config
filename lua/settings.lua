@@ -1,20 +1,18 @@
 local icons = require("icons")
 local utils = require("utils")
 
--- <Leader> key
+-- Use Space as <Leader> key
 vim.g.mapleader = " "
 
--- Global UI options
+-- UI options
 vim.o.laststatus = 3
 vim.o.winborder = "rounded"
 
--- UI2 (experimental feature) settings and setup
-require("ui2").config()
 
 -- Editing
 vim.o.smarttab = true
 
--- Global diagnostic icons
+-- Diagnostic icons
 vim.diagnostic.config({
   signs = {
     text = {
@@ -223,3 +221,6 @@ vim.api.nvim_create_autocmd({ "BufWipeout", "BufDelete" }, {
   end,
   group = local_opts_group,
 })
+
+-- UI2 (experimental feature) settings and setup
+require("ui2")
