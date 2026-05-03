@@ -1,7 +1,6 @@
-local lazyload = require("lazyload")
-
-lazyload.vimpack_lazyadd({
-  spec = { "https://github.com/windwp/nvim-autopairs" },
+require("lazyload").add_spec({
+  "https://github.com/windwp/nvim-autopairs",
+}, {
   event = "InsertEnter",
   group_name = "AutopairsLazyLoad",
   config = function()

@@ -1,6 +1,4 @@
-local lazyload = require("lazyload")
-
-lazyload.lazyadd("nvim.undotree", {
+require("lazyload").add_names("nvim.undotree", {
   event = "BufEnter",
   group_name = "UndoTreeLazyLoad",
   config = function()

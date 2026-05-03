@@ -1,14 +1,11 @@
-local lazyload = require("lazyload")
-
-lazyload.vimpack_lazyadd({
-  spec = {
-    "https://github.com/rafamadriz/friendly-snippets",
-   {
-      src = "https://github.com/Saghen/blink.cmp",
-      version = vim.version.range("*"),
-    },
+require("lazyload").add_spec({
+  "https://github.com/rafamadriz/friendly-snippets",
+  {
+    src = "https://github.com/Saghen/blink.cmp",
+    version = vim.version.range("*"),
   },
-  event = "InsertEnter",
+}, {
+  event = { "InsertEnter", "CmdlineEnter" },
   group_name = "BlinkLazyLoad",
   config = function()
     require("blink.cmp").setup({

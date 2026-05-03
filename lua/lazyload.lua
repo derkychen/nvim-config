@@ -1,39 +1,45 @@
 local M = {}
 
--- Automatic command to lazy-load a plugin on a specified event
-function M.lazyadd(names, lazy_plugin)
-  -- Autocmd group name is intentionally left to plugin configuration for
-  -- readability
-  local group = vim.api.nvim_create_augroup(lazy_plugin.group_name,
+-- If there are multiple plugins, the ordering of `names` is the order in which
+-- the plugins will be loaded
+function M.add_names(names, lazy)
+  -- Autocmd group name is intentionally left to plugin configuration for to
+  -- ensure readability and that naming conventions are followed
+  local group = vim.api.nvim_create_augroup(lazy.group_name,
     { clear = true })
 
-  vim.api.nvim_create_autocmd(lazy_plugin.event, {
+  -- Create an automatic command to lazy-load a plugin on a specified event
+  vim.api.nvim_create_autocmd(lazy.event, {
     callback = function()
       if type(names) == "string" then
         vim.cmd.packadd(names)
       else
-        for _, name in pairs(names) do
+        for _, name in ipairs(names) do
           vim.cmd.packadd(name)
         end
       end
-      lazy_plugin.config()
+      lazy.config()
     end,
     group = group,
     once = true,
   })
 end
 
--- Boilerplate for lazy-loading a plugin installed through `vim.pack`
-function M.vimpack_lazyadd(lazy_plugin)
-  -- Resolve all plugin names
+-- Boilerplate for lazy-loading a plugin installed through `vim.pack`, wraps
+-- add_names
+function M.add_spec(spec, lazy)
+  -- NOTE: The order of `names` is dependent on vim.pack calling `load` on each
+  -- plugin in the same order as each plugin listed in the spec, which is the
+  -- case as of now
+  -- https://github.com/neovim/neovim/blob/master/runtime/lua/vim/pack.lua
   local names = {}
-  vim.pack.add(lazy_plugin.spec, {
+  vim.pack.add(spec, {
     load = function(plugin)
       table.insert(names, plugin.spec.name)
     end,
   })
 
-  M.lazyadd(names, lazy_plugin)
+  M.add_names(names, lazy)
 end
 
 return M
