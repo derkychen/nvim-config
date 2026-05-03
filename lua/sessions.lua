@@ -165,7 +165,7 @@ function M.save_to_name()
 end
 
 -- Session loading
-function M.load_by_name()
+function M.load_select()
   vim.ui.select(M.names(), { prompt = "Load session > " }, function(choice)
     if not choice or choice == "" then
       vim.notify("Session load canceled.")
@@ -186,7 +186,7 @@ function M.delete_current()
   vim.v.this_session = ""
 end
 
-function M.delete_by_name()
+function M.delete_select()
   vim.ui.select(M.names(), { prompt = "Delete session > " }, function(choice)
     if not choice or choice == "" then
       vim.notify("Session delete canceled.")
@@ -240,7 +240,7 @@ function M.rename_current()
   end)
 end
 
-function M.rename_by_name()
+function M.rename_select()
   vim.ui.select(M.names(), { prompt = "Rename session > " }, function(choice)
     if not choice or choice == "" then
       return
