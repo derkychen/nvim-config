@@ -1,9 +1,14 @@
-require("lazyload").add_spec({
+vim.pack.add({
   "https://github.com/windwp/nvim-autopairs",
-}, {
-  event = "InsertEnter",
-  group_name = "AutopairsLazyLoad",
-  config = function()
+}, { load = false })
+
+local autopairs_lazyload_group = vim.api.nvim_create_augroup(
+  "AutopairsLazyLoad", { clear = true })
+
+vim.api.nvim_create_autocmd("InsertEnter", {
+  callback = vim.schedule_wrap(function()
+    vim.cmd.packadd("nvim-autopairs")
+
     local Rule = require("nvim-autopairs.rule")
     local npairs = require("nvim-autopairs")
 
@@ -14,5 +19,7 @@ require("lazyload").add_spec({
       Rule("\\(", "\\)", "tex"),
       Rule("\\[", "\\]", "tex"),
     })
-  end,
+  end),
+  group = autopairs_lazyload_group,
+  once = true,
 })
