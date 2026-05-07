@@ -6,8 +6,10 @@ return {
       requireConfig = false,
     },
   },
-  root_dir = function(bufnr, on_dir)
-    local name = vim.api.nvim_buf_get_name(bufnr)
+
+  -- Patch root detection so markdown files are formatted regardless of location
+  root_dir = function(buf, on_dir)
+    local name = vim.api.nvim_buf_get_name(buf)
     local path = name ~= "" and vim.fs.dirname(name) or vim.uv.cwd()
     local root = vim.fs.find({
       ".remarkrc",

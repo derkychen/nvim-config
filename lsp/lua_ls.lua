@@ -14,11 +14,11 @@ return {
   settings = {
     Lua = {
       codeLens = {
-        enable = true
+        enable = true,
       },
       hint = {
         enable = true,
-        semicolon = "Disable"
+        semicolon = "Disable",
       },
     },
   },
