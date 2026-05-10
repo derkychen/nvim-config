@@ -97,7 +97,7 @@ local function get_colors()
       info = get_fg("DiagnosticInfo"),
       hint = get_fg("DiagnosticHint"),
     },
-    unaccented_fg = get_fg("SpecialKey"),
+    unaccented_fg = get_fg("StatusLineNC"),
     tabline = {
       blue = get_bg("TabLineSel"),
       black = get_fg("TabLineSel"),
@@ -367,30 +367,24 @@ local FileDir = {
   flexible = priorities.FileDir,
   hl = { fg = "dir_fg" },
   {
-    {
-      provider = function(self)
-        local trail = self.winreldir:sub(-1) == "/" and "" or "/"
-        return self.winreldir .. trail
-      end,
-    },
-    Space,
+    provider = function(self)
+      local trail = self.winreldir:sub(-1) == "/" and "" or "/"
+      return self.winreldir .. trail
+    end,
   },
   {
-    {
-      provider = function(self)
-        local short_dir = vim.fn.pathshorten(self.winreldir)
-        local trail = short_dir:sub(-1) == "/" and "" or "/"
-        return short_dir .. trail
-      end,
-    },
-    Space,
+    provider = function(self)
+      local short_dir = vim.fn.pathshorten(self.winreldir)
+      local trail = short_dir:sub(-1) == "/" and "" or "/"
+      return short_dir .. trail
+    end,
   },
   Empty,
 }
 
 local StatusLineFile = pad_symmetric({
-  FileDir,
   FileIcon,
+  FileDir,
   FileName,
   FileFlags,
 })
@@ -911,17 +905,27 @@ require("heirline").setup({
   statuscolumn = Statuscolumn,
 })
 
--- Schedule redrawing of status line and tab pages line on mode change to
--- prevent a delay
+-- Defer redrawing of status line, window bar, and tab pages line on mode change
+-- to prevent a delay, particularly relevant on exiting Fzf-Lua
+local function redraw()
+  vim.defer_fn(function()
+    vim.cmd.redrawstatus({ bang = true })
+    vim.cmd.redrawtabline()
+  end, 50)
+end
+
 local heirline_redraw_group =
     vim.api.nvim_create_augroup("HeirlineRedraw", { clear = true })
 
 vim.api.nvim_create_autocmd("ModeChanged", {
-  callback = vim.schedule_wrap(function()
-    vim.cmd.redrawstatus({ bang = true })
-    vim.cmd.redrawtabline()
-  end),
+  callback = redraw,
   group = heirline_redraw_group,
+})
+
+vim.api.nvim_create_autocmd("User", {
+  callback = redraw,
+  group = heirline_redraw_group,
+  pattern = "GitSignsUpdate",
 })
 
 -- Update colors on colorscheme change

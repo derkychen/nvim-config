@@ -2,6 +2,9 @@
 vim.loader.enable()
 
 -- Source these configurations in this order
-require("settings")
-require("keymaps")
-require("lsp")
+require("options").setup()
+require("ui2").setup()
+require("sessions").setup()
+require("tabs").setup()
+require("diagnostics").setup()
+require("lsp").setup()

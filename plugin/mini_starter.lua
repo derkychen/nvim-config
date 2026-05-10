@@ -36,7 +36,7 @@ local function fzf_lua_items()
     { name = "file",             section = "Fuzzy find", action = fzf_lua.files },
     { name = "recent files",     section = "Fuzzy find", action = fzf_lua.oldfiles },
     { name = "live grep",        section = "Fuzzy find", action = fzf_lua.live_grep },
-    { name = "sessions",         section = "Fuzzy find", action = sessions.load_by_name },
+    { name = "sessions",         section = "Fuzzy find", action = sessions.load_select},
     { name = "change directory", section = "Fuzzy find", action = fzf_lua.tcd },
   }
 end
