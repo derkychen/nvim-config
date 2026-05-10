@@ -2,9 +2,21 @@ vim.pack.add({ "https://github.com/ibhagwan/fzf-lua" })
 
 local fzf_lua = require("fzf-lua")
 
--- Use Fzf-Lua as the interface for `vim.ui.select`
 local opts = {
-  ui_select = true,
+  -- Use Fzf-Lua for `vim.ui.select`, make the menu smaller
+  ui_select = {
+    winopts = {
+      height = 0.4,
+      width = 0.4,
+      row = 0.5,
+      col = 0.5,
+    },
+  },
+
+  -- Do not darken window backdrop
+  winopts = {
+    backdrop = 100,
+  },
 }
 
 fzf_lua.setup(opts)
