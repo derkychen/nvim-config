@@ -1,12 +1,7 @@
 local ui2 = require("vim._core.ui2")
 local cmdline = require("vim._core.ui2.cmdline")
 
--- Enable UI2
-ui2.enable({
-  msg = {
-    targets = "msg", -- Messages appear in a floating window at the bottom right
-  },
-})
+local M = {}
 
 -- Floating command-line
 -- Based on and only possible thanks to tiny-cmdline.nvim:
@@ -152,52 +147,63 @@ local function float_cmdline()
   }
 end
 
--- Wrap the `cmdline_show` function once, while this file should only be sourced
--- once, being defensive does prevent silently wrapping multiple times
-if not orig_cmdline_show then
-  orig_cmdline_show = cmdline.cmdline_show
-  cmdline.cmdline_show = function(...)
-    local ret = orig_cmdline_show(...)
+function M.setup()
+  -- Enable UI2
+  ui2.enable({
+    msg = {
+      targets = "msg", -- Messages appear in a floating window at the bottom right
+    },
+  })
 
-    if not cmdline_type then
+  -- Wrap the `cmdline_show` function once, while this file should only be sourced
+  -- once, being defensive does prevent silently wrapping multiple times
+  if not orig_cmdline_show then
+    orig_cmdline_show = cmdline.cmdline_show
+    cmdline.cmdline_show = function(...)
+      local ret = orig_cmdline_show(...)
+
+      if not cmdline_type then
+        return ret
+      end
+
+      float_cmdline()
       return ret
     end
-
-    float_cmdline()
-    return ret
   end
+
+  local group = vim.api.nvim_create_augroup("UI2FloatingCmdline",
+    { clear = true })
+
+  -- Set highlights, and reset on colorscheme change
+  set_highlights()
+  vim.api.nvim_create_autocmd("ColorScheme", {
+    callback = set_highlights,
+    group = group,
+  })
+
+  -- Update the command-line window on entering and leaving
+  vim.api.nvim_create_autocmd("CmdlineEnter", {
+    callback = function()
+      cmdline_type = vim.fn.getcmdtype()
+    end,
+    group = group,
+  })
+
+  vim.api.nvim_create_autocmd("CmdlineLeave", {
+    callback = function()
+      cmdline_type = nil
+      vim.g.ui_cmdline_pos = orig_ui_cmdline_pos
+      local win = get_cmdline_win()
+
+      if win and orig_cmd_win_config then
+        pcall(vim.api.nvim_win_set_config, win, orig_cmd_win_config)
+        vim.api.nvim_set_option_value("winhighlight",
+          cmdline_regular_winhighlight,
+          { win = win })
+      end
+    end,
+    group = group,
+  })
 end
 
-local group = vim.api.nvim_create_augroup("UI2FloatingCmdline",
-  { clear = true })
-
--- Set highlights, and reset on colorscheme change
-set_highlights()
-vim.api.nvim_create_autocmd("ColorScheme", {
-  callback = set_highlights,
-  group = group,
-})
-
--- Update the command-line window on entering and leaving
-vim.api.nvim_create_autocmd("CmdlineEnter", {
-  callback = function()
-    cmdline_type = vim.fn.getcmdtype()
-  end,
-  group = group,
-})
-
-vim.api.nvim_create_autocmd("CmdlineLeave", {
-  callback = function()
-    cmdline_type = nil
-    vim.g.ui_cmdline_pos = orig_ui_cmdline_pos
-    local win = get_cmdline_win()
-
-    if win and orig_cmd_win_config then
-      pcall(vim.api.nvim_win_set_config, win, orig_cmd_win_config)
-      vim.api.nvim_set_option_value("winhighlight",
-        cmdline_regular_winhighlight,
-        { win = win })
-    end
-  end,
-  group = group,
-})
+return M
