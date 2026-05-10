@@ -24,9 +24,13 @@ local opts = {
     -- Darker tab pages line background
     hl.TabLineFill.bg = c.bg_dark1
 
+    -- Softer error colour
+    hl.ErrorMsg.fg = c.red
+    hl.DiagnosticError.fg = c.red
+    hl.DiagnosticVirtualTextError.fg = c.red
+
     -- Miscellaneous
     hl.MatchParen.bg = c.dark3
-    hl.DiagnosticError.fg = c.red
     hl.WinSeparator.fg = c.fg_gutter
   end,
 }
