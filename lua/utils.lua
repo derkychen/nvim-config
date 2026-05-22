@@ -1,41 +1,43 @@
 local M = {}
 
--- Check if a buffer is valid and normal
-function M.valid_normal_buf(buf)
+-- Check if a buffer is valid, normal, and from disk
+function M.valid_normal_disk_buf(buf)
   local bufname = vim.api.nvim_buf_get_name(buf)
   local buftype = vim.api.nvim_get_option_value("buftype", { buf = buf })
 
-  -- TODO: Remove `oil.nvim` buffer check workaraound when this bug is fixed,
-  -- since `buftype` is not set correctly on `BufEnter`:
-  -- https://github.com/stevearc/oil.nvim/issues/710
-  local filetype = vim.api.nvim_get_option_value("filetype", { buf = buf })
-  local other_conds = filetype ~= "oil" and not bufname:match("^oil://")
-
   return vim.api.nvim_buf_is_valid(buf)
       and buftype == ""
-      and bufname ~= nil
-      and bufname ~= ""
-      and other_conds
+      and vim.uv.fs_stat(bufname) ~= nil
 end
 
--- Get path of buffer relative to window current working directory, falls back
--- to buffer name if the buffer is not valid and normal
-function M.winrelpath(winid)
-  local path, bufname
-  local buf = vim.api.nvim_win_get_buf(winid)
-  if vim.api.nvim_win_is_valid(winid) then
-    bufname = vim.api.nvim_buf_get_name(buf)
+-- Get and process path of buffer relative to current working directory of
+-- window, home directory, or root directory, and fall back to buffer name
+function M.winrelpath(win)
+  if not vim.api.nvim_win_is_valid(win) then
+    return
   end
-  if M.valid_normal_buf(buf) then
-    path = vim.fs.relpath(vim.fn.getcwd(winid), bufname)
+
+  local path
+
+  local buf = vim.api.nvim_win_get_buf(win)
+  local bufname = vim.api.nvim_buf_get_name(buf)
+
+  if M.valid_normal_disk_buf(buf) then
+    path = vim.fs.relpath(vim.fn.getcwd(win), bufname)
+
+    -- Fall back to and indicate home directory
     if path == nil then
-      path = vim.fs.relpath(vim.env.HOME, bufname)
+      local homerelpath = vim.fs.relpath(vim.env.HOME, bufname)
+
+      if homerelpath then
+        path = "~/" .. homerelpath
+      end
     end
   end
-  if path == nil then
-    path = bufname
-  end
-  return path
+
+  -- Fallback that works for both special buffers and buffers whose relative
+  -- paths can only be resolved from the root directory
+  return path or bufname
 end
 
 return M
