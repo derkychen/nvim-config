@@ -511,7 +511,7 @@ local Breadcrumbs = {
   {
     init = function(self)
       local symbols = {}
-      if utils.valid_normal_buf(self.buf) and vim.uv.fs_stat(self.bufname) then
+      if utils.valid_normal_disk_buf(self.buf) then
         for symbol in string.gmatch(self.winreldir, "([^/]+)") do
           table.insert(symbols, BreadcrumbsDirItem(symbol))
           table.insert(symbols, BreadcrumbsSep)
@@ -878,7 +878,7 @@ local Foldcolumn = {
 -- Statuscolumn elements
 local Statuscolumn = hutils.insert(WinInfo, {
   condition = function(self)
-    return utils.valid_normal_buf(self.buf)
+    return utils.valid_normal_disk_buf(self.buf)
   end,
   Space,
   Signcolumn,
@@ -890,9 +890,7 @@ local Statuscolumn = hutils.insert(WinInfo, {
 require("heirline").setup({
   opts = {
     disable_winbar_cb = function(ev)
-      local buf = ev.buf
-      local bufname = vim.api.nvim_buf_get_name(buf)
-      return not (utils.valid_normal_buf(buf) and vim.uv.fs_stat(bufname))
+      return not utils.valid_normal_disk_buf(ev.buf)
     end,
     colors = get_colors,
   },
@@ -905,14 +903,12 @@ require("heirline").setup({
   statuscolumn = Statuscolumn,
 })
 
--- Defer redrawing of status line, window bar, and tab pages line on mode change
--- to prevent a delay, particularly relevant on exiting Fzf-Lua
-local function redraw()
-  vim.defer_fn(function()
-    vim.cmd.redrawstatus({ bang = true })
-    vim.cmd.redrawtabline()
-  end, 50)
-end
+-- Defer redrawing of status line, window bar, and tab pages line on specific
+-- events to prevent a delay, particularly relevant on exiting Fzf-Lua
+local redraw = vim.schedule_wrap(function()
+  vim.cmd.redrawstatus({ bang = true })
+  vim.cmd.redrawtabline()
+end)
 
 local heirline_redraw_group =
     vim.api.nvim_create_augroup("HeirlineRedraw", { clear = true })

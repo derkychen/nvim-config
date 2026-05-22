@@ -8,7 +8,7 @@ local function greeting()
   local hour = tonumber(vim.fn.strftime("%H"))
   local part_id = math.floor((hour) / 6) + 1
   local day_part = ({ "morning", "morning", "afternoon", "evening" })[part_id]
-  local username = vim.loop.os_get_passwd()["username"] or "USERNAME"
+  local username = vim.uv.os_get_passwd()["username"] or "USERNAME"
 
   return ("Good %s, %s"):format(day_part, username)
 end
@@ -24,7 +24,7 @@ local function session_items(max)
       section = "Recent sessions",
       action = function()
         pcall(starter.close)
-        sessions.load(sessions.get_session_path(name))
+        sessions.load(sessions.get_path(name))
       end,
     })
   end
@@ -32,12 +32,15 @@ local function session_items(max)
 end
 
 local function fzf_lua_items()
+  local function item(name, action)
+    return { name = name, section = "Fuzzy find", action = action }
+  end
   return {
-    { name = "file",             section = "Fuzzy find", action = fzf_lua.files },
-    { name = "recent files",     section = "Fuzzy find", action = fzf_lua.oldfiles },
-    { name = "live grep",        section = "Fuzzy find", action = fzf_lua.live_grep },
-    { name = "sessions",         section = "Fuzzy find", action = sessions.load_select},
-    { name = "change directory", section = "Fuzzy find", action = fzf_lua.tcd },
+    item("file", fzf_lua.files),
+    item("recent files", fzf_lua.oldfiles),
+    item("live grep", fzf_lua.live_grep),
+    item("sessions", sessions.load_select),
+    item("change directory", fzf_lua.cd),
   }
 end
 
@@ -56,13 +59,25 @@ starter.setup({
   silent = true,
 })
 
-vim.api.nvim_create_autocmd({ "WinResized", "FocusGained" }, {
-  callback = vim.schedule_wrap(function()
-    for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-      local filetype = vim.api.nvim_get_option_value("filetype", { buf = buf })
-      if filetype == "ministarter" then
-        pcall(starter.refresh, buf)
-      end
+local refresh = vim.schedule_wrap(function()
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    local filetype = vim.api.nvim_get_option_value("filetype", { buf = buf })
+    if filetype == "ministarter" then
+      pcall(starter.refresh, buf)
     end
-  end),
+  end
+end)
+
+local ministarter_refresh_group = vim.api.nvim_create_augroup(
+  "MinistarterRefresh", { clear = true })
+
+vim.api.nvim_create_autocmd({ "WinResized", "FocusGained" }, {
+  callback = refresh,
+  group = ministarter_refresh_group,
+})
+
+vim.api.nvim_create_autocmd("User", {
+  pattern = { "SessionSavePost", "SessionLoadPost", "SessionRenamePost" },
+  callback = refresh,
+  group = ministarter_refresh_group,
 })

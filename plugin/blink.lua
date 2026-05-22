@@ -6,13 +6,13 @@ vim.pack.add({
   },
 }, { load = false })
 
-local blink_lazyload_group = vim.api.nvim_create_augroup("BlinkLazyLoad",
-  { clear = true })
-
 -- TODO: Remove or refactor `blink.cmp` automatic command group deletion
 -- workaround when this bug is fixed, since `once = true` does not ensure
 -- automatic command is run once when there are multiple events:
 -- https://github.com/neovim/neovim/issues/37027
+local blink_lazyload_group = vim.api.nvim_create_augroup("BlinkLazyLoad",
+  { clear = true })
+
 vim.api.nvim_create_autocmd({
   "InsertEnter",
   "CmdlineEnter",

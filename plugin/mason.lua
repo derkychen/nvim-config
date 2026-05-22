@@ -14,6 +14,7 @@ require("mason").setup(opts)
 -- List of packages for Mason to install, note that this list is different from
 -- the list of language servers enabled in `vim.lsp.enable`
 local ensure_installed = {
+  "arduino-language-server",
   "bash-language-server",
   "biome",
   "clangd",

@@ -22,8 +22,6 @@ local opts = {
 
 oil.setup(opts)
 
-vim.keymap.set("n", "<Leader>eo", oil.open, { desc = "Open Oil" })
-
 -- Open Oil on a new tab page
 local oil_open_group = vim.api.nvim_create_augroup("OilOpen", { clear = true })
 
@@ -38,9 +36,11 @@ vim.api.nvim_create_autocmd("TabNew", {
       local line_count = vim.api.nvim_buf_line_count(buf)
 
       if name == "" and buftype == "" and not modified and line_count <= 1 then
-        oil.open(vim.fn.getcwd())
+        oil.open(vim.uv.cwd())
       end
     end)
   end,
   group = oil_open_group,
 })
+
+vim.keymap.set("n", "<Leader>eo", oil.open, { desc = "Open Oil" })
