@@ -34,6 +34,8 @@ local function set_default_winlocal_opts(win)
     relativenumber = true,                           -- Relative line numbers
     cursorline = true,                               -- Highlight current line
     cursorcolumn = true,                             -- Highlight current column
+    scrolloff = 10,                                  -- Vertical context
+    sidescrolloff = 10,                              -- Horizontal context
     virtualedit = "block",                           -- Visual-block past text
     linebreak = true,                                -- Wrap lines at words
     breakindent = true,                              -- Indent wrapped lines
@@ -52,8 +54,8 @@ local function set_default_winlocal_opts(win)
     listchars =
         "tab:↦ ," .. -- Tab character
         "trail:⋅," .. -- Trailing spaces
-        "extends:," .. -- Line continuing to the right when line wrapping off
-        "precedes:,", -- Line continuing to the left when line wrapping off
+        "extends:," .. -- Continuation to the right when line wrapping off
+        "precedes:,", -- Continuation to the left when line wrapping off
     spell = true, -- Enable spell-check
   }
 
@@ -101,12 +103,15 @@ function M.setup()
   -- TODO: Optimize once the ev.win field is implemented:
   -- https://github.com/neovim/neovim/issues/25844
   -- Set all default window-local options for windows containing valid, normal
-  -- buffers
-  vim.api.nvim_create_autocmd("BufWinEnter", {
+  -- buffers from or written to disk
+  vim.api.nvim_create_autocmd({
+    "BufWinEnter",
+    "BufWritePost",
+  }, {
     callback = function(ev)
       for _, win in pairs(vim.fn.win_findbuf(ev.buf)) do
         local buf = vim.api.nvim_win_get_buf(win)
-        if not utils.valid_normal_buf(buf) then
+        if not utils.valid_normal_disk_buf(buf) then
           return
         end
         if not is_winlocal_initialized(win, buf) then
@@ -126,7 +131,7 @@ function M.setup()
     callback = function()
       for _, win in ipairs(vim.api.nvim_list_wins()) do
         local buf = vim.api.nvim_win_get_buf(win)
-        if utils.valid_normal_buf(buf) then
+        if utils.valid_normal_disk_buf(buf) then
           set_adaptive_override_winlocal_opts(win)
         end
       end
