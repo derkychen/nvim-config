@@ -124,6 +124,7 @@ local function float_cmdline()
   end
 
   vim.api.nvim_set_option_value("wrap", false, { win = win })
+  vim.api.nvim_set_option_value("sidescrolloff", 10, { win = win })
   vim.api.nvim_set_option_value("winhighlight", cmdline_float_winhighlight,
     { win = win })
 
@@ -140,7 +141,7 @@ local function float_cmdline()
     border = cmdline_config.border,
   })
 
-  -- `vim.g.ui_cmdline_pos` is used by blink.cmp for anchoring
+  -- Used by `blink.cmp` for anchoring
   vim.g.ui_cmdline_pos = {
     row + border_size + 1,
     col + border_size + 1,
