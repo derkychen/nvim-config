@@ -152,11 +152,14 @@ end
 
 -- Parent component that stores window-local information
 local WinInfo = {
-  init = function(self)
+  condition = function(self)
     self.win = vim.fn.win_getid(self.winnr)
+    return vim.api.nvim_win_is_valid(self.win)
+  end,
+  init = function(self)
     self.buf = vim.api.nvim_win_get_buf(self.win)
     self.bufname = vim.api.nvim_buf_get_name(self.buf)
-    self.winrelpath = utils.winrelpath(self.win)
+    self.winrelpath = utils.relpath(vim.fn.getcwd(self.win), self.bufname)
     self.winreldir = vim.fs.dirname(self.winrelpath)
     self.filename = vim.fs.basename(self.winrelpath)
     self.filetype =

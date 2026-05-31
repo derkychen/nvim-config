@@ -10,34 +10,25 @@ function M.valid_normal_disk_buf(buf)
       and vim.uv.fs_stat(bufname) ~= nil
 end
 
--- Get and process path of buffer relative to current working directory of
--- window, home directory, or root directory, and fall back to buffer name
-function M.winrelpath(win)
-  if not vim.api.nvim_win_is_valid(win) then
-    return
-  end
-
+-- Wrap `vim.fs.relpath()` to get and process path of target relative to base,
+-- home directory, or root directory, and fall back to target
+function M.relpath(base, target)
   local path
 
-  local buf = vim.api.nvim_win_get_buf(win)
-  local bufname = vim.api.nvim_buf_get_name(buf)
+  path = vim.fs.relpath(base, target)
 
-  if M.valid_normal_disk_buf(buf) then
-    path = vim.fs.relpath(vim.fn.getcwd(win), bufname)
+  -- Fall back to and indicate home directory
+  if path == nil then
+    local homerelpath = vim.fs.relpath(vim.env.HOME, target)
 
-    -- Fall back to and indicate home directory
-    if path == nil then
-      local homerelpath = vim.fs.relpath(vim.env.HOME, bufname)
-
-      if homerelpath then
-        path = "~/" .. homerelpath
-      end
+    if homerelpath then
+      path = "~/" .. homerelpath
     end
   end
 
-  -- Fallback that works for both special buffers and buffers whose relative
-  -- paths can only be resolved from the root directory
-  return path or bufname
+  -- Fallback that works for non-existent paths and paths that can only be
+  -- resolved relative to the root directory
+  return path or target
 end
 
 return M
