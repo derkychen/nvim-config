@@ -14,18 +14,19 @@ require("mason").setup(opts)
 -- List of packages for Mason to install, note that this list is different from
 -- the list of language servers enabled in `vim.lsp.enable`
 local ensure_installed = {
-  "arduino-language-server",
   "bash-language-server",
   "biome",
   "clangd",
   "latexindent",
   "lua-language-server",
   "markdown-oxide",
+  "neocmakelsp",
   "remark-language-server",
   "ruff",
   "shfmt",
   "texlab",
   "tombi",
+  "yaml-language-server",
 }
 
 for _, pkg in pairs(ensure_installed) do
