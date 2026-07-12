@@ -159,9 +159,17 @@ local WinInfo = {
   init = function(self)
     self.buf = vim.api.nvim_win_get_buf(self.win)
     self.bufname = vim.api.nvim_buf_get_name(self.buf)
-    self.winrelpath = utils.relpath(vim.fn.getcwd(self.win), self.bufname)
-    self.winreldir = vim.fs.dirname(self.winrelpath)
-    self.filename = vim.fs.basename(self.winrelpath)
+
+    if utils.valid_normal_disk_buf(self.buf) then
+      local winrelpath = utils.relpath(vim.fn.getcwd(self.win), self.bufname)
+
+      self.winreldir = vim.fs.dirname(winrelpath)
+      self.filename = vim.fs.basename(winrelpath)
+    else
+      self.winreldir = vim.fs.dirname(self.bufname)
+      self.filename = vim.fs.basename(self.bufname)
+    end
+
     self.filetype =
         vim.api.nvim_get_option_value("filetype", { buf = self.buf })
   end,
@@ -916,7 +924,12 @@ end)
 local heirline_redraw_group =
     vim.api.nvim_create_augroup("HeirlineRedraw", { clear = true })
 
-vim.api.nvim_create_autocmd("ModeChanged", {
+vim.api.nvim_create_autocmd({
+  "ModeChanged",
+  "DiagnosticChanged",
+  "LspAttach",
+  "LspDetach",
+}, {
   callback = redraw,
   group = heirline_redraw_group,
 })
