@@ -24,7 +24,7 @@ local function session_items(max)
       section = "Recent sessions",
       action = function()
         pcall(starter.close)
-        sessions.load(sessions.get_path(name))
+        sessions.load(name)
       end,
     })
   end
@@ -33,13 +33,13 @@ end
 
 local function fzf_lua_items()
   local function item(name, action)
-    return { name = name, section = "Fuzzy find", action = action }
+    return { name = name, section = "Find", action = action }
   end
   return {
     item("file", fzf_lua.files),
-    item("recent files", fzf_lua.oldfiles),
+    item("recent file", fzf_lua.oldfiles),
     item("live grep", fzf_lua.live_grep),
-    item("sessions", sessions.load_select),
+    item("session", sessions.load_select),
     item("change directory", fzf_lua.cd),
   }
 end
@@ -71,13 +71,23 @@ end)
 local ministarter_refresh_group = vim.api.nvim_create_augroup(
   "MinistarterRefresh", { clear = true })
 
-vim.api.nvim_create_autocmd({ "WinResized", "FocusGained" }, {
+-- Update time of day
+vim.api.nvim_create_autocmd("FocusGained", {
+  callback = refresh,
+  group = ministarter_refresh_group,
+})
+
+-- Update sessions
+vim.api.nvim_create_autocmd("SessionWritePost", {
   callback = refresh,
   group = ministarter_refresh_group,
 })
 
 vim.api.nvim_create_autocmd("User", {
-  pattern = { "SessionSavePost", "SessionLoadPost", "SessionRenamePost" },
+  pattern = {
+    "SessionDeletePost",
+    "SessionRenamePost",
+  },
   callback = refresh,
   group = ministarter_refresh_group,
 })
