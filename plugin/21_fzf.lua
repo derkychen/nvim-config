@@ -43,7 +43,7 @@ function fzf_lua.cd()
           return
         end
 
-        vim.cmd.cd(vim.fn.fnameescape(dir))
+        vim.api.nvim_set_current_dir(dir)
 
         local ok, oil = pcall(require, "oil")
         if ok then
