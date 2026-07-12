@@ -7,12 +7,14 @@ local languages = {
   "bash",
   "bibtex",
   "c",
+  "cmake",
   "css",
   "csv",
   "html",
   "javascript",
   "json",
   "latex",
+  "linkerscript",
   "lua",
   "markdown",
   "python",
@@ -22,22 +24,4 @@ local languages = {
 
 require("tree-sitter-manager").setup({
   ensure_installed = languages,
-})
-
--- Based on and thanks Evgeni Chasnovski's Neovim configuration:
--- https://github.com/echasnovski/nvim
-local treesitter_start_group =
-    vim.api.nvim_create_augroup("TreesitterStart", { clear = true })
-
-local filetypes = vim.iter(languages)
-    :map(vim.treesitter.language.get_filetypes)
-    :flatten()
-    :totable()
-
-vim.api.nvim_create_autocmd("FileType", {
-  callback = function(ev)
-    pcall(vim.treesitter.start, ev.buf)
-  end,
-  group = treesitter_start_group,
-  pattern = filetypes,
 })
