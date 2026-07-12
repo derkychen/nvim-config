@@ -45,7 +45,14 @@ local function symbol_info(bufnr, client)
 end
 
 return {
-  cmd = { "clangd" },
+  cmd = {
+    "clangd",
+    "--background-index",
+    "--clang-tidy",
+    "--completion-style=detailed",
+    "--header-insertion=never",
+    "--compile-commands-dir=build",
+  },
   filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
   root_markers = {
     ".clangd",
