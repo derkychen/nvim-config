@@ -1,7 +1,8 @@
 local M = {}
 
 function M.setup()
-  -- Lazily setup all LSP servers
+  -- Lazily setup all LSP servers.
+  --
   -- Based on and thanks to Maria Solano's dotfiles:
   -- https://github.com/MariaSolOs/dotfiles
   vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {

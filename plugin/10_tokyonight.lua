@@ -1,13 +1,13 @@
 vim.pack.add({ "https://github.com/folke/tokyonight.nvim" })
 
 local opts = {
-  -- Tweak colour orange to be more pastel
+  -- Tweak colour orange to be more pastel.
   on_colors = function(c)
     c.orange = "#ffb070"
   end,
 
   on_highlights = function(hl, c)
-    -- Colder syntax highlighting
+    -- Colder syntax highlighting.
     hl["@variable.builtin"].fg = c.fg
     hl["@variable.parameter"].fg = c.fg
     hl["@variable.member"].fg = c.fg
@@ -17,19 +17,19 @@ local opts = {
     hl["@constructor"].fg = c.blue
     hl.Statement.fg = c.cyan
 
-    -- Match window bar background with window background
+    -- Match window bar background with window background.
     hl.WinBar = { bg = c.bg }
     hl.WinBarNC = { fg = c.fg_gutter, bg = c.bg }
 
-    -- Darker tab pages line background
+    -- Darker tab pages line background.
     hl.TabLineFill.bg = c.bg_dark1
 
-    -- Softer error colour
+    -- Softer error colour.
     hl.ErrorMsg.fg = c.red
     hl.DiagnosticError.fg = c.red
     hl.DiagnosticVirtualTextError.fg = c.red
 
-    -- Miscellaneous
+    -- Miscellaneous.
     hl.MatchParen.bg = c.dark3
     hl.WinSeparator.fg = c.fg_gutter
   end,

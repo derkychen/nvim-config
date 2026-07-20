@@ -1,6 +1,6 @@
 local M = {}
 
--- Track buffers whose default local options have been set
+-- Track buffers whose default local options have been set.
 local buflocal_initialized = {}
 
 local function mark_buflocal_initialized(buf)
@@ -17,13 +17,13 @@ end
 
 local function set_default_buflocal_opts(buf)
   local default_buflocal_opts = {
-    expandtab = true,                     -- Convert tabs to spaces
-    tabstop = 2,                          -- Columns per tab
-    softtabstop = 2,                      -- Columns per soft tab stop
-    shiftwidth = 2,                       -- Columns per indentation level
-    autoindent = true,                    -- Copy previous indent on new line
-    spelllang = "en_ca",                  -- Spelling language and locale
-    spelloptions = "camel,noplainbuffer", -- Handle camel casing and syntax
+    expandtab = true,                     -- Convert tabs to spaces.
+    tabstop = 2,                          -- Columns per tab.
+    softtabstop = 2,                      -- Columns per soft tab stop.
+    shiftwidth = 2,                       -- Columns per indentation level.
+    autoindent = true,                    -- Copy previous indent on new line.
+    spelllang = "en_ca",                  -- Spelling language and locale.
+    spelloptions = "camel,noplainbuffer", -- Handle camel casing and syntax.
   }
 
   for opt, val in pairs(default_buflocal_opts) do
@@ -35,7 +35,7 @@ function M.setup()
   local buflocal_opts_group = vim.api.nvim_create_augroup("BufLocalOptions",
     { clear = true })
 
-  -- Set all default buffer-local options for valid, normal buffers
+  -- Set all default buffer-local options for valid, normal buffers.
   vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
     callback = function(ev)
       local buf = ev.buf
@@ -47,7 +47,7 @@ function M.setup()
     group = buflocal_opts_group,
   })
 
-  -- Clean `buflocal_initialized` tables on the closing of buffers
+  -- Clean `buflocal_initialized` tables on the closing of buffers.
   vim.api.nvim_create_autocmd({ "BufWipeout", "BufDelete" }, {
     callback = function(ev)
       clear_buflocal_initialized(ev.buf)

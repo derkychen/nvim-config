@@ -22,7 +22,7 @@ local opts = {
 
 oil.setup(opts)
 
--- Open Oil on a new tab page
+-- Open Oil on a new tab page.
 local oil_open_group = vim.api.nvim_create_augroup("OilOpen", { clear = true })
 
 vim.api.nvim_create_autocmd("TabNew", {

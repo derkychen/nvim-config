@@ -3,7 +3,7 @@ local icons = require("icons")
 local M = {}
 
 function M.setup()
-  -- Diagnostic icons
+  -- Configure diagnostic icons.
   vim.diagnostic.config({
     signs = {
       text = {
@@ -15,7 +15,6 @@ function M.setup()
     },
   })
 
-  -- Diagnostics
   vim.keymap.set("n", "<Leader>do", vim.diagnostic.open_float,
     { noremap = true, silent = true, desc = "Open diagnostic" })
   vim.keymap.set("n", "<Leader>dt",

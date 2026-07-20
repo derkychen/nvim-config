@@ -3,14 +3,14 @@ local utils = require("utils")
 
 vim.pack.add({ "https://github.com/rebelot/heirline.nvim" })
 
--- Utilities
+-- Utilities.
 local hconds = require("heirline.conditions")
 local hutils = require("heirline.utils")
 
 local micons = require("mini.icons")
 local aerial = require("aerial")
 
--- Flexible component priorities
+-- Flexible component priorities.
 local priorities = {
   ModeText = 2,
   GitBranch = 5,
@@ -29,7 +29,7 @@ local Align = { provider = "%=" }
 local Bar = { provider = "█" }
 local Empty = { provider = "" }
 
--- Pad leftmost components on the right
+-- Pad leftmost components on the right.
 local function pad_right(component)
   return {
     component,
@@ -37,7 +37,7 @@ local function pad_right(component)
   }
 end
 
--- Pad rightmost components on the left
+-- Pad rightmost components on the left.
 local function pad_left(component)
   return {
     HalfPad,
@@ -45,7 +45,7 @@ local function pad_left(component)
   }
 end
 
--- Pad middle components symmetrically
+-- Pad middle components symmetrically.
 local function pad_symmetric(component)
   return {
     HalfPad,
@@ -54,7 +54,7 @@ local function pad_symmetric(component)
   }
 end
 
--- Combine active and inactive window versions of component
+-- Combine active and inactive window versions of component.
 local function active_inactive_win_component(active, inactive)
   return {
     fallthrough = false,
@@ -66,7 +66,7 @@ local function active_inactive_win_component(active, inactive)
   }
 end
 
--- Get colors from colorscheme highlights
+-- Get colors from colorscheme highlights.
 local function get_colors()
   local function get_fg(hl)
     return hutils.get_highlight(hl).fg or hutils.get_highlight("StatusLine").fg
@@ -150,7 +150,7 @@ local function get_colors()
   }
 end
 
--- Parent component that stores window-local information
+-- Parent component that stores window-local information.
 local WinInfo = {
   condition = function(self)
     self.win = vim.fn.win_getid(self.winnr)

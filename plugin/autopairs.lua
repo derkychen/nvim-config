@@ -14,7 +14,7 @@ vim.api.nvim_create_autocmd("InsertEnter", {
 
     npairs.setup()
 
-    -- Equation brackets in LaTeX
+    -- Equation brackets in LaTeX.
     npairs.add_rules({
       Rule("\\(", "\\)", "tex"),
       Rule("\\[", "\\]", "tex"),

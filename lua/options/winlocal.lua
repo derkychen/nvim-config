@@ -3,7 +3,7 @@ local utils = require("utils")
 
 local M = {}
 
--- Track windows and their buffers default local options have been set
+-- Track windows and their buffers default local options have been set.
 local winlocal_initialized = {}
 
 local function mark_winlocal_initialized(win, buf)
@@ -30,33 +30,33 @@ end
 
 local function set_default_winlocal_opts(win)
   local default_winlocal_opts = {
-    number = true,                                   -- Current line number
-    relativenumber = true,                           -- Relative line numbers
-    cursorline = true,                               -- Highlight current line
-    cursorcolumn = true,                             -- Highlight current column
-    scrolloff = 10,                                  -- Vertical context
-    sidescrolloff = 10,                              -- Horizontal context
-    virtualedit = "block",                           -- Visual-block past text
-    linebreak = true,                                -- Wrap lines at words
-    breakindent = true,                              -- Indent wrapped lines
-    foldmethod = "expr",                             -- Custom code folding
-    foldexpr = "v:lua.vim.treesitter.foldexpr()",    -- Fold with Tree-sitter
-    foldtext = "",                                   -- No text for closed fold
-    foldlevel = 99,                                  -- Maximum nested folds
-    foldcolumn = "1",                                -- Width of fold column
+    number = true,                                   -- Current line number.
+    relativenumber = true,                           -- Relative line numbers.
+    cursorline = true,                               -- Highlight cursor line.
+    cursorcolumn = true,                             -- Highlight cursor column.
+    scrolloff = 10,                                  -- Vertical context.
+    sidescrolloff = 10,                              -- Horizontal context.
+    virtualedit = "block",                           -- Visual-block past text.
+    linebreak = true,                                -- Wrap lines at words.
+    breakindent = true,                              -- Indent wrapped lines.
+    foldmethod = "expr",                             -- Custom code folding.
+    foldexpr = "v:lua.vim.treesitter.foldexpr()",    -- Fold with Tree-sitter.
+    foldtext = "",                                   -- No text for closed fold.
+    foldlevel = 99,                                  -- Maximum nested folds.
+    foldcolumn = "1",                                -- Width of fold column.
     fillchars =
-        "fold: ," ..                                 -- Fill closed fold
-        "foldopen:" .. icons.arrows.down .. "," ..   -- Arrow for opened fold
-        "foldclose:" .. icons.arrows.right .. "," .. -- Arrow for closed fold
-        "foldinner: ," ..                            -- No nesting level number
-        "foldsep: ,",                                -- No open fold indicator
+        "fold: ," ..                                 -- Fill closed fold.
+        "foldopen:" .. icons.arrows.down .. "," ..   -- Arrow for opened fold.
+        "foldclose:" .. icons.arrows.right .. "," .. -- Arrow for closed fold.
+        "foldinner: ," ..                            -- No nesting level number.
+        "foldsep: ,",                                -- No open fold indicator.
     list = true,
     listchars =
-        "tab:↦ ," .. -- Tab character
-        "trail:⋅," .. -- Trailing spaces
-        "extends:," .. -- Continuation to the right when line wrapping off
-        "precedes:,", -- Continuation to the left when line wrapping off
-    spell = true, -- Enable spell-check
+        "tab:↦ ," .. -- Tab character.
+        "trail:⋅," .. -- Trailing spaces.
+        "extends:," .. -- Continuation to the right when line wrapping off.
+        "precedes:,", -- Continuation to the left when line wrapping off.
+    spell = true, -- Enable spell-check.
   }
 
   for opt, val in pairs(default_winlocal_opts) do
@@ -65,11 +65,11 @@ local function set_default_winlocal_opts(win)
 end
 
 -- If these options are set by others, they will be overridden every time an
--- option listed in the `OptionSet` automatic command is set
+-- option listed in the `OptionSet` automatic command is set.
 local function set_adaptive_override_winlocal_opts(win)
   local buf = vim.api.nvim_win_get_buf(win)
 
-  -- Update `leadmultispace` (only for indentation with spaces)
+  -- Update `leadmultispace` (only for indentation with spaces).
   local sw = vim.api.nvim_get_option_value("shiftwidth", { buf = buf })
   if sw == 0 then
     sw = vim.api.nvim_get_option_value("tabstop", { buf = buf })
@@ -82,7 +82,7 @@ local function set_adaptive_override_winlocal_opts(win)
     scope = "local",
   })
 
-  -- Replace or append `leadmultispace`
+  -- Replace or append `leadmultispace`.
   if listchars:find("leadmultispace:", 1, true) then
     listchars = listchars:gsub("leadmultispace:[^,]*", leadmultispace, 1)
   else
@@ -102,8 +102,9 @@ function M.setup()
 
   -- TODO: Optimize once the ev.win field is implemented:
   -- https://github.com/neovim/neovim/issues/25844
+  --
   -- Set all default window-local options for windows containing valid, normal
-  -- buffers from or written to disk
+  -- buffers from or written to disk.
   vim.api.nvim_create_autocmd({
     "BufWinEnter",
     "BufWritePost",
@@ -125,7 +126,7 @@ function M.setup()
   })
 
   -- Refresh adaptive window-local options for all windows since `OptionSet`
-  -- does not provide an `ev.buf`
+  -- does not provide an `ev.buf`.
   vim.api.nvim_create_autocmd("OptionSet", {
     pattern = { "shiftwidth", "tabstop", "list" },
     callback = function()
@@ -139,7 +140,7 @@ function M.setup()
     group = winlocal_opts_group,
   })
 
-  -- Clean `winlocal_initialized` table on the closing of windows
+  -- Clean `winlocal_initialized` table on the closing of windows.
   vim.api.nvim_create_autocmd("WinClosed", {
     callback = function(ev)
       local win = tonumber(ev.match)
@@ -151,7 +152,7 @@ function M.setup()
   })
 
   -- Clean `buflocal_initialized` and winlocal_initialized` tables on the
-  -- closing of buffers
+  -- closing of buffers.
   vim.api.nvim_create_autocmd({ "BufWipeout", "BufDelete" }, {
     callback = function(ev)
       clear_winlocal_initialized_buf(ev.buf)

@@ -6,7 +6,7 @@ return {
     bashIde = {
       globPattern = "*@(.sh|.inc|.bash|.command)",
 
-      -- Format with `shfmt`
+      -- Format with `shfmt`.
       shfmt = {
         path = "shfmt",
       },

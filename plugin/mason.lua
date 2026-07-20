@@ -2,7 +2,7 @@ vim.pack.add({ "https://github.com/mason-org/mason.nvim" })
 
 local registry = require("mason-registry")
 
--- Do not darken window backdrop
+-- Do not darken window backdrop.
 local opts = {
   ui = {
     backdrop = 100,
@@ -12,7 +12,7 @@ local opts = {
 require("mason").setup(opts)
 
 -- List of packages for Mason to install, note that this list is different from
--- the list of language servers enabled in `vim.lsp.enable`
+-- the list of language servers enabled in `vim.lsp.enable`.
 local ensure_installed = {
   "bash-language-server",
   "biome",

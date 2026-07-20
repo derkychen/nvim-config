@@ -3,7 +3,7 @@ vim.pack.add({ "https://github.com/ibhagwan/fzf-lua" })
 local fzf_lua = require("fzf-lua")
 
 local opts = {
-  -- Use Fzf-Lua for `vim.ui.select`, make the menu smaller
+  -- Use Fzf-Lua for `vim.ui.select`, make the menu smaller.
   ui_select = {
     winopts = {
       height = 0.4,
@@ -13,7 +13,7 @@ local opts = {
     },
   },
 
-  -- Do not darken window backdrop
+  -- Do not darken window backdrop.
   winopts = {
     backdrop = 100,
   },
@@ -22,7 +22,7 @@ local opts = {
 fzf_lua.setup(opts)
 
 -- Add a function to Fzf-Lua for finding and setting a current working directory
--- and opening `oil.nvim` in that directory
+-- and opening `oil.nvim` in that directory.
 local home = vim.env.HOME
 
 function fzf_lua.cd()

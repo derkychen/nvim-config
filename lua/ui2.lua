@@ -3,7 +3,8 @@ local cmdline = require("vim._core.ui2.cmdline")
 
 local M = {}
 
--- Floating command-line
+-- Floating command-line.
+--
 -- Based on and only possible thanks to tiny-cmdline.nvim:
 -- https://github.com/rachartier/tiny-cmdline.nvim
 local cmdline_config = {
@@ -21,13 +22,13 @@ local cmdline_config = {
   title_pos = "center",
 }
 
--- State storing variables
+-- State storing variables.
 local cmdline_type = nil
 local orig_cmdline_show = nil
 local orig_ui_cmdline_pos = vim.g.ui_cmdline_pos
 local orig_cmd_win_config = nil
 
--- Construct `winhighlight` option from map of highlights
+-- Construct `winhighlight` option from map of highlights.
 local function make_winhighlight(win_hl_map)
   local win_hls = {}
   for dest_hl, src_hl in pairs(win_hl_map) do
@@ -36,7 +37,7 @@ local function make_winhighlight(win_hl_map)
   return table.concat(win_hls, ",")
 end
 
--- Highlights for floating command-line window
+-- Highlights for floating command-line window.
 local cmdline_float_winhighlight = make_winhighlight({
   Normal = "CmdlineFloatNormal",
   FloatBorder = "CmdlineFloatBorder",
@@ -45,7 +46,7 @@ local cmdline_float_winhighlight = make_winhighlight({
   IncSearch = "None",
 })
 
--- Highlights for regular command-line window
+-- Highlights for regular command-line window.
 local cmdline_regular_winhighlight = make_winhighlight({
   Normal = "CmdlineNormal",
   Search = "None",
@@ -65,7 +66,7 @@ local function set_highlights()
 end
 
 -- Determine dimension from percentage of available screen dimensions or number
--- of terminal cells
+-- of terminal cells.
 local function parse_dimension(value, available)
   if type(value) == "string" then
     return math.floor(available * tonumber(value:match("^(%d+)%%$")) / 100)
@@ -73,7 +74,7 @@ local function parse_dimension(value, available)
   return math.floor(value)
 end
 
--- Size and position of window
+-- Size and position of window.
 local function geometry(content_height)
   local cols, lines = vim.o.columns, vim.o.lines
   local border_size =
@@ -98,7 +99,7 @@ local function geometry(content_height)
   return width, row, col, border_size
 end
 
--- Return command-line window ID
+-- Return command-line window ID.
 local function get_cmdline_win()
   if not ui2 then
     return
@@ -107,7 +108,7 @@ local function get_cmdline_win()
   return (win and vim.api.nvim_win_is_valid(win)) and win or nil
 end
 
--- Configure command-line window and provide anchor for completion
+-- Configure command-line window and provide anchor for completion.
 local function float_cmdline()
   if not cmdline_type then
     return
@@ -118,7 +119,7 @@ local function float_cmdline()
     return
   end
 
-  -- Store original window configuration
+  -- Store original window configuration.
   if not orig_cmd_win_config then
     orig_cmd_win_config = vim.api.nvim_win_get_config(win)
   end
@@ -141,7 +142,7 @@ local function float_cmdline()
     border = cmdline_config.border,
   })
 
-  -- Used by `blink.cmp` for anchoring
+  -- Used by `blink.cmp` for anchoring.
   vim.g.ui_cmdline_pos = {
     row + border_size + 1,
     col + border_size + 1,
@@ -149,15 +150,17 @@ local function float_cmdline()
 end
 
 function M.setup()
-  -- Enable UI2
+  -- Enable UI2.
   ui2.enable({
     msg = {
-      targets = "msg", -- Messages appear in a floating window at the bottom right
+      targets = "msg", -- Messages appear in a floating window at the bottom right.
     },
   })
 
-  -- Wrap the `cmdline_show` function once, while this file should only be sourced
-  -- once, being defensive does prevent silently wrapping multiple times
+  -- Wrap the `cmdline_show` function once.
+  --
+  -- While this file should only be sourced once, being defensive does prevent
+  -- silently wrapping multiple times.
   if not orig_cmdline_show then
     orig_cmdline_show = cmdline.cmdline_show
     cmdline.cmdline_show = function(...)
@@ -175,14 +178,14 @@ function M.setup()
   local group = vim.api.nvim_create_augroup("UI2FloatingCmdline",
     { clear = true })
 
-  -- Set highlights, and reset on colorscheme change
+  -- Set highlights, and reset on colour scheme change.
   set_highlights()
   vim.api.nvim_create_autocmd("ColorScheme", {
     callback = set_highlights,
     group = group,
   })
 
-  -- Update the command-line window on entering and leaving
+  -- Update the command-line window on entering and leaving.
   vim.api.nvim_create_autocmd("CmdlineEnter", {
     callback = function()
       cmdline_type = vim.fn.getcmdtype()
