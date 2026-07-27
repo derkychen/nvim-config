@@ -51,7 +51,6 @@ return {
     "--clang-tidy",
     "--completion-style=detailed",
     "--header-insertion=never",
-    "--compile-commands-dir=build",
   },
   filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
   root_markers = {
