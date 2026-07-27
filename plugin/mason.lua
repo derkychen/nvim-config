@@ -16,6 +16,7 @@ require("mason").setup(opts)
 -- NOTE: That this list is different from the list of language servers enabled
 --       in `vim.lsp.enable`.
 local ensure_installed = {
+  "basedpyright",
   "bash-language-server",
   "biome",
   "clangd",
@@ -28,7 +29,6 @@ local ensure_installed = {
   "shfmt",
   "texlab",
   "tombi",
-  "ty",
   "yaml-language-server",
 }
 
