@@ -8,6 +8,7 @@ local opts = {
 
   on_highlights = function(hl, c)
     -- Colder syntax highlighting.
+    hl["@module.builtin"].fg = c.fg
     hl["@variable.builtin"].fg = c.fg
     hl["@variable.parameter"].fg = c.fg
     hl["@variable.member"].fg = c.fg
