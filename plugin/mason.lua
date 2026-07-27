@@ -11,8 +11,10 @@ local opts = {
 
 require("mason").setup(opts)
 
--- List of packages for Mason to install, note that this list is different from
--- the list of language servers enabled in `vim.lsp.enable`.
+-- List of packages for Mason to install
+--
+-- NOTE: That this list is different from the list of language servers enabled
+--       in `vim.lsp.enable`.
 local ensure_installed = {
   "bash-language-server",
   "biome",
@@ -26,6 +28,7 @@ local ensure_installed = {
   "shfmt",
   "texlab",
   "tombi",
+  "ty",
   "yaml-language-server",
 }
 
