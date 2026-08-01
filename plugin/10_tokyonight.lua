@@ -4,6 +4,7 @@ local opts = {
   -- Tweak colour orange to be more pastel.
   on_colors = function(c)
     c.orange = "#ffb070"
+    c.black = "#000000"
   end,
 
   on_highlights = function(hl, c)
@@ -17,6 +18,16 @@ local opts = {
     hl["@keyword.function"].fg = c.blue6
     hl["@constructor"].fg = c.blue
     hl.Statement.fg = c.cyan
+
+    -- Paler visual selection.
+    hl.Visual.bg = c.blue7
+
+    -- Softer search highlighting.
+    hl.IncSearch.bg = c.green1
+    hl.Search.bg = c.dark3
+
+    -- Softer `flash.nvim` highlighting.
+    hl.FlashLabel = { bg = c.blue5, fg = c.black }
 
     -- Match window bar background with window background.
     hl.WinBar = { bg = c.bg }
