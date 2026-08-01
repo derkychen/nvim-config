@@ -11,7 +11,7 @@ local opts = {
 
 require("mason").setup(opts)
 
--- List of packages for Mason to install
+-- Mason ensures installation of these packages.
 --
 -- NOTE: That this list is different from the list of language servers enabled
 --       in `vim.lsp.enable`.
@@ -27,6 +27,7 @@ local ensure_installed = {
   "remark-language-server",
   "ruff",
   "shfmt",
+  "stylua",
   "texlab",
   "tombi",
   "yaml-language-server",
