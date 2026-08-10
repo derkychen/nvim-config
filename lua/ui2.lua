@@ -1,26 +1,12 @@
+-- UI2 setup and floating command-line.
+--
+-- Based on and thanks to Raphaël Chartier's tiny-cmdline.nvim:
+-- https://github.com/rachartier/tiny-cmdline.nvim
+local utils = require("utils")
 local ui2 = require("vim._core.ui2")
 local cmdline = require("vim._core.ui2.cmdline")
 
 local M = {}
-
--- Floating command-line.
---
--- Based on and only possible thanks to tiny-cmdline.nvim:
--- https://github.com/rachartier/tiny-cmdline.nvim
-local cmdline_config = {
-  width = {
-    value = "50%",
-    min = 40,
-    max = 80,
-  },
-  position = {
-    x = "50%",
-    y = "50%",
-  },
-  border = vim.o.winborder,
-  title = "Command-line",
-  title_pos = "center",
-}
 
 -- State storing variables.
 local cmdline_type = nil
@@ -54,15 +40,17 @@ local cmdline_regular_winhighlight = make_winhighlight({
   IncSearch = "None",
 })
 
-local function set_highlights()
+local function set_hls()
   vim.api.nvim_set_hl(0, "CmdlineFloatNormal", {
     fg = vim.api.nvim_get_hl(0, { name = "MsgArea" }).fg,
     bg = vim.api.nvim_get_hl(0, { name = "NormalFloat" }).bg,
   })
-  vim.api.nvim_set_hl(0, "CmdlineNormal",
-    { link = "MsgArea", default = true })
-  vim.api.nvim_set_hl(0, "CmdlineFloatBorder",
-    { link = "FloatBorder", default = true })
+  vim.api.nvim_set_hl(0, "CmdlineNormal", { link = "MsgArea", default = true })
+  vim.api.nvim_set_hl(
+    0,
+    "CmdlineFloatBorder",
+    { link = "FloatBorder", default = true }
+  )
 end
 
 -- Determine dimension from percentage of available screen dimensions or number
@@ -76,27 +64,31 @@ end
 
 -- Size and position of window.
 local function geometry(content_height)
-  local cols, lines = vim.o.columns, vim.o.lines
-  local border_size =
-      (cmdline_config.border == "" or cmdline_config.border == "none")
-      and 0 or 1
+  local min_width = 40
+  local max_width = 80
+  local percent_width = "50%"
 
-  local width = math.max(
-    cmdline_config.width.min,
-    math.min(
-      cmdline_config.width.max,
-      parse_dimension(cmdline_config.width.value, cols)
-    )
+  local cols = vim.o.columns
+  local lines = vim.o.lines
+
+  local bw = utils.winborder_width()
+
+  local width = math.min(
+    math.max(
+      min_width,
+      math.min(max_width, parse_dimension(percent_width, cols))
+    ),
+    cols - 4
   )
-  width = math.min(width, cols - 4)
 
-  local row = math.max(0,
-    parse_dimension(cmdline_config.position.y,
-      lines - content_height - border_size * 2))
-  local col = math.max(0,
-    parse_dimension(cmdline_config.position.x, cols - width - border_size * 2))
+  local x_position = "50%"
+  local y_position = "50%"
 
-  return width, row, col, border_size
+  local row =
+    math.max(0, parse_dimension(y_position, lines - content_height - bw * 2))
+  local col = math.max(0, parse_dimension(x_position, cols - width - bw * 2))
+
+  return width, row, col, bw
 end
 
 -- Return command-line window ID.
@@ -124,28 +116,33 @@ local function float_cmdline()
     orig_cmd_win_config = vim.api.nvim_win_get_config(win)
   end
 
+  vim.api.nvim_set_option_value("winfixbuf", true, { win = win })
   vim.api.nvim_set_option_value("wrap", false, { win = win })
   vim.api.nvim_set_option_value("sidescrolloff", 10, { win = win })
-  vim.api.nvim_set_option_value("winhighlight", cmdline_float_winhighlight,
-    { win = win })
+  vim.api.nvim_set_option_value(
+    "winhighlight",
+    cmdline_float_winhighlight,
+    { win = win }
+  )
 
   local content_height = math.max(1, vim.api.nvim_win_get_height(win))
-  local width, row, col, border_size = geometry(content_height)
+  local width, row, col, bw = geometry(content_height)
 
   pcall(vim.api.nvim_win_set_config, win, {
     relative = "editor",
     row = row,
     col = col,
     width = width,
-    title = cmdline_config.title,
-    title_pos = cmdline_config.title_pos,
-    border = cmdline_config.border,
+    border = vim.o.winborder,
+    title = "Command-line",
+    title_pos = "center",
+    style = "minimal",
   })
 
   -- Used by `blink.cmp` for anchoring.
   vim.g.ui_cmdline_pos = {
-    row + border_size + 1,
-    col + border_size + 1,
+    row + bw + 1,
+    col + bw + 1,
   }
 end
 
@@ -175,13 +172,13 @@ function M.setup()
     end
   end
 
-  local group = vim.api.nvim_create_augroup("UI2FloatingCmdline",
-    { clear = true })
+  local group =
+    vim.api.nvim_create_augroup("UI2FloatingCmdline", { clear = true })
 
   -- Set highlights, and reset on colour scheme change.
-  set_highlights()
+  set_hls()
   vim.api.nvim_create_autocmd("ColorScheme", {
-    callback = set_highlights,
+    callback = set_hls,
     group = group,
   })
 
@@ -201,9 +198,11 @@ function M.setup()
 
       if win and orig_cmd_win_config then
         pcall(vim.api.nvim_win_set_config, win, orig_cmd_win_config)
-        vim.api.nvim_set_option_value("winhighlight",
+        vim.api.nvim_set_option_value(
+          "winhighlight",
           cmdline_regular_winhighlight,
-          { win = win })
+          { win = win }
+        )
       end
     end,
     group = group,
