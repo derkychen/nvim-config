@@ -1,9 +1,14 @@
+-- Configuration for the `tokyonight.nvim` plugin.
+--
+-- Overrides some default colours and highlights. Sets the colour scheme.
 vim.pack.add({ "https://github.com/folke/tokyonight.nvim" })
 
-local opts = {
-  -- Tweak colour orange to be more pastel.
+require("tokyonight").setup({
   on_colors = function(c)
+    -- Tweak colour orange to be more pastel.
     c.orange = "#ffb070"
+
+    -- Create the colour black for high contrast highlights.
     c.black = "#000000"
   end,
 
@@ -45,8 +50,6 @@ local opts = {
     hl.MatchParen.bg = c.dark3
     hl.WinSeparator.fg = c.fg_gutter
   end,
-}
-
-require("tokyonight").setup(opts)
+})
 
 vim.cmd.colorscheme("tokyonight")

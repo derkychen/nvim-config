@@ -1,17 +1,16 @@
+-- Configuration for the `mason.nvim` plugin.
+--
+-- Ensures a set of LSP servers are installed and tweaks `mason.nvim`'s UI.
 vim.pack.add({ "https://github.com/mason-org/mason.nvim" })
 
-local registry = require("mason-registry")
-
 -- Do not darken window backdrop.
-local opts = {
+require("mason").setup({
   ui = {
     backdrop = 100,
   },
-}
+})
 
-require("mason").setup(opts)
-
--- Mason ensures installation of these packages.
+-- `mason.nvim` ensures installation of these packages.
 --
 -- NOTE: That this list is different from the list of language servers enabled
 --       in `vim.lsp.enable`.
@@ -32,6 +31,8 @@ local ensure_installed = {
   "tombi",
   "yaml-language-server",
 }
+
+local registry = require("mason-registry")
 
 for _, pkg in pairs(ensure_installed) do
   if not registry.is_installed(pkg) then
