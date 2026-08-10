@@ -1,3 +1,5 @@
+-- Session management functionality.
+--
 -- NOTE: This module only tracks sessions managed through it. It does not
 --       account for the direct calling of `:mksession` and `:source`, etc.
 local M = {}
@@ -13,7 +15,8 @@ end
 
 -- Get the name of a session from its file path.
 local function get_name(path)
-  return vim.fn.fnamemodify(path, ":t:r")
+  local filename = vim.fs.basename(path)
+  return filename:match("^(.*)%.[^.]+$") or filename
 end
 
 -- Get the name of the current session.
@@ -29,8 +32,8 @@ end
 -- Read last-used file into a table.
 local function read_lastused()
   local lastused = {}
-
   local f = io.open(M.lastused_path, "r")
+
   if not f then
     return lastused
   end
@@ -38,17 +41,19 @@ local function read_lastused()
   for line in f:lines() do
     local name = vim.trim(line)
     if name ~= "" then
-      table.insert(lastused, name)
+      lastused[#lastused + 1] = name
     end
   end
 
   f:close()
+
   return lastused
 end
 
 -- Write a table to last-used file.
 local function write_lastused(lastused)
   local f = io.open(M.lastused_path, "w")
+
   if not f then
     vim.notify("Failed to write session last-used file.", vim.log.levels.WARN)
     return
@@ -68,7 +73,7 @@ local function mark_lastused(name)
 
   for _, existing in ipairs(old_lastused) do
     if existing ~= name and exists(existing) then
-      table.insert(lastused, existing)
+      lastused[#lastused + 1] = existing
     end
   end
 
@@ -82,7 +87,7 @@ local function delete_lastused(name)
 
   for _, existing in ipairs(old_lastused) do
     if existing ~= name and exists(existing) then
-      table.insert(lastused, existing)
+      lastused[#lastused + 1] = existing
     end
   end
 
@@ -98,11 +103,11 @@ local function rename_lastused(old_name, new_name)
   for _, existing in ipairs(old_lastused) do
     if existing == old_name then
       if not inserted then
-        table.insert(lastused, new_name)
+        lastused[#lastused + 1] = new_name
         inserted = true
       end
     elseif existing ~= new_name and exists(existing) then
-      table.insert(lastused, existing)
+      lastused[#lastused + 1] = existing
     end
   end
 
@@ -123,21 +128,23 @@ local function confirm_overwrite(name, callback)
   end)
 end
 
--- Save session, hook with builtin `SessionWritePost` event.
+-- Save session, hook with built-in `SessionWritePost` event.
+--
+-- TODO: Document the `SessionWritePre` event upon the release of 0.13.
 function M.save(name)
   local path = get_path(name)
 
   vim.cmd.mksession({
+    path,
     bang = true,
-    args = { path },
   })
 
   mark_lastused(name)
-
   vim.notify("Session saved: " .. name)
 end
 
--- Load session, hook with builtin `SessionLoadPre` and `SessionLoadPost` events
+-- Load session, hook with built-in `SessionLoadPre` and `SessionLoadPost`.
+-- events.
 function M.load(name)
   if not exists(name) then
     vim.notify("No such session: " .. name)
@@ -146,17 +153,15 @@ function M.load(name)
 
   local path = get_path(name)
 
-  vim.api.nvim_cmd({
-    cmd = "source",
-    args = { path },
+  vim.cmd.source({
+    path,
     mods = {
       silent = true,
       emsg_silent = true,
     },
-  }, {})
+  })
 
   mark_lastused(name)
-
   vim.notify("Session loaded: " .. name)
 end
 
@@ -211,9 +216,18 @@ function M.rename(old_name, new_name, overwrite)
   local old_path = get_path(old_name)
   local new_path = get_path(new_name)
 
-  local ok = vim.fn.rename(old_path, new_path)
-  if ok ~= 0 then
-    vim.notify("Failed to rename session: " .. old_name .. " -> " .. new_name)
+  local ok, err = vim.uv.fs_rename(old_path, new_path)
+
+  if not ok then
+    vim.notify(
+      "Failed to rename session: "
+        .. old_name
+        .. " -> "
+        .. new_name
+        .. ": "
+        .. err,
+      vim.log.levels.ERROR
+    )
     return
   end
 
@@ -227,36 +241,39 @@ function M.rename(old_name, new_name, overwrite)
   })
 
   rename_lastused(old_name, new_name)
-
   vim.notify("Session renamed: " .. old_name .. " -> " .. new_name)
 end
 
--- Return all session names ordered from most to least recent use or fall back
--- to sorting by `mtime` for untracked sessions in the session storage
--- directory.
+-- All session names ordered from most to least recent use or fall back to
+-- sorting by `mtime` for untracked sessions in the session storage directory.
 function M.names()
-  local names = {}
+  local paths = {}
 
-  for _, name in ipairs(read_lastused()) do
-    if exists(name) then
-      table.insert(names, name)
+  for filename, type in vim.fs.dir(M.dir) do
+    if (type == "file" or type == "link") and vim.fs.ext(filename) == "vim" then
+      local name = get_name(filename)
+      paths[name] = vim.fs.joinpath(M.dir, filename)
     end
   end
 
-  local paths = vim.fn.globpath(M.dir, "*.vim", false, true, true)
+  local names = {}
+
+  for _, name in ipairs(read_lastused()) do
+    if paths[name] then
+      names[#names + 1] = name
+      paths[name] = nil
+    end
+  end
+
   local untracked = {}
 
-  for _, path in ipairs(paths) do
-    local name = get_name(path)
+  for name, path in pairs(paths) do
+    local stat = vim.uv.fs_stat(path)
 
-    if not vim.tbl_contains(names, name) then
-      local stat = vim.uv.fs_stat(path)
-
-      table.insert(untracked, {
-        name = name,
-        mtime = stat and stat.mtime and stat.mtime.sec or 0,
-      })
-    end
+    untracked[#untracked + 1] = {
+      name = name,
+      mtime = stat and stat.mtime and stat.mtime.sec or 0,
+    }
   end
 
   table.sort(untracked, function(a, b)
@@ -268,7 +285,7 @@ function M.names()
   end)
 
   for _, entry in ipairs(untracked) do
-    table.insert(names, entry.name)
+    names[#names + 1] = entry.name
   end
 
   return names
@@ -289,6 +306,7 @@ function M.new()
       vim.notify("Session save canceled.")
       return
     end
+
     if exists(name) then
       confirm_overwrite(name, function(overwrite)
         if overwrite then
@@ -315,7 +333,8 @@ end
 
 -- Select a session to save to, or create a new one.
 function M.save_select()
-  local items = vim.deepcopy(M.names())
+  local items = M.names()
+
   table.insert(items, 1, " Create new session")
 
   vim.ui.select(
@@ -343,6 +362,7 @@ function M.load_select()
       vim.notify("Session load canceled.")
       return
     end
+
     M.load(choice)
   end)
 end
@@ -353,7 +373,9 @@ function M.delete_current()
     vim.notify("No current session loaded.")
     return
   end
+
   M.delete(current())
+
   vim.v.this_session = ""
 end
 
@@ -364,6 +386,7 @@ function M.delete_select()
       vim.notify("Session delete canceled.")
       return
     end
+
     M.delete(choice)
   end)
 end
@@ -451,35 +474,63 @@ end
 
 function M.setup()
   -- Ensure session storage directory exists.
-  if vim.fn.isdirectory(M.dir) == 0 then
-    vim.fn.mkdir(M.dir, "p")
-  end
+  --
+  -- TODO: Switch this to `vim.fs.mkdir(M.dir, { parents = true })` upon the
+  --       release of 0.13.
+  vim.fn.mkdir(M.dir, "p")
 
   -- Ensure last-used file exists.
-  if vim.fn.filereadable(M.lastused_path) == 0 then
-    local f = io.open(M.lastused_path, "w")
-    if f then
-      f:close()
-    else
-      vim.notify("Failed to create session last-used file.", vim.log.levels.WARN)
-    end
+  local f = io.open(M.lastused_path, "a")
+
+  if f then
+    f:close()
+  else
+    vim.notify("Failed to create session last-used file.", vim.log.levels.WARN)
   end
 
   -- Set keymaps.
-  vim.keymap.set("n", "<Leader>ss", M.save_current,
-    { desc = "Save current session" })
-  vim.keymap.set("n", "<Leader>sa", M.save_select,
-    { desc = "Select a name to save current session to" })
-  vim.keymap.set("n", "<Leader>sl", M.load_select,
-    { desc = "Select session to load" })
-  vim.keymap.set("n", "<Leader>sx", M.delete_current,
-    { desc = "Delete current session" })
-  vim.keymap.set("n", "<Leader>sd", M.delete_select,
-    { desc = "Select session to delete" })
-  vim.keymap.set("n", "<Leader>sr", M.rename_current,
-    { desc = "Rename current session" })
-  vim.keymap.set("n", "<Leader>sc", M.rename_select,
-    { desc = "Select session to rename" })
+  vim.keymap.set(
+    "n",
+    "<Leader>ss",
+    M.save_current,
+    { desc = "Save current session" }
+  )
+  vim.keymap.set(
+    "n",
+    "<Leader>sa",
+    M.save_select,
+    { desc = "Select a name to save current session to" }
+  )
+  vim.keymap.set(
+    "n",
+    "<Leader>sl",
+    M.load_select,
+    { desc = "Select session to load" }
+  )
+  vim.keymap.set(
+    "n",
+    "<Leader>sx",
+    M.delete_current,
+    { desc = "Delete current session" }
+  )
+  vim.keymap.set(
+    "n",
+    "<Leader>sd",
+    M.delete_select,
+    { desc = "Select session to delete" }
+  )
+  vim.keymap.set(
+    "n",
+    "<Leader>sr",
+    M.rename_current,
+    { desc = "Rename current session" }
+  )
+  vim.keymap.set(
+    "n",
+    "<Leader>sc",
+    M.rename_select,
+    { desc = "Select session to rename" }
+  )
 end
 
 return M
