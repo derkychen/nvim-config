@@ -1,10 +1,15 @@
--- Optimize startup (experimental feature)
+-- Configuration entry point.
+
+-- Optimize startup (experimental feature).
 vim.loader.enable()
 
--- Source these configurations in this order
+-- This setup function must before the others.
 require("options").setup()
-require("ui2").setup()
+
+-- The order of the following setup functions does not matter.
+require("diagnostics").setup()
+require("help").setup()
+require("lsp").setup()
 require("sessions").setup()
 require("tabs").setup()
-require("diagnostics").setup()
-require("lsp").setup()
+require("ui2").setup()
