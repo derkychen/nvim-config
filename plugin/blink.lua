@@ -1,3 +1,7 @@
+---Configuration for the `blink.cmp` plugin.
+---
+---Lazy-loads `blink.cmp`, configures UI and enables documentation in the
+---completion window.
 vim.pack.add({
   "https://github.com/rafamadriz/friendly-snippets",
   {
@@ -6,13 +10,15 @@ vim.pack.add({
   },
 }, { load = false })
 
--- TODO: Remove or refactor `blink.cmp` automatic command group deletion
---       workaround when this bug is fixed, since `once = true` does not ensure
---       automatic command is run once when there are multiple events:
---       https://github.com/neovim/neovim/issues/37027
-local blink_lazyload_group = vim.api.nvim_create_augroup("BlinkLazyLoad",
-  { clear = true })
+local blink_lazyload_group =
+  vim.api.nvim_create_augroup("BlinkLazyLoad", { clear = true })
 
+-- Lazy load `blink.cmp` on entering INSERT or COMMAND mode.
+--
+-- TODO: Remove or refactor automatic command group deletion workaround when
+--       this bug is fixed, since `once = true` does not ensure automatic
+--       command is run once when there are multiple events:
+--       https://github.com/neovim/neovim/issues/37027
 vim.api.nvim_create_autocmd({
   "InsertEnter",
   "CmdlineEnter",

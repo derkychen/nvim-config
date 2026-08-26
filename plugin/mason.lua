@@ -1,11 +1,11 @@
--- Configuration for the `mason.nvim` plugin.
---
--- Ensures a set of LSP servers are installed and tweaks `mason.nvim`'s UI.
+---Configuration for the `mason.nvim` plugin.
+---
+---Ensures a set of LSP servers are installed and tweaks `mason.nvim`'s UI.
 vim.pack.add({ "https://github.com/mason-org/mason.nvim" })
 
--- Do not darken window backdrop.
 require("mason").setup({
   ui = {
+    -- Do not darken window backdrop.
     backdrop = 100,
   },
 })
@@ -25,6 +25,7 @@ local ensure_installed = {
   "neocmakelsp",
   "remark-language-server",
   "ruff",
+  "rust-analyzer",
   "shfmt",
   "stylua",
   "texlab",
