@@ -50,4 +50,28 @@ function M.winborder_width()
   return (vim.o.winborder == "" or vim.o.winborder == "none") and 0 or 1
 end
 
+---Get a bottom-left (SE) window-scoped small floating window configuration.
+---
+---This window configuration is specific to my preferences. It is slightly inset
+---and occupies a small portion of the bottom-left corner of the window.
+---
+---@param source_win integer Source window identifier.
+---@return table config Window configuration.
+function M.se_small_win_config(source_win)
+  local source_width = vim.api.nvim_win_get_width(source_win)
+  local source_height = vim.api.nvim_win_get_height(source_win)
+
+  return {
+    relative = "win",
+    win = source_win,
+    anchor = "SE",
+    row = math.max(0, source_height - 1),
+    col = math.max(0, source_width - 1),
+    width = math.min(25, math.max(1, source_width)),
+    height = math.min(30, math.max(1, source_height)),
+    border = vim.o.winborder,
+    style = "minimal",
+  }
+end
+
 return M
