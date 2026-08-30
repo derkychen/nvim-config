@@ -2,8 +2,11 @@ local function switch_source_header(bufnr, client)
   local method_name = "textDocument/switchSourceHeader"
 
   if not client or not client:supports_method(method_name) then
-    return vim.notify(("method %s is not supported by any servers active on the current buffer")
-      :format(method_name))
+    return vim.notify(
+      ("method %s is not supported by any servers active on the current buffer"):format(
+        method_name
+      )
+    )
   end
   local params = vim.lsp.util.make_text_document_params(bufnr)
 
@@ -32,7 +35,7 @@ local function symbol_info(bufnr, client)
     if err or #res == 0 then
       return
     end
-    local container = string.format("container: %s", res[1].containerName) ---@type string
+    local container = string.format("container: %s", res[1].containerName)
     local name = string.format("name: %s", res[1].name) ---@type string
     vim.lsp.util.open_floating_preview({ name, container }, "", {
       height = 2,
@@ -76,14 +79,22 @@ return {
     end
   end,
   on_attach = function(client, bufnr)
-    vim.api.nvim_buf_create_user_command(bufnr, "LspClangdSwitchSourceHeader",
+    vim.api.nvim_buf_create_user_command(
+      bufnr,
+      "LspClangdSwitchSourceHeader",
       function()
         switch_source_header(bufnr, client)
-      end, { desc = "Switch between source/header" })
+      end,
+      { desc = "Switch between source/header" }
+    )
 
-    vim.api.nvim_buf_create_user_command(bufnr, "LspClangdShowSymbolInfo",
+    vim.api.nvim_buf_create_user_command(
+      bufnr,
+      "LspClangdShowSymbolInfo",
       function()
         symbol_info(bufnr, client)
-      end, { desc = "Show symbol info" })
+      end,
+      { desc = "Show symbol info" }
+    )
   end,
 }
