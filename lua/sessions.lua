@@ -5,15 +5,15 @@
 local M = {}
 
 -- Paths to where session data are stored.
-M.dir = vim.fs.joinpath(vim.fn.stdpath("data"), "sessions")
-M.lastused_path = vim.fs.joinpath(M.dir, ".lastused")
+local dir = vim.fs.joinpath(vim.fn.stdpath("data"), "sessions")
+local lastused_path = vim.fs.joinpath(M.dir, ".lastused")
 
 ---Get the file path of a session from its name.
 ---
 ---@param name string Name of the session.
 ---@return string path Full path of the corresponding session file.
 local function get_path(name)
-  return vim.fs.joinpath(M.dir, name .. ".vim")
+  return vim.fs.joinpath(dir, name .. ".vim")
 end
 
 ---Get the name of a session from its file path.
@@ -45,7 +45,7 @@ end
 ---@return string[] lastused List of names of last-used sessions.
 local function read_lastused()
   local lastused = {}
-  local f = io.open(M.lastused_path, "r")
+  local f = io.open(lastused_path, "r")
 
   if not f then
     return lastused
@@ -67,7 +67,7 @@ end
 --
 ---@param lastused string[] List of names of last-used sessions.
 local function write_lastused(lastused)
-  local f = io.open(M.lastused_path, "w")
+  local f = io.open(lastused_path, "w")
 
   if not f then
     vim.notify("Failed to write session last-used file.", vim.log.levels.WARN)
@@ -548,7 +548,7 @@ function M.setup()
   vim.fn.mkdir(M.dir, "p")
 
   -- Ensure last-used file exists.
-  local f = io.open(M.lastused_path, "a")
+  local f = io.open(lastused_path, "a")
 
   if f then
     f:close()
