@@ -1,35 +1,48 @@
--- Session management functionality.
---
--- NOTE: This module only tracks sessions managed through it. It does not
---       account for the direct calling of `:mksession` and `:source`, etc.
+---Session management functionality.
+---
+---This module only tracks sessions managed through it. It does not account for
+---the direct calling of `:mksession` and `:source`, etc.
 local M = {}
 
 -- Paths to where session data are stored.
 M.dir = vim.fs.joinpath(vim.fn.stdpath("data"), "sessions")
 M.lastused_path = vim.fs.joinpath(M.dir, ".lastused")
 
--- Get the file path of a session from its name.
+---Get the file path of a session from its name.
+---
+---@param name string Name of the session.
+---@return string path Full path of the corresponding session file.
 local function get_path(name)
   return vim.fs.joinpath(M.dir, name .. ".vim")
 end
 
--- Get the name of a session from its file path.
+---Get the name of a session from its file path.
+---
+---@param path string Full path of the session file.
+---@return string name Name of the corresponding session.
 local function get_name(path)
   local filename = vim.fs.basename(path)
   return filename:match("^(.*)%.[^.]+$") or filename
 end
 
--- Get the name of the current session.
+---Get the name of the current session.
+---
+---@return string name Name of the current session.
 local function current()
   return get_name(vim.v.this_session)
 end
 
 -- Check the existence of session file from its name.
+--
+---@param name string Name of the session whose existence is to be checked.
+---@return boolean exists Whether the session exists in the managed directory.
 local function exists(name)
   return vim.uv.fs_stat(get_path(name)) ~= nil
 end
 
--- Read last-used file into a table.
+---Read last-used file into a table.
+---
+---@return string[] lastused List of names of last-used sessions.
 local function read_lastused()
   local lastused = {}
   local f = io.open(M.lastused_path, "r")
@@ -51,6 +64,8 @@ local function read_lastused()
 end
 
 -- Write a table to last-used file.
+--
+---@param lastused string[] List of names of last-used sessions.
 local function write_lastused(lastused)
   local f = io.open(M.lastused_path, "w")
 
@@ -66,7 +81,9 @@ local function write_lastused(lastused)
   f:close()
 end
 
--- Mark a last-used session.
+---Mark a last-used session.
+---
+---@param name string Name of the session to be marked as last-used.
 local function mark_lastused(name)
   local lastused = { name }
   local old_lastused = read_lastused()
@@ -80,7 +97,9 @@ local function mark_lastused(name)
   write_lastused(lastused)
 end
 
--- Delete a last-used session.
+---Delete a last-used session.
+---
+---@param name string Name of the session to delete from the last-used file.
 local function delete_lastused(name)
   local old_lastused = read_lastused()
   local lastused = {}
@@ -94,7 +113,10 @@ local function delete_lastused(name)
   write_lastused(lastused)
 end
 
--- Rename a last-used session.
+---Rename a last-used session.
+---
+---@param old_name string Name of the session to rename.
+---@param new_name string New name of the session.
 local function rename_lastused(old_name, new_name)
   local old_lastused = read_lastused()
   local lastused = {}
@@ -118,7 +140,10 @@ local function rename_lastused(old_name, new_name)
   write_lastused(lastused)
 end
 
--- Confirm if the user wants to overwrite an existing session.
+---Confirm if the user wants to overwrite an existing session.
+---
+---@param name string Name of the session to overwrite.
+---@param callback fun(ans: boolean) Callback to execute on the response.
 local function confirm_overwrite(name, callback)
   vim.ui.input({
     prompt = "Session '" .. name .. "' already exists. Overwrite? (y/N): ",
@@ -128,9 +153,46 @@ local function confirm_overwrite(name, callback)
   end)
 end
 
--- Save session, hook with built-in `SessionWritePost` event.
---
--- TODO: Document the `SessionWritePre` event upon the release of 0.13.
+---Prompt the user to create a new session.
+---
+---Prompts user to name the new session. Handles overwriting if the provided name
+---is of one that already exists.
+local function new()
+  local function do_save(name)
+    M.save(name)
+    vim.v.this_session = get_path(name)
+  end
+
+  vim.ui.input({
+    prompt = "Session name: ",
+    default = vim.fs.basename(vim.uv.cwd()),
+  }, function(name)
+    if not name or name == "" then
+      vim.notify("Session save canceled.")
+      return
+    end
+
+    if exists(name) then
+      confirm_overwrite(name, function(overwrite)
+        if overwrite then
+          do_save(name)
+        else
+          vim.notify("Session save canceled.")
+        end
+      end)
+    else
+      do_save(name)
+    end
+  end)
+end
+
+---Save a session.
+---
+---This operation can be hooked with built-in `SessionWritePost` event.
+---
+---TODO: Document the `SessionWritePre` event upon the release of 0.13.
+---
+---@param name string Name of the session to save.
 function M.save(name)
   local path = get_path(name)
 
@@ -143,8 +205,12 @@ function M.save(name)
   vim.notify("Session saved: " .. name)
 end
 
--- Load session, hook with built-in `SessionLoadPre` and `SessionLoadPost`.
--- events.
+---Load a session.
+---
+---This operation can be hooked with built-in `SessionLoadPre` and
+---`SessionLoadPost` events.
+---
+---@param name string Name of the session to load.
 function M.load(name)
   if not exists(name) then
     vim.notify("No such session: " .. name)
@@ -165,7 +231,12 @@ function M.load(name)
   vim.notify("Session loaded: " .. name)
 end
 
--- Delete session.
+---Delete a session.
+---
+---This operation can be hooked with the custom `SessionDeletePre` and
+---`SessionDeletePost` events.
+---
+---@param name string Name of the session to delete.
 function M.delete(name)
   if not exists(name) then
     vim.notify("No such session: " .. name)
@@ -192,7 +263,14 @@ function M.delete(name)
   vim.notify("Session deleted: " .. name)
 end
 
--- Rename session.
+---Rename a session.
+---
+---This operation can be hooked with the custom `SessionRenamePre` and
+---`SessionRenamePost` events. These events expose the old and new names pf the
+---session.
+---
+---@param old_name string Name of the session to rename.
+---@param new_name string New name of the session.
 function M.rename(old_name, new_name, overwrite)
   if not exists(old_name) then
     vim.notify("No such session: " .. old_name)
@@ -244,8 +322,12 @@ function M.rename(old_name, new_name, overwrite)
   vim.notify("Session renamed: " .. old_name .. " -> " .. new_name)
 end
 
--- All session names ordered from most to least recent use or fall back to
--- sorting by `mtime` for untracked sessions in the session storage directory.
+---Get all session names ordered by recency of use.
+---
+---Session names ordered from most to least recent use. Sorting fall back to
+---sorting by `mtime` for untracked sessions in the session storage directory.
+---
+---@return string[] names Names of all sessions in order.
 function M.names()
   local paths = {}
 
@@ -291,47 +373,22 @@ function M.names()
   return names
 end
 
--- Prompt user to name the new session and handle overwriting.
-function M.new()
-  local function do_save(name)
-    M.save(name)
-    vim.v.this_session = get_path(name)
-  end
-
-  vim.ui.input({
-    prompt = "Session name: ",
-    default = vim.fs.basename(vim.uv.cwd()),
-  }, function(name)
-    if not name or name == "" then
-      vim.notify("Session save canceled.")
-      return
-    end
-
-    if exists(name) then
-      confirm_overwrite(name, function(overwrite)
-        if overwrite then
-          do_save(name)
-        else
-          vim.notify("Session save canceled.")
-        end
-      end)
-    else
-      do_save(name)
-    end
-  end)
-end
-
--- Save current session, or create a new one if there is no current session.
+---Allow the user to save the current session.
+---
+---Prompts the creation of a new session if there is no current one.
 function M.save_current()
   if vim.v.this_session ~= "" then
     M.save(current())
     return
   end
 
-  M.new()
+  new()
 end
 
--- Select a session to save to, or create a new one.
+---Allow the user to select a session to save to.
+---
+---Prompts the user to select a session to save to via `vim.ui.select`. The
+---first option is to create a new session.
 function M.save_select()
   local items = M.names()
 
@@ -347,7 +404,7 @@ function M.save_select()
       end
 
       if idx == 1 then
-        M.new()
+        new()
       else
         M.save(choice)
       end
@@ -355,7 +412,9 @@ function M.save_select()
   )
 end
 
--- Select a session to load.
+---Allow the user to select a session to load.
+---
+---Prompts the user to select a session to load via `vim.ui.select`.
 function M.load_select()
   vim.ui.select(M.names(), { prompt = "Load session > " }, function(choice)
     if not choice or choice == "" then
@@ -367,7 +426,7 @@ function M.load_select()
   end)
 end
 
--- Delete current session.
+---Allow the user to delete current session.
 function M.delete_current()
   if vim.v.this_session == "" then
     vim.notify("No current session loaded.")
@@ -379,7 +438,9 @@ function M.delete_current()
   vim.v.this_session = ""
 end
 
--- Select a session to delete.
+---Allow the user to select a session to delete.
+---
+---Prompts the user to select a session to delete via `vim.ui.select`.
 function M.delete_select()
   vim.ui.select(M.names(), { prompt = "Delete session > " }, function(choice)
     if not choice or choice == "" then
@@ -391,7 +452,10 @@ function M.delete_select()
   end)
 end
 
--- Rename current session.
+---Allow the user to rename the current session.
+---
+---Prompts user to provide a new session name. Handles overwriting if the
+---provided session name is of one that already exists.
 function M.rename_current()
   if vim.v.this_session == "" then
     vim.notify("No current session.")
@@ -431,7 +495,10 @@ function M.rename_current()
   end)
 end
 
--- Select a session to rename.
+---Allow the user to select a session to rename.
+---
+---Prompts user to select a session to rename. Handles overwriting if the
+---provided session name is of one that already exists.
 function M.rename_select()
   vim.ui.select(M.names(), { prompt = "Rename session > " }, function(choice)
     if not choice or choice == "" then
@@ -472,6 +539,7 @@ function M.rename_select()
   end)
 end
 
+---Set up session functionality.
 function M.setup()
   -- Ensure session storage directory exists.
   --
@@ -487,50 +555,6 @@ function M.setup()
   else
     vim.notify("Failed to create session last-used file.", vim.log.levels.WARN)
   end
-
-  -- Set keymaps.
-  vim.keymap.set(
-    "n",
-    "<Leader>ss",
-    M.save_current,
-    { desc = "Save current session" }
-  )
-  vim.keymap.set(
-    "n",
-    "<Leader>sa",
-    M.save_select,
-    { desc = "Select a name to save current session to" }
-  )
-  vim.keymap.set(
-    "n",
-    "<Leader>sl",
-    M.load_select,
-    { desc = "Select session to load" }
-  )
-  vim.keymap.set(
-    "n",
-    "<Leader>sx",
-    M.delete_current,
-    { desc = "Delete current session" }
-  )
-  vim.keymap.set(
-    "n",
-    "<Leader>sd",
-    M.delete_select,
-    { desc = "Select session to delete" }
-  )
-  vim.keymap.set(
-    "n",
-    "<Leader>sr",
-    M.rename_current,
-    { desc = "Rename current session" }
-  )
-  vim.keymap.set(
-    "n",
-    "<Leader>sc",
-    M.rename_select,
-    { desc = "Select session to rename" }
-  )
 end
 
 return M

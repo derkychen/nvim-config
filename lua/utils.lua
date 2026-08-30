@@ -4,6 +4,7 @@
 ---modules and provides no standalone functionality.
 local M = {}
 
+
 ---Check if a buffer is valid, normal, and from disk.
 ---
 ---For example, although help buffers are from the filesystem, they are special
@@ -43,11 +44,12 @@ function M.relpath(base, target)
   return relpath or target
 end
 
----Get width of floating window borders.
+---Get the width of a border style.
 ---
----@return integer width Width of the window borders. Must be zero or one.
-function M.winborder_width()
-  return (vim.o.winborder == "" or vim.o.winborder == "none") and 0 or 1
+---@param style string Name of the border style.
+---@return integer width Width of the border style. Must be zero or one.
+function M.border_width(style)
+  return (style == "" or style == "none") and 0 or 1
 end
 
 ---Get a bottom-left (SE) window-scoped small floating window configuration.
