@@ -1,30 +1,38 @@
+---Configuration for the `oil.nvim` plugin.
+---
+---`mini.icons` must be set up before this configuration is sourced.
 vim.pack.add({ "https://github.com/stevearc/oil.nvim" })
 
 local oil = require("oil")
 
-local opts = {
+oil.setup({
+  -- Show all item information.
   columns = {
     "icon",
     "permissions",
     "size",
     "mtime",
   },
+
+  -- Show `oil.nvim` item identifiers.
   win_options = {
     conceallevel = 0,
     cursorline = true,
     cursorcolumn = true,
   },
+
+  -- Watch the file system for chagnes.
   watch_for_changes = true,
+
+  -- Show hidden items,
   view_options = {
     show_hidden = true,
   },
-}
+})
 
-oil.setup(opts)
-
--- Open Oil on a new tab page.
 local oil_open_group = vim.api.nvim_create_augroup("OilOpen", { clear = true })
 
+-- Open Oil on a new tab page if it contains only a scratch buffer window.
 vim.api.nvim_create_autocmd("TabNew", {
   callback = function()
     vim.schedule(function()
@@ -43,4 +51,5 @@ vim.api.nvim_create_autocmd("TabNew", {
   group = oil_open_group,
 })
 
+-- Keymaps.
 vim.keymap.set("n", "<Leader>eo", oil.open, { desc = "Open Oil" })
