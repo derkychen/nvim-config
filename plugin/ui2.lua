@@ -2,10 +2,9 @@
 ---
 ---Based on and thanks to Raphaël Chartier's tiny-cmdline.nvim:
 ---https://github.com/rachartier/tiny-cmdline.nvim
-local ui2 = require("vim._core.ui2")
-
-local cmdline = require("vim._core.ui2.cmdline")
-local utils = require("utils")
+local ui2 = require('vim._core.ui2')
+local cmdline = require('vim._core.ui2.cmdline')
+local utils = require('utils')
 
 -- State storing variables.
 local cmdline_type = nil
@@ -20,39 +19,39 @@ local function make_winhighlight(win_hl_map)
   local win_hls = {}
 
   for dest_hl, src_hl in pairs(win_hl_map) do
-    table.insert(win_hls, dest_hl .. ":" .. src_hl)
+    table.insert(win_hls, dest_hl .. ':' .. src_hl)
   end
 
-  return table.concat(win_hls, ",")
+  return table.concat(win_hls, ',')
 end
 
 -- Highlights for floating command-line window.
 local cmdline_float_winhighlight = make_winhighlight({
-  Normal = "CmdlineFloatNormal",
-  FloatBorder = "CmdlineFloatBorder",
-  Search = "None",
-  CurSearch = "None",
-  IncSearch = "None",
+  Normal = 'CmdlineFloatNormal',
+  FloatBorder = 'CmdlineFloatBorder',
+  Search = 'None',
+  CurSearch = 'None',
+  IncSearch = 'None',
 })
 
 -- Highlights for regular command-line window.
 local cmdline_regular_winhighlight = make_winhighlight({
-  Normal = "CmdlineNormal",
-  Search = "None",
-  CurSearch = "None",
-  IncSearch = "None",
+  Normal = 'CmdlineNormal',
+  Search = 'None',
+  CurSearch = 'None',
+  IncSearch = 'None',
 })
 
 local function set_hls()
-  vim.api.nvim_set_hl(0, "CmdlineFloatNormal", {
-    fg = vim.api.nvim_get_hl(0, { name = "MsgArea" }).fg,
-    bg = vim.api.nvim_get_hl(0, { name = "NormalFloat" }).bg,
+  vim.api.nvim_set_hl(0, 'CmdlineFloatNormal', {
+    fg = vim.api.nvim_get_hl(0, { name = 'MsgArea' }).fg,
+    bg = vim.api.nvim_get_hl(0, { name = 'NormalFloat' }).bg,
   })
-  vim.api.nvim_set_hl(0, "CmdlineNormal", { link = "MsgArea", default = true })
+  vim.api.nvim_set_hl(0, 'CmdlineNormal', { link = 'MsgArea', default = true })
   vim.api.nvim_set_hl(
     0,
-    "CmdlineFloatBorder",
-    { link = "FloatBorder", default = true }
+    'CmdlineFloatBorder',
+    { link = 'FloatBorder', default = true }
   )
 end
 
@@ -85,11 +84,11 @@ local function float_cmdline()
     orig_cmd_win_config = vim.api.nvim_win_get_config(win)
   end
 
-  vim.api.nvim_set_option_value("winfixbuf", true, { win = win })
-  vim.api.nvim_set_option_value("wrap", false, { win = win })
-  vim.api.nvim_set_option_value("sidescrolloff", 10, { win = win })
+  vim.api.nvim_set_option_value('winfixbuf', true, { win = win })
+  vim.api.nvim_set_option_value('wrap', false, { win = win })
+  vim.api.nvim_set_option_value('sidescrolloff', 10, { win = win })
   vim.api.nvim_set_option_value(
-    "winhighlight",
+    'winhighlight',
     cmdline_float_winhighlight,
     { win = win }
   )
@@ -118,25 +117,25 @@ local function float_cmdline()
   local col = math.max(0, math.floor(x_frac * (cols - width - bw * 2)))
 
   pcall(vim.api.nvim_win_set_config, win, {
-    relative = "editor",
+    relative = 'editor',
     row = row,
     col = col,
     width = width,
     border = vim.o.winborder,
-    title = "Command-line",
-    title_pos = "center",
-    style = "minimal",
+    title = 'Command-line',
+    title_pos = 'center',
+    style = 'minimal',
   })
 end
 
-local ui2_group = vim.api.nvim_create_augroup("UI2", { clear = true })
+local ui2_group = vim.api.nvim_create_augroup('UI2', { clear = true })
 
 -- Enable the experimental UI2.
 --
 -- Messages appear in a floating window at the bottom right.
-vim.api.nvim_create_autocmd("UIEnter", {
+vim.api.nvim_create_autocmd('UIEnter', {
   callback = function()
-    ui2.enable({ msg = { targets = "msg" } })
+    ui2.enable({ msg = { targets = 'msg' } })
   end,
   group = ui2_group,
 })
@@ -163,20 +162,20 @@ end
 -- Set highlights, and reset on colour scheme change.
 set_hls()
 
-vim.api.nvim_create_autocmd("ColorScheme", {
+vim.api.nvim_create_autocmd('ColorScheme', {
   callback = set_hls,
   group = ui2_group,
 })
 
 -- Update the command-line window on entering and leaving.
-vim.api.nvim_create_autocmd("CmdlineEnter", {
+vim.api.nvim_create_autocmd('CmdlineEnter', {
   callback = function()
     cmdline_type = vim.fn.getcmdtype()
   end,
   group = ui2_group,
 })
 
-vim.api.nvim_create_autocmd("CmdlineLeave", {
+vim.api.nvim_create_autocmd('CmdlineLeave', {
   callback = function()
     cmdline_type = nil
     local win = get_cmdline_win()
@@ -185,7 +184,7 @@ vim.api.nvim_create_autocmd("CmdlineLeave", {
       pcall(vim.api.nvim_win_set_config, win, orig_cmd_win_config)
 
       vim.api.nvim_set_option_value(
-        "winhighlight",
+        'winhighlight',
         cmdline_regular_winhighlight,
         { win = win }
       )

@@ -8,32 +8,32 @@
 ---
 ---Based on and thanks Evgeni Chasnovski's Neovim configuration:
 ---https://github.com/echasnovski/nvim
-vim.pack.add({ "https://github.com/nvim-treesitter/nvim-treesitter" })
+vim.pack.add({ 'https://github.com/nvim-treesitter/nvim-treesitter' })
 
 local languages = {
-  "bash",
-  "bibtex",
-  "c",
-  "cmake",
-  "comment",
-  "cpp",
-  "css",
-  "csv",
-  "doxygen",
-  "html",
-  "javascript",
-  "json",
-  "latex",
-  "linkerscript",
-  "lua",
-  "markdown",
-  "python",
-  "rust",
-  "toml",
-  "yaml",
+  'bash',
+  'bibtex',
+  'c',
+  'cmake',
+  'comment',
+  'cpp',
+  'css',
+  'csv',
+  'doxygen',
+  'html',
+  'javascript',
+  'json',
+  'latex',
+  'linkerscript',
+  'lua',
+  'markdown',
+  'python',
+  'rust',
+  'toml',
+  'yaml',
 }
 
-require("nvim-treesitter").install(languages)
+require('nvim-treesitter').install(languages)
 
 local filetypes = vim
   .iter(languages)
@@ -42,10 +42,10 @@ local filetypes = vim
   :totable()
 
 local treesitter_start_group =
-  vim.api.nvim_create_augroup("TreesitterStart", { clear = true })
+  vim.api.nvim_create_augroup('TreesitterStart', { clear = true })
 
 -- Start Tree-sitter on buffers when their file type is set.
-vim.api.nvim_create_autocmd("FileType", {
+vim.api.nvim_create_autocmd('FileType', {
   pattern = filetypes,
   callback = function(ev)
     pcall(vim.treesitter.start, ev.buf)

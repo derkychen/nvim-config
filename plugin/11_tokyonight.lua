@@ -1,27 +1,27 @@
 ---Configuration for the `tokyonight.nvim` plugin.
 ---
 ---Overrides some default colours and highlights. Sets the colour scheme.
-vim.pack.add({ "https://github.com/folke/tokyonight.nvim" })
+vim.pack.add({ 'https://github.com/folke/tokyonight.nvim' })
 
-require("tokyonight").setup({
+require('tokyonight').setup({
   on_colors = function(c)
     -- Tweak colour orange to be more pastel.
-    c.orange = "#ffb070"
+    c.orange = '#ffb070'
 
     -- Create the colour black for high contrast highlights.
-    c.black = "#000000"
+    c.black = '#000000'
   end,
 
   on_highlights = function(hl, c)
     -- Colder syntax highlighting.
-    hl["@module.builtin"].fg = c.fg
-    hl["@variable.builtin"].fg = c.fg
-    hl["@variable.parameter"].fg = c.fg
-    hl["@variable.member"].fg = c.fg
-    hl["@property"].fg = c.fg
-    hl["@keyword"].fg = c.cyan
-    hl["@keyword.function"].fg = c.blue6
-    hl["@constructor"].fg = c.blue
+    hl['@module.builtin'].fg = c.fg
+    hl['@variable.builtin'].fg = c.fg
+    hl['@variable.parameter'].fg = c.fg
+    hl['@variable.member'].fg = c.fg
+    hl['@property'].fg = c.fg
+    hl['@keyword'].fg = c.cyan
+    hl['@keyword.function'].fg = c.blue6
+    hl['@constructor'].fg = c.blue
     hl.Statement.fg = c.cyan
 
     -- Paler visual selection.
@@ -55,4 +55,4 @@ require("tokyonight").setup({
   end,
 })
 
-vim.cmd.colorscheme("tokyonight")
+vim.cmd.colorscheme('tokyonight')

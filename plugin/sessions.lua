@@ -1,46 +1,46 @@
 ---Configuration for my sessions module.
-local sessions = require("sessions")
+local sessions = require('sessions')
 
 -- Keymaps.
 vim.keymap.set(
-  "n",
-  "<Leader>ss",
+  'n',
+  '<Leader>ss',
   sessions.save_current,
-  { desc = "Save current session" }
+  { desc = 'Save current session' }
 )
 vim.keymap.set(
-  "n",
-  "<Leader>sa",
+  'n',
+  '<Leader>sa',
   sessions.save_select,
-  { desc = "Select a name to save current session to" }
+  { desc = 'Select a name to save current session to' }
 )
 vim.keymap.set(
-  "n",
-  "<Leader>sl",
+  'n',
+  '<Leader>sl',
   sessions.load_select,
-  { desc = "Select session to load" }
+  { desc = 'Select session to load' }
 )
 vim.keymap.set(
-  "n",
-  "<Leader>sx",
+  'n',
+  '<Leader>sx',
   sessions.delete_current,
-  { desc = "Delete current session" }
+  { desc = 'Delete current session' }
 )
 vim.keymap.set(
-  "n",
-  "<Leader>sd",
+  'n',
+  '<Leader>sd',
   sessions.delete_select,
-  { desc = "Select session to delete" }
+  { desc = 'Select session to delete' }
 )
 vim.keymap.set(
-  "n",
-  "<Leader>sr",
+  'n',
+  '<Leader>sr',
   sessions.rename_current,
-  { desc = "Rename current session" }
+  { desc = 'Rename current session' }
 )
 vim.keymap.set(
-  "n",
-  "<Leader>sc",
+  'n',
+  '<Leader>sc',
   sessions.rename_select,
-  { desc = "Select session to rename" }
+  { desc = 'Select session to rename' }
 )

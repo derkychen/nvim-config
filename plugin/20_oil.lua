@@ -1,17 +1,17 @@
 ---Configuration for the `oil.nvim` plugin.
 ---
 ---`mini.icons` must be set up before this configuration is sourced.
-vim.pack.add({ "https://github.com/stevearc/oil.nvim" })
+vim.pack.add({ 'https://github.com/stevearc/oil.nvim' })
 
-local oil = require("oil")
+local oil = require('oil')
 
 oil.setup({
   -- Show all item information.
   columns = {
-    "icon",
-    "permissions",
-    "size",
-    "mtime",
+    'icon',
+    'permissions',
+    'size',
+    'mtime',
   },
 
   -- Show `oil.nvim` item identifiers.
@@ -30,20 +30,20 @@ oil.setup({
   },
 })
 
-local oil_open_group = vim.api.nvim_create_augroup("OilOpen", { clear = true })
+local oil_open_group = vim.api.nvim_create_augroup('OilOpen', { clear = true })
 
 -- Open Oil on a new tab page if it contains only a scratch buffer window.
-vim.api.nvim_create_autocmd("TabNew", {
+vim.api.nvim_create_autocmd('TabNew', {
   callback = function()
     vim.schedule(function()
       local win = vim.api.nvim_get_current_win()
       local buf = vim.api.nvim_win_get_buf(win)
       local name = vim.api.nvim_buf_get_name(buf)
-      local buftype = vim.api.nvim_get_option_value("buftype", { buf = buf })
-      local modified = vim.api.nvim_get_option_value("modified", { buf = buf })
+      local buftype = vim.api.nvim_get_option_value('buftype', { buf = buf })
+      local modified = vim.api.nvim_get_option_value('modified', { buf = buf })
       local line_count = vim.api.nvim_buf_line_count(buf)
 
-      if name == "" and buftype == "" and not modified and line_count <= 1 then
+      if name == '' and buftype == '' and not modified and line_count <= 1 then
         oil.open(vim.uv.cwd())
       end
     end)
@@ -52,4 +52,4 @@ vim.api.nvim_create_autocmd("TabNew", {
 })
 
 -- Keymaps.
-vim.keymap.set("n", "<Leader>eo", oil.open, { desc = "Open Oil" })
+vim.keymap.set('n', '<Leader>eo', oil.open, { desc = 'Open Oil' })

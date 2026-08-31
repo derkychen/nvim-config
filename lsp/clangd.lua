@@ -1,9 +1,9 @@
 local function switch_source_header(bufnr, client)
-  local method_name = "textDocument/switchSourceHeader"
+  local method_name = 'textDocument/switchSourceHeader'
 
   if not client or not client:supports_method(method_name) then
     return vim.notify(
-      ("method %s is not supported by any servers active on the current buffer"):format(
+      ('method %s is not supported by any servers active on the current buffer'):format(
         method_name
       )
     )
@@ -15,7 +15,7 @@ local function switch_source_header(bufnr, client)
       error(tostring(err))
     end
     if not result then
-      vim.notify("corresponding file cannot be determined")
+      vim.notify('corresponding file cannot be determined')
       return
     end
     vim.cmd.edit(vim.uri_to_fname(result))
@@ -23,10 +23,10 @@ local function switch_source_header(bufnr, client)
 end
 
 local function symbol_info(bufnr, client)
-  local method_name = "textDocument/symbolInfo"
+  local method_name = 'textDocument/symbolInfo'
 
   if not client or not client:supports_method(method_name) then
-    return vim.notify("Clangd client not found", vim.log.levels.ERROR)
+    return vim.notify('Clangd client not found', vim.log.levels.ERROR)
   end
   local win = vim.api.nvim_get_current_win()
   local params = vim.lsp.util.make_position_params(win, client.offset_encoding)
@@ -35,35 +35,35 @@ local function symbol_info(bufnr, client)
     if err or #res == 0 then
       return
     end
-    local container = string.format("container: %s", res[1].containerName)
-    local name = string.format("name: %s", res[1].name) ---@type string
-    vim.lsp.util.open_floating_preview({ name, container }, "", {
+    local container = string.format('container: %s', res[1].containerName)
+    local name = string.format('name: %s', res[1].name) ---@type string
+    vim.lsp.util.open_floating_preview({ name, container }, '', {
       height = 2,
       width = math.max(string.len(name), string.len(container)),
       focusable = false,
       focus = false,
-      title = "Symbol Info",
+      title = 'Symbol Info',
     })
   end, bufnr)
 end
 
 return {
   cmd = {
-    "clangd",
-    "--background-index",
-    "--clang-tidy",
-    "--completion-style=detailed",
-    "--header-insertion=never",
+    'clangd',
+    '--background-index',
+    '--clang-tidy',
+    '--completion-style=detailed',
+    '--header-insertion=never',
   },
-  filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
+  filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda' },
   root_markers = {
-    ".clangd",
-    ".clang-tidy",
-    ".clang-format",
-    "compile_commands.json",
-    "compile_flags.txt",
-    "configure.ac",
-    ".git",
+    '.clangd',
+    '.clang-tidy',
+    '.clang-format',
+    'compile_commands.json',
+    'compile_flags.txt',
+    'configure.ac',
+    '.git',
   },
   capabilities = {
     textDocument = {
@@ -71,7 +71,7 @@ return {
         editsNearCursor = true,
       },
     },
-    offsetEncoding = { "utf-8", "utf-16" },
+    offsetEncoding = { 'utf-8', 'utf-16' },
   },
   on_init = function(client, init_result)
     if init_result.offsetEncoding then
@@ -81,20 +81,20 @@ return {
   on_attach = function(client, bufnr)
     vim.api.nvim_buf_create_user_command(
       bufnr,
-      "LspClangdSwitchSourceHeader",
+      'LspClangdSwitchSourceHeader',
       function()
         switch_source_header(bufnr, client)
       end,
-      { desc = "Switch between source/header" }
+      { desc = 'Switch between source/header' }
     )
 
     vim.api.nvim_buf_create_user_command(
       bufnr,
-      "LspClangdShowSymbolInfo",
+      'LspClangdShowSymbolInfo',
       function()
         symbol_info(bufnr, client)
       end,
-      { desc = "Show symbol info" }
+      { desc = 'Show symbol info' }
     )
   end,
 }

@@ -1,6 +1,6 @@
 return {
-  cmd = { "remark-language-server", "--stdio" },
-  filetypes = { "markdown" },
+  cmd = { 'remark-language-server', '--stdio' },
+  filetypes = { 'markdown' },
   settings = {
     remark = {
       requireConfig = false,
@@ -8,18 +8,18 @@ return {
   },
   root_dir = function(buf, on_dir)
     local name = vim.api.nvim_buf_get_name(buf)
-    local path = name ~= "" and vim.fs.dirname(name) or vim.uv.cwd()
+    local path = name ~= '' and vim.fs.dirname(name) or vim.uv.cwd()
 
     -- Patch root detection so markdown files are formatted regardless of location
     local root = vim.fs.find({
-      ".remarkrc",
-      ".remarkrc.json",
-      ".remarkrc.js",
-      ".remarkrc.cjs",
-      ".remarkrc.mjs",
-      ".remarkrc.yml",
-      ".remarkrc.yaml",
-      ".remarkignore",
+      '.remarkrc',
+      '.remarkrc.json',
+      '.remarkrc.js',
+      '.remarkrc.cjs',
+      '.remarkrc.mjs',
+      '.remarkrc.yml',
+      '.remarkrc.yaml',
+      '.remarkignore',
     }, {
       path = path,
       upward = true,

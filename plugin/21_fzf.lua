@@ -2,9 +2,9 @@
 ---
 ---`mini.icons` and `oil.nvim` must be set up before this configuration is
 ---sourced.
-vim.pack.add({ "https://github.com/ibhagwan/fzf-lua" })
+vim.pack.add({ 'https://github.com/ibhagwan/fzf-lua' })
 
-local fzf = require("fzf-lua")
+local fzf = require('fzf-lua')
 
 fzf.setup({
   -- Use Fzf-Lua for `vim.ui.select`.
@@ -30,11 +30,11 @@ local home = vim.env.HOME
 ---
 ---This is not a built-in function. It searches only from the home directory.
 function fzf.dirs()
-  fzf.fzf_exec("fd --type d --hidden --follow --exclude .git", {
-    prompt = "Directory > ",
+  fzf.fzf_exec('fd --type d --hidden --follow --exclude .git', {
+    prompt = 'Directory > ',
     cwd = home,
     actions = {
-      ["default"] = function(selected)
+      ['default'] = function(selected)
         if not selected or #selected == 0 then
           return
         end
@@ -43,21 +43,21 @@ function fzf.dirs()
         local dir = vim.fs.normalize(vim.fs.joinpath(home, rel))
         local stat = vim.uv.fs_stat(dir)
 
-        if not stat or stat.type ~= "directory" then
-          vim.notify("Not a directory: " .. dir, vim.log.levels.WARN)
+        if not stat or stat.type ~= 'directory' then
+          vim.notify('Not a directory: ' .. dir, vim.log.levels.WARN)
           return
         end
 
-        require("oil").open(dir)
+        require('oil').open(dir)
       end,
     },
   })
 end
 
 -- Keymaps.
-vim.keymap.set("n", "<Leader>ff", fzf.files, { desc = "Find files" })
-vim.keymap.set("n", "<Leader>fr", fzf.oldfiles, { desc = "Find recent files" })
-vim.keymap.set("n", "<Leader>fg", fzf.live_grep, { desc = "Live grep" })
-vim.keymap.set("n", "<Leader>fb", fzf.buffers, { desc = "Find buffers" })
-vim.keymap.set("n", "<Leader>ft", fzf.tabs, { desc = "Find tabs" })
-vim.keymap.set("n", "<Leader>fd", fzf.dirs, { desc = "Find directory" })
+vim.keymap.set('n', '<Leader>ff', fzf.files, { desc = 'Find files' })
+vim.keymap.set('n', '<Leader>fr', fzf.oldfiles, { desc = 'Find recent files' })
+vim.keymap.set('n', '<Leader>fg', fzf.live_grep, { desc = 'Live grep' })
+vim.keymap.set('n', '<Leader>fb', fzf.buffers, { desc = 'Find buffers' })
+vim.keymap.set('n', '<Leader>ft', fzf.tabs, { desc = 'Find tabs' })
+vim.keymap.set('n', '<Leader>fd', fzf.dirs, { desc = 'Find directory' })

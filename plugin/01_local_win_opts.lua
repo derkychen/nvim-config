@@ -1,8 +1,8 @@
 ---Local window option setting.
 ---
 ---Configures default local window options for normal, disk buffers.
-local icons = require("icons")
-local utils = require("utils")
+local icons = require('icons')
+local utils = require('utils')
 
 local opts_initialized = {}
 
@@ -49,18 +49,18 @@ end
 ---@param win integer Neovim window identifier.
 local function set_default_opts(win)
   local fillchars = table.concat({
-    "fold: ",
-    "foldopen:" .. icons.arrows.down,
-    "foldclose:" .. icons.arrows.right,
-    "foldinner: ",
-    "foldsep: ",
-  }, ",")
+    'fold: ',
+    'foldopen:' .. icons.arrows.down,
+    'foldclose:' .. icons.arrows.right,
+    'foldinner: ',
+    'foldsep: ',
+  }, ',')
   local listchars = table.concat({
-    "tab:↦ ",
-    "trail:⋅",
-    "extends:",
-    "precedes:",
-  }, ",")
+    'tab:↦ ',
+    'trail:⋅',
+    'extends:',
+    'precedes:',
+  }, ',')
 
   local default_opts_opts = {
     number = true,
@@ -69,14 +69,14 @@ local function set_default_opts(win)
     cursorcolumn = true,
     scrolloff = 10,
     sidescrolloff = 10,
-    virtualedit = "block",
+    virtualedit = 'block',
     linebreak = true,
     breakindent = true,
-    foldmethod = "expr",
-    foldexpr = "v:lua.vim.treesitter.foldexpr()",
-    foldtext = "",
+    foldmethod = 'expr',
+    foldexpr = 'v:lua.vim.treesitter.foldexpr()',
+    foldtext = '',
     foldlevel = 99,
-    foldcolumn = "1",
+    foldcolumn = '1',
     fillchars = fillchars,
     list = true,
     listchars = listchars,
@@ -84,7 +84,7 @@ local function set_default_opts(win)
   }
 
   for opt, val in pairs(default_opts_opts) do
-    vim.api.nvim_set_option_value(opt, val, { win = win, scope = "local" })
+    vim.api.nvim_set_option_value(opt, val, { win = win, scope = 'local' })
   end
 end
 
@@ -96,43 +96,43 @@ end
 ---@param win integer Neovim window identifier.
 local function update_listchars(win)
   local buf = vim.api.nvim_win_get_buf(win)
-  local sw = vim.api.nvim_get_option_value("shiftwidth", { buf = buf })
+  local sw = vim.api.nvim_get_option_value('shiftwidth', { buf = buf })
 
   if sw == 0 then
-    sw = vim.api.nvim_get_option_value("tabstop", { buf = buf })
+    sw = vim.api.nvim_get_option_value('tabstop', { buf = buf })
   end
 
   -- Update `leadmultispace`.
   --
   -- NOTE: These indentation guides only show when spaces are used.
-  local leadmultispace = "leadmultispace:"
-    .. "│"
-    .. string.rep(" ", math.max(sw - 1, 0))
+  local leadmultispace = 'leadmultispace:'
+    .. '│'
+    .. string.rep(' ', math.max(sw - 1, 0))
 
-  local listchars = vim.api.nvim_get_option_value("listchars", {
+  local listchars = vim.api.nvim_get_option_value('listchars', {
     win = win,
-    scope = "local",
+    scope = 'local',
   })
 
-  if listchars:find("leadmultispace:", 1, true) then
-    listchars = listchars:gsub("leadmultispace:[^,]*", leadmultispace, 1)
+  if listchars:find('leadmultispace:', 1, true) then
+    listchars = listchars:gsub('leadmultispace:[^,]*', leadmultispace, 1)
   else
-    if listchars ~= "" and not listchars:match(",$") then
-      listchars = listchars .. ","
+    if listchars ~= '' and not listchars:match(',$') then
+      listchars = listchars .. ','
     end
 
     listchars = listchars .. leadmultispace
   end
 
   vim.api.nvim_set_option_value(
-    "listchars",
+    'listchars',
     listchars,
-    { win = win, scope = "local" }
+    { win = win, scope = 'local' }
   )
 end
 
 local local_win_opts_group =
-  vim.api.nvim_create_augroup("WinLocalOptions", { clear = true })
+  vim.api.nvim_create_augroup('WinLocalOptions', { clear = true })
 
 -- Set all default window-local options for windows containing valid, normal
 -- buffers from or written to disk.
@@ -140,8 +140,8 @@ local local_win_opts_group =
 -- TODO: Optimize once the ev.win field is implemented:
 --       https://github.com/neovim/neovim/issues/25844
 vim.api.nvim_create_autocmd({
-  "BufWinEnter",
-  "BufWritePost",
+  'BufWinEnter',
+  'BufWritePost',
 }, {
   callback = function(ev)
     for _, win in pairs(vim.fn.win_findbuf(ev.buf)) do
@@ -163,7 +163,7 @@ vim.api.nvim_create_autocmd({
 })
 
 -- Clean `opts_initialized` table on the closing of windows.
-vim.api.nvim_create_autocmd("WinClosed", {
+vim.api.nvim_create_autocmd('WinClosed', {
   callback = function(ev)
     local win = tonumber(ev.match)
 
@@ -175,7 +175,7 @@ vim.api.nvim_create_autocmd("WinClosed", {
 })
 
 -- Clean `opts_initialized` table on the closing of buffers.
-vim.api.nvim_create_autocmd({ "BufWipeout", "BufDelete" }, {
+vim.api.nvim_create_autocmd({ 'BufWipeout', 'BufDelete' }, {
   callback = function(ev)
     clear_opts_initialized_buf(ev.buf)
   end,
@@ -185,8 +185,8 @@ vim.api.nvim_create_autocmd({ "BufWipeout", "BufDelete" }, {
 -- Refresh `listchars` option.
 --
 -- Iterates over all windows since `OptionSet` does not provide an `ev.buf`.
-vim.api.nvim_create_autocmd("OptionSet", {
-  pattern = { "shiftwidth", "tabstop", "list" },
+vim.api.nvim_create_autocmd('OptionSet', {
+  pattern = { 'shiftwidth', 'tabstop', 'list' },
   callback = function()
     for _, win in ipairs(vim.api.nvim_list_wins()) do
       local buf = vim.api.nvim_win_get_buf(win)

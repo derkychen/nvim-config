@@ -5,17 +5,17 @@
 local M = {}
 
 M.diagnostics = {
-  ERROR = "",
-  WARN = "",
-  INFO = "",
-  HINT = "󰌵",
+  error = '',
+  warn = '',
+  info = '',
+  hint = '󰌵',
 }
 
 M.arrows = {
-  up = "",
-  right = "",
-  down = "",
-  left = "",
+  up = '',
+  right = '',
+  down = '',
+  left = '',
 }
 
 return M
