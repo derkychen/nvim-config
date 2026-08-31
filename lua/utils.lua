@@ -4,7 +4,6 @@
 ---modules and provides no standalone functionality.
 local M = {}
 
-
 ---Check if a buffer is valid, normal, and from disk.
 ---
 ---For example, although help buffers are from the filesystem, they are special
@@ -14,7 +13,7 @@ local M = {}
 ---@return boolean is_valid_normal_disk_buf If the buffer meets all criteria.
 function M.valid_normal_disk_buf(buf)
   return vim.api.nvim_buf_is_valid(buf)
-    and vim.api.nvim_get_option_value("buftype", { buf = buf }) == ""
+    and vim.api.nvim_get_option_value('buftype', { buf = buf }) == ''
     and vim.uv.fs_stat(vim.api.nvim_buf_get_name(buf)) ~= nil
 end
 
@@ -28,6 +27,10 @@ end
 ---@param target string Target path to which the relative path goes.
 ---@return string relpath The formatted relative path from the base to target.
 function M.relpath(base, target)
+  if base == '' or target == '' then
+    return target
+  end
+
   local relpath = vim.fs.relpath(base, target)
 
   -- Fall back to and indicate home directory.
@@ -35,7 +38,7 @@ function M.relpath(base, target)
     local homerelpath = vim.fs.relpath(vim.env.HOME, target)
 
     if homerelpath then
-      relpath = "~/" .. homerelpath
+      relpath = '~/' .. homerelpath
     end
   end
 
@@ -49,7 +52,7 @@ end
 ---@param style string Name of the border style.
 ---@return integer width Width of the border style. Must be zero or one.
 function M.border_width(style)
-  return (style == "" or style == "none") and 0 or 1
+  return (style == '' or style == 'none') and 0 or 1
 end
 
 ---Get a bottom-left (SE) window-scoped small floating window configuration.
@@ -64,15 +67,15 @@ function M.se_small_win_config(source_win)
   local source_height = vim.api.nvim_win_get_height(source_win)
 
   return {
-    relative = "win",
+    relative = 'win',
     win = source_win,
-    anchor = "SE",
+    anchor = 'SE',
     row = math.max(0, source_height - 1),
     col = math.max(0, source_width - 1),
     width = math.min(25, math.max(1, source_width)),
     height = math.min(30, math.max(1, source_height)),
     border = vim.o.winborder,
-    style = "minimal",
+    style = 'minimal',
   }
 end
 
