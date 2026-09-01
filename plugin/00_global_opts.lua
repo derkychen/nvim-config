@@ -9,7 +9,7 @@ vim.o.laststatus = 3
 vim.o.smarttab = true
 
 -- Match floating window and PopUp menu borders to both be rounded.
-vim.o.winborder = 'rounded'
+vim.o.winborder = 'single'
 vim.o.pumborder = vim.o.winborder
 
 -- PopUp menu dimensions.
