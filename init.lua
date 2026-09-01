@@ -1,4 +1,4 @@
 ---Configuration entry point.
 ---
----Optimize startup with the experimental `vim.loader`.
+---Optimizes startup with the experimental `vim.loader.enable()`.
 vim.loader.enable()
