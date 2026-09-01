@@ -6,10 +6,16 @@ local ui2 = require('vim._core.ui2')
 local cmdline = require('vim._core.ui2.cmdline')
 local utils = require('utils')
 
--- State storing variables.
-local cmdline_type = nil
-local orig_cmdline_show = nil
-local orig_cmd_win_config = nil
+local orig_cmd_win_config
+
+---Get command-line window ID.
+---
+---@return integer|nil win Window ID of the command-line if it is valid.
+local function get_cmdline_win()
+  local win = ui2.wins.cmd
+
+  return (win and vim.api.nvim_win_is_valid(win)) and win or nil
+end
 
 ---Construct `winhighlight` option from map of highlights.
 ---
@@ -42,6 +48,7 @@ local cmdline_regular_winhighlight = make_winhighlight({
   IncSearch = 'None',
 })
 
+---Set command-line highlights.
 local function set_hls()
   vim.api.nvim_set_hl(0, 'CmdlineFloatNormal', {
     fg = vim.api.nvim_get_hl(0, { name = 'MsgArea' }).fg,
@@ -55,26 +62,10 @@ local function set_hls()
   )
 end
 
----Get command-line window ID.
----
----@return integer|nil win Window ID of the command-line if it is valid.
-local function get_cmdline_win()
-  if not ui2 then
-    return
-  end
-
-  local win = ui2.wins and ui2.wins.cmd
-
-  return (win and vim.api.nvim_win_is_valid(win)) and win or nil
-end
-
----Configure command-line window and provide anchor for completion.
+---Float the command-line window.
 local function float_cmdline()
-  if not cmdline_type then
-    return
-  end
-
   local win = get_cmdline_win()
+
   if not win then
     return
   end
@@ -128,6 +119,57 @@ local function float_cmdline()
   })
 end
 
+---Restore the normal UI2 command-line window.
+local function restore_cmdline()
+  local win = get_cmdline_win()
+
+  if not win or not orig_cmd_win_config then
+    return
+  end
+
+  vim.api.nvim_win_set_config(win, orig_cmd_win_config)
+
+  vim.api.nvim_set_option_value(
+    'winhighlight',
+    cmdline_regular_winhighlight,
+    { win = win }
+  )
+
+  orig_cmd_win_config = nil
+end
+
+-- Wrap the `cmdline_show` function.
+local orig_cmdline_show = cmdline.cmdline_show
+
+cmdline.cmdline_show = function(...)
+  if not orig_cmd_win_config then
+    local win = get_cmdline_win()
+
+    if win then
+      orig_cmd_win_config = vim.api.nvim_win_get_config(win)
+    end
+  end
+
+  local ret = orig_cmdline_show(...)
+
+  float_cmdline()
+
+  return ret
+end
+
+-- Wrap the `cmdline_hide` function.
+local orig_cmdline_hide = cmdline.cmdline_hide
+
+cmdline.cmdline_hide = function(...)
+  local ret = orig_cmdline_hide(...)
+
+  if cmdline.level == 0 then
+    restore_cmdline()
+  end
+
+  return ret
+end
+
 local ui2_group = vim.api.nvim_create_augroup('UI2', { clear = true })
 
 -- Enable the experimental UI2.
@@ -140,55 +182,10 @@ vim.api.nvim_create_autocmd('UIEnter', {
   group = ui2_group,
 })
 
--- Wrap the `cmdline_show` function once.
---
--- While this file should only be sourced once, being defensive does prevent
--- silently wrapping multiple times.
-if not orig_cmdline_show then
-  orig_cmdline_show = cmdline.cmdline_show
-
-  cmdline.cmdline_show = function(...)
-    local ret = orig_cmdline_show(...)
-
-    if not cmdline_type then
-      return ret
-    end
-
-    float_cmdline()
-    return ret
-  end
-end
-
 -- Set highlights, and reset on colour scheme change.
 set_hls()
 
 vim.api.nvim_create_autocmd('ColorScheme', {
   callback = set_hls,
-  group = ui2_group,
-})
-
--- Update the command-line window on entering and leaving.
-vim.api.nvim_create_autocmd('CmdlineEnter', {
-  callback = function()
-    cmdline_type = vim.fn.getcmdtype()
-  end,
-  group = ui2_group,
-})
-
-vim.api.nvim_create_autocmd('CmdlineLeave', {
-  callback = function()
-    cmdline_type = nil
-    local win = get_cmdline_win()
-
-    if win and orig_cmd_win_config then
-      pcall(vim.api.nvim_win_set_config, win, orig_cmd_win_config)
-
-      vim.api.nvim_set_option_value(
-        'winhighlight',
-        cmdline_regular_winhighlight,
-        { win = win }
-      )
-    end
-  end,
   group = ui2_group,
 })
