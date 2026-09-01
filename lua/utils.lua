@@ -9,7 +9,7 @@ local M = {}
 ---For example, although help buffers are from the filesystem, they are special
 ---buffers, and would not be considered normal.
 ---
----@param buf integer Neovim buffer identifier.
+---@param buf integer Neovim buffer ID.
 ---@return boolean is_valid_normal_disk_buf If the buffer meets all criteria.
 function M.valid_normal_disk_buf(buf)
   return vim.api.nvim_buf_is_valid(buf)
@@ -60,7 +60,7 @@ end
 ---This window configuration is specific to my preferences. It is slightly inset
 ---and occupies a small portion of the bottom-left corner of the window.
 ---
----@param source_win integer Source window identifier.
+---@param source_win integer Source window ID.
 ---@return table config Window configuration.
 function M.se_small_win_config(source_win)
   local source_width = vim.api.nvim_win_get_width(source_win)

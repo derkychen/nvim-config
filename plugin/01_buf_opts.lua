@@ -5,7 +5,7 @@ local opts_initialized = {}
 
 ---Check if default buffer options have been initialized for a buffer.
 ---
----@param buf integer Neovim buffer identifier.
+---@param buf integer Neovim buffer ID.
 ---@return boolean initialized Whether buffer options are initialized.
 local function is_opts_initialized(buf)
   return opts_initialized[buf] or false
@@ -13,21 +13,21 @@ end
 
 ---Mark default buffer options as initialized for a buffer.
 ---
----@param buf integer Neovim buffer identifier.
+---@param buf integer Neovim buffer ID.
 local function mark_opts_initialized(buf)
   opts_initialized[buf] = true
 end
 
 ---Clear tracking of default buffer options for a buffer.
 ---
----@param buf integer Neovim buffer identifier.
+---@param buf integer Neovim buffer ID.
 local function clear_opts_initialized(buf)
   opts_initialized[buf] = nil
 end
 
 ---Set the default buffer options.
 ---
----@param buf integer Neovim buffer identifier.
+---@param buf integer Neovim buffer ID.
 local function set_default_opts(buf)
   local default_opts_opts = {
     expandtab = true,
@@ -49,7 +49,7 @@ end
 ---This allows for `blink.cmp`-like falling back to buffer words for
 ---autocompletion when LSP clients are not available.
 ---
----@param buf integer Neovim buffer identifier.
+---@param buf integer Neovim buffer ID.
 local function update_autocomplete(buf)
   local has_lsp = #vim.lsp.get_clients({
     bufnr = buf,
@@ -94,5 +94,5 @@ vim.api.nvim_create_autocmd({ 'BufEnter', 'LspAttach', 'LspDetach' }, {
       end
     end)
   end,
-  group = buf_opts_group
+  group = buf_opts_group,
 })

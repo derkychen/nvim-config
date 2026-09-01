@@ -14,7 +14,7 @@ oil.setup({
     'mtime',
   },
 
-  -- Show `oil.nvim` item identifiers.
+  -- Show `oil.nvim` item IDs.
   win_options = {
     conceallevel = 0,
     cursorline = true,
