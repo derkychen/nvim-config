@@ -7,6 +7,16 @@ vim.pack.add({ 'https://github.com/ibhagwan/fzf-lua' })
 local fzf = require('fzf-lua')
 
 fzf.setup({
+  winopts = {
+    -- Match the floating window borders to the global one.
+    border = vim.o.winborder,
+    -- Do not darken window backdrop.
+    backdrop = 100,
+    -- Match the preview window borders to the global one.
+    preview = {
+      border = vim.o.winborder,
+    },
+  },
   -- Use Fzf-Lua for `vim.ui.select`.
   ui_select = {
     -- Make the menu smaller.
@@ -16,11 +26,6 @@ fzf.setup({
       row = 0.5,
       col = 0.5,
     },
-  },
-
-  winopts = {
-    -- Do not darken window backdrop.
-    backdrop = 100,
   },
 })
 
