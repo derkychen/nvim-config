@@ -13,17 +13,14 @@ oil.setup({
     'size',
     'mtime',
   },
-
   -- Show `oil.nvim` item IDs.
   win_options = {
     conceallevel = 0,
     cursorline = true,
     cursorcolumn = true,
   },
-
   -- Watch the file system for chagnes.
   watch_for_changes = true,
-
   -- Show hidden items,
   view_options = {
     show_hidden = true,

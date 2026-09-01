@@ -8,18 +8,19 @@ vim.pack.add({ 'https://github.com/stevearc/aerial.nvim' })
 local aerial = require('aerial')
 
 aerial.setup({
-  -- Open `aerial.nvim` in a floating window.
   layout = {
+    -- Highlight the current line.
     win_opts = {
       cursorline = true,
     },
+    -- Open `aerial.nvim` in a floating window.
     default_direction = 'float',
   },
+  -- Show scope guides.
   show_guides = true,
+  -- Floating window appears on the bottom left.
   float = {
     relative = 'win',
-
-    -- Floating window appears on the bottom left.
     override = function(conf, source_winid)
       return vim.tbl_extend(
         'force',
