@@ -13,8 +13,9 @@ vim.o.winborder = 'rounded'
 vim.o.pumborder = vim.o.winborder
 
 -- PopUp menu dimensions.
-vim.o.pumheight = 10
+vim.o.pumwidth = 0
 vim.o.pummaxwidth = 60
+vim.o.pumheight = 10
 
 -- Autocomplete settings.
 vim.o.wildmode = 'noselect:full'
