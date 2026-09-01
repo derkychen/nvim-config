@@ -1,0 +1,19 @@
+// Based on and thanks to Maria Solano's dotfiles:
+// https://github.com/MariaSolOs/dotfiles
+{
+  "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
+  "runtime": {
+    "version": "LuaJIT"
+  },
+  "workspace": {
+    "checkThirdParty": false,
+    "library": [
+      // Runtime and built-in libraries.
+      "$VIMRUNTIME/lua",
+      "${3rd}/luv/library",
+
+      // Plugins managed by `vim.pack`.
+      "${env:HOME}/.local/share/nvim/site/pack/core/opt"
+    ]
+  }
+}
