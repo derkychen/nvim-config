@@ -5,12 +5,12 @@ vim.pack.add({
   'https://github.com/windwp/nvim-autopairs',
 }, { load = false })
 
-local autopairs_lazyload_group =
-  vim.api.nvim_create_augroup('AutopairsLazyLoad', { clear = true })
-
 -- Lazy-load `nvim-autopairs` when entering INSERT mode.
-vim.api.nvim_create_autocmd('InsertEnter', {
-  callback = vim.schedule_wrap(function()
+require("lazyload").register({
+  augroup_name = 'AutopairsLazyLoad',
+  events = 'InsertEnter',
+  name = 'nvim-autopairs',
+  config = function()
     vim.cmd.packadd('nvim-autopairs')
 
     local Rule = require('nvim-autopairs.rule')
@@ -23,7 +23,5 @@ vim.api.nvim_create_autocmd('InsertEnter', {
       Rule('\\(', '\\)', 'tex'),
       Rule('\\[', '\\]', 'tex'),
     })
-  end),
-  group = autopairs_lazyload_group,
-  once = true,
+  end,
 })
