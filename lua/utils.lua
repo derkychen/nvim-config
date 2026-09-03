@@ -49,10 +49,18 @@ end
 
 ---Get the width of a border style.
 ---
+---Takes in a border style and outputs how much it increases size both window
+---dimensions. This only works for built-in styles and does not account for
+---custom border styles.
+---
 ---@param style string Name of the border style.
----@return integer width Width of the border style. Must be zero or one.
-function M.border_width(style)
-  return (style == '' or style == 'none') and 0 or 1
+---@return integer size Size added from the border style. Must be 0, 1, or 2.
+function M.border_size(style)
+  if style == '' or style == 'none' then
+    return 0
+  end
+
+  return style == 'shadow' and 1 or 2
 end
 
 ---Get a bottom-left (SE) window-scoped small floating window configuration.

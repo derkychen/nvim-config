@@ -98,14 +98,14 @@ local function float_cmdline()
     math.max(min_width, math.min(max_width, math.floor(width_frac * cols))),
     cols - 4
   )
-  local bw = utils.border_width(vim.o.winborder)
+  local border_size = utils.border_size(vim.o.winborder)
   local row = math.max(
     0,
     math.floor(
-      y_frac * (rows - math.max(1, vim.api.nvim_win_get_height(win)) - bw * 2)
+      y_frac * (rows - math.max(1, vim.api.nvim_win_get_height(win)) - border_size)
     )
   )
-  local col = math.max(0, math.floor(x_frac * (cols - width - bw * 2)))
+  local col = math.max(0, math.floor(x_frac * (cols - width - border_size)))
 
   pcall(vim.api.nvim_win_set_config, win, {
     relative = 'editor',
