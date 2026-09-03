@@ -12,6 +12,10 @@ local DOC_MAX_HEIGHT = 15
 ---Prefers placing the documentation window to the right of the popup menu,
 ---aligned with the edge of the popup menu closest to the cursor.
 ---
+---TODO: Replace this function with the `completepopup` option when it becomes
+---available:
+---https://github.com/neovim/neovim/pull/40943
+---
 ---@param win integer Documentation window ID
 local function configure_doc(win)
   local pum = vim.fn.pum_getpos()

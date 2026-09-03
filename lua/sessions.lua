@@ -298,7 +298,12 @@ function M.rename(old_name, new_name, overwrite)
 
   if not ok then
     vim.notify(
-      'Failed to rename session: ' .. old_name .. ' -> ' .. new_name .. ': ' .. err,
+      'Failed to rename session: '
+        .. old_name
+        .. ' -> '
+        .. new_name
+        .. ': '
+        .. err,
       vim.log.levels.ERROR
     )
     return
@@ -389,18 +394,22 @@ function M.save_select()
 
   table.insert(items, 1, ' Create new session')
 
-  vim.ui.select(items, { prompt = 'Save or create new session > ' }, function(choice, idx)
-    if not choice then
-      vim.notify('Session save canceled.')
-      return
-    end
+  vim.ui.select(
+    items,
+    { prompt = 'Save or create new session > ' },
+    function(choice, idx)
+      if not choice then
+        vim.notify('Session save canceled.')
+        return
+      end
 
-    if idx == 1 then
-      new()
-    else
-      M.save(choice)
+      if idx == 1 then
+        new()
+      else
+        M.save(choice)
+      end
     end
-  end)
+  )
 end
 
 ---Allow the user to select a session to load.
@@ -535,7 +544,7 @@ function M.setup()
   -- Ensure session storage directory exists.
   --
   -- TODO: Switch this to `vim.fs.mkdir(sessions_dir, { parents = true })` upon the
-  --       release of 0.13.
+  -- release of 0.13.
   vim.fn.mkdir(sessions_dir, 'p')
 
   -- Ensure last-used file exists.

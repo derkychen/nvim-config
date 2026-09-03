@@ -138,7 +138,7 @@ local local_win_opts_group =
 -- buffers from or written to disk.
 --
 -- TODO: Optimize once the ev.win field is implemented:
---       https://github.com/neovim/neovim/issues/25844
+-- https://github.com/neovim/neovim/issues/25844
 vim.api.nvim_create_autocmd({
   'BufWinEnter',
   'BufWritePost',
