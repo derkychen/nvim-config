@@ -3,7 +3,7 @@
 ---Ensures parsers for a set of languages are installed. Automatically starts
 ---Tree-sitter on buffers with filetypes matching these languages.
 ---
----Will migrate to native Tree-sitter support when it becomes available:
+---Will migrate to built-in Tree-sitter support when it becomes available:
 ---https://github.com/neovim/neovim/issues/39006
 ---
 ---Based on and thanks Evgeni Chasnovski's Neovim configuration:
