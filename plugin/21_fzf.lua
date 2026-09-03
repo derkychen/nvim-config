@@ -2,6 +2,8 @@
 ---
 ---`mini.icons` and `oil.nvim` must be set up before this configuration is
 ---sourced.
+local oil = require('oil')
+
 vim.pack.add({ 'https://github.com/ibhagwan/fzf-lua' })
 
 local fzf = require('fzf-lua')
@@ -53,7 +55,7 @@ function fzf.dirs()
           return
         end
 
-        require('oil').open(dir)
+        oil.open(dir)
       end,
     },
   })
