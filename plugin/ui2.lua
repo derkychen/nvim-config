@@ -20,7 +20,7 @@ end
 ---Construct `winhighlight` option from map of highlights.
 ---
 ---@param win_hl_map table<string, string> Table of window highlights.
----@return string winhighlight Neovim `winhighlight` option.
+---@return string winhighlight Corresponding `winhighlight` option.
 local function make_winhighlight(win_hl_map)
   local win_hls = {}
 

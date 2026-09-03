@@ -9,7 +9,7 @@ local M = {}
 ---For example, although help buffers are from the filesystem, they are special
 ---buffers, and would not be considered normal.
 ---
----@param buf integer Neovim buffer ID.
+---@param buf integer Buffer ID.
 ---@return boolean is_valid_normal_disk_buf If the buffer meets all criteria.
 function M.valid_normal_disk_buf(buf)
   return vim.api.nvim_buf_is_valid(buf)

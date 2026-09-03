@@ -8,8 +8,8 @@ local opts_initialized = {}
 
 ---Check if default local window options are initialized.
 ---
----@param win integer Neovim window ID.
----@param buf integer Neovim buffer ID.
+---@param win integer Window ID.
+---@param buf integer Buffer ID.
 ---@return boolean initialized Whether local window options are initialized.
 local function is_opts_initialized(win, buf)
   return opts_initialized[win] and opts_initialized[win][buf] or false
@@ -17,8 +17,8 @@ end
 
 ---Mark default local window options as initialized for a window and buffer.
 ---
----@param win integer Neovim window ID.
----@param buf integer Neovim buffer ID.
+---@param win integer Window ID.
+---@param buf integer Buffer ID.
 local function mark_opts_initialized(win, buf)
   opts_initialized[win] = opts_initialized[win] or {}
   opts_initialized[win][buf] = true
@@ -26,14 +26,14 @@ end
 
 ---Clear tracking of default local window options for a window.
 ---
----@param win integer Neovim window ID.
+---@param win integer Window ID.
 local function clear_opts_initialized_win(win)
   opts_initialized[win] = nil
 end
 
 ---Clear tracking of default local window options for a buffer.
 ---
----@param buf integer Neovim buffer ID.
+---@param buf integer Buffer ID.
 local function clear_opts_initialized_buf(buf)
   for win, bufs in pairs(opts_initialized) do
     bufs[buf] = nil
@@ -46,7 +46,7 @@ end
 
 ---Set the local window options.
 ---
----@param win integer Neovim window ID.
+---@param win integer Window ID.
 local function set_default_opts(win)
   local fillchars = table.concat({
     'fold: ',
@@ -93,7 +93,7 @@ end
 ---If these options are set by others, they will be overridden every time an
 ---option listed in the `OptionSet` automatic command is set.
 ---
----@param win integer Neovim window ID.
+---@param win integer Window ID.
 local function update_listchars(win)
   local buf = vim.api.nvim_win_get_buf(win)
   local sw = vim.api.nvim_get_option_value('shiftwidth', { buf = buf })
