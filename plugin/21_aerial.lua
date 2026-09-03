@@ -9,14 +9,12 @@ local aerial = require('aerial')
 
 aerial.setup({
   layout = {
-    -- Highlight the current line.
     win_opts = {
       cursorline = true,
     },
     -- Open `aerial.nvim` in a floating window.
     default_direction = 'float',
   },
-  -- Show scope guides.
   show_guides = true,
   -- Floating window appears on the bottom left.
   float = {
