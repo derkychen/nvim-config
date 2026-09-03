@@ -94,18 +94,15 @@ local function float_cmdline()
   local rows = vim.o.lines
   local cols = vim.o.columns
 
+  local height = math.max(1, vim.api.nvim_win_get_height(win))
   local width = math.min(
     math.max(min_width, math.min(max_width, math.floor(width_frac * cols))),
     cols - 4
   )
-  local border_size = utils.border_size(vim.o.winborder)
-  local row = math.max(
-    0,
-    math.floor(
-      y_frac * (rows - math.max(1, vim.api.nvim_win_get_height(win)) - border_size)
-    )
-  )
-  local col = math.max(0, math.floor(x_frac * (cols - width - border_size)))
+
+  local border_height, border_width = utils.border_size(vim.o.winborder)
+  local row = math.max(0, math.floor(y_frac * (rows - height - border_height)))
+  local col = math.max(0, math.floor(x_frac * (cols - width - border_width)))
 
   pcall(vim.api.nvim_win_set_config, win, {
     relative = 'editor',

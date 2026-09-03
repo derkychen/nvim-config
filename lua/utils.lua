@@ -54,13 +54,20 @@ end
 ---custom border styles.
 ---
 ---@param style string Name of the border style.
----@return integer size Size added from the border style. Must be 0, 1, or 2.
+---@return integer height Height added from the border style. Must be 0, 1, or 2.
+---@return integer width Width added from the border style. Must be 0, 1, or 2.
 function M.border_size(style)
+  local size = 0
+
   if style == '' or style == 'none' then
-    return 0
+    size = 0
+  elseif style == 'shadow' then
+    size = 1
+  else
+    size = 2
   end
 
-  return style == 'shadow' and 1 or 2
+  return size, size
 end
 
 ---Get a bottom-left (SE) window-scoped small floating window configuration.
