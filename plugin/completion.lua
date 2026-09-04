@@ -2,7 +2,7 @@
 ---
 ---`mini.icons` must be set up before this configuration is sourced.
 local utils = require('utils')
-local icons = require('mini.icons')
+local micons = require('mini.icons')
 
 local DOC_MAX_WIDTH = 60
 local DOC_MAX_HEIGHT = 15
@@ -156,7 +156,7 @@ vim.api.nvim_create_autocmd('LspAttach', {
 
       convert = function(item)
         local kind = vim.lsp.protocol.CompletionItemKind[item.kind] or 'Text'
-        local icon, hl = icons.get('lsp', kind)
+        local icon, hl = micons.get('lsp', kind)
         return {
           kind = icon .. ' ' .. kind,
           kind_hlgroup = hl,
