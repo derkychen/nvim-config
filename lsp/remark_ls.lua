@@ -1,3 +1,9 @@
+--- RemarkLS LSP configuration.
+---
+--- Based on:
+--- https://github.com/neovim/nvim-lspconfig/blob/master/doc/configs.md#remark_ls
+
+--- @type vim.lsp.Config
 return {
   cmd = { 'remark-language-server', '--stdio' },
   filetypes = { 'markdown' },
@@ -10,7 +16,8 @@ return {
     local name = vim.api.nvim_buf_get_name(buf)
     local path = name ~= '' and vim.fs.dirname(name) or vim.uv.cwd()
 
-    -- Patch root detection so markdown files are formatted regardless of location
+    -- Patch root detection so markdown files are formatted regardless of
+    -- location.
     local root = vim.fs.find({
       '.remarkrc',
       '.remarkrc.json',
