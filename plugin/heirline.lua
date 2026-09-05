@@ -1,35 +1,50 @@
-local icons = require("icons")
-local utils = require("utils")
+--- Configuration for the Heirline plugin.
+---
+--- This configuration is responsible for the statusline, statuscolumn, window
+--- bar, tab pages line. `mini.icons`, `aerial.nvim`, and Gitsigns must be set
+--- up before this configuration is sourced.
+local icons = require('icons')
+local utils = require('utils')
+local micons = require('mini.icons')
+local aerial = require('aerial')
 
-vim.pack.add({ "https://github.com/rebelot/heirline.nvim" })
+vim.pack.add({ 'https://github.com/rebelot/heirline.nvim' })
 
--- Utilities.
-local hconds = require("heirline.conditions")
-local hutils = require("heirline.utils")
-
-local micons = require("mini.icons")
-local aerial = require("aerial")
+local hconds = require('heirline.conditions')
+local hutils = require('heirline.utils')
 
 -- Flexible component priorities.
 local priorities = {
-  ModeText = 2,
-  GitBranch = 5,
-  FileDir = 1,
-  NavPosition = 4,
-  NavPercentage = 3,
-  LSPInfo = 5,
-  GitDiff = 5,
+  low = 1,
+  medium = 2,
+  high = 3,
 }
 
--- Common components
-local Space = { provider = " " }
-local HalfPad = { hl = { bg = "none" }, provider = "  " }
-local Trunc = { provider = "%<" }
-local Align = { provider = "%=" }
-local Bar = { provider = "█" }
-local Empty = { provider = "" }
+-- Spacing components.
+local InertSpace = { provider = ' ' }
+local HalfPad = { hl = { bg = 'none' }, provider = '  ' }
 
--- Pad leftmost components on the right.
+-- Special components.
+local Trunc = { provider = '%<' }
+local Align = { provider = '%=' }
+local Empty = {}
+
+--- Escapes strings that can contain special statusline character '%'.
+---
+--- This function is only used for strings to be rendered that are arbitrary
+--- (i.e., not controlled by this configuration).
+---
+--- @param str string String to escape.
+--- @return string escaped String with `%` escaped.
+local function escape(str)
+  local escaped, _ = str:gsub('%%', '%%%%')
+  return escaped
+end
+
+--- Pads leftmost components on the right.
+---
+--- @param component table Component to pad on the right.
+--- @return table padded Component with padding on the right.
 local function pad_right(component)
   return {
     component,
@@ -37,7 +52,10 @@ local function pad_right(component)
   }
 end
 
--- Pad rightmost components on the left.
+--- Pads rightmost components on the left.
+---
+--- @param component table Component to pad on the left.
+--- @return table padded Component with padding on the left.
 local function pad_left(component)
   return {
     HalfPad,
@@ -45,7 +63,10 @@ local function pad_left(component)
   }
 end
 
--- Pad middle components symmetrically.
+--- Pads middle components symmetrically.
+---
+--- @param component table Component to pad symmetrically.
+--- @return table padded Component with symmetric padding.
 local function pad_symmetric(component)
   return {
     HalfPad,
@@ -54,7 +75,11 @@ local function pad_symmetric(component)
   }
 end
 
--- Combine active and inactive window versions of component.
+--- Combines active and inactive window versions of component.
+---
+--- @param active table Component when active.
+--- @param inactive table Component when inactive.
+--- @return table padded Combined component.
 local function active_inactive_win_component(active, inactive)
   return {
     fallthrough = false,
@@ -66,681 +91,660 @@ local function active_inactive_win_component(active, inactive)
   }
 end
 
--- Get colors from colorscheme highlights.
-local function get_colors()
+--- Gets colours from colour scheme highlights.
+local function get_colours()
+  --- Gets the foreground of a highlight with a fallback.
+  ---
+  --- @param hl string Highlight name.
+  --- @return integer colour RGB colour value for the highlight's foreground.
   local function get_fg(hl)
-    return hutils.get_highlight(hl).fg or hutils.get_highlight("StatusLine").fg
+    return hutils.get_highlight(hl).fg or hutils.get_highlight('StatusLine').fg
   end
 
+  --- Gets the background of a highlight with a fallback.
+  ---
+  --- @param hl string Highlight name.
+  --- @return integer colour RGB colour value for the highlight's background.
   local function get_bg(hl)
-    return hutils.get_highlight(hl).bg or hutils.get_highlight("StatusLine").bg
+    return hutils.get_highlight(hl).bg or hutils.get_highlight('StatusLine').bg
   end
-
-  local c = {
-    fg = get_fg("StatusLine"),
-    editor_bg = get_bg("Normal"),
-    blue_fg = get_fg("Function"),
-    green_fg = get_fg("Character"),
-    purple_fg = get_fg("Identifier"),
-    yellow_fg = get_fg("WarningMsg"),
-    red_fg = get_fg("DiagnosticError"),
-    dark_green_fg = get_fg("DiagnosticHint"),
-    accented_bg = get_bg("Folded"),
-    diff = {
-      added = get_fg("GitSignsAdd"),
-      removed = get_fg("GitSignsDelete"),
-      changed = get_fg("GitSignsChange"),
-    },
-    diagnostics = {
-      error = get_fg("DiagnosticError"),
-      warn = get_fg("DiagnosticWarn"),
-      info = get_fg("DiagnosticInfo"),
-      hint = get_fg("DiagnosticHint"),
-    },
-    unaccented_fg = get_fg("StatusLineNC"),
-    tabline = {
-      blue = get_bg("TabLineSel"),
-      black = get_fg("TabLineSel"),
-      inactive_fg = get_fg("TabLine"),
-      fill = get_bg("TabLineFill"),
-    },
-    nc = {
-      statusline_fg = get_fg("StatusLineNC"),
-      statusline_bg = get_bg("StatusLineNC"),
-      winbar_fg = get_fg("WinBarNC"),
-      winbar_bg = get_bg("WinBarNC"),
-    },
-  }
 
   return {
-    normal = c.blue_fg,
-    insert = c.green_fg,
-    visual = c.purple_fg,
-    command = c.yellow_fg,
-    replace = c.red_fg,
-    terminal = c.dark_green_fg,
-    git_bg = c.accented_bg,
-    git_branch = c.blue_fg,
-    git_added = c.diff.added,
-    git_removed = c.diff.removed,
-    git_changed = c.diff.changed,
-    diagnostics_error = c.diagnostics.error,
-    diagnostics_warn = c.diagnostics.warn,
-    diagnostics_info = c.diagnostics.info,
-    diagnostics_hint = c.diagnostics.hint,
-    dir_fg = c.unaccented_fg,
-    unmodifiable_fg = c.unaccented_fg,
-    scrollbar_fg = c.blue_fg,
-    scrollbar_bg = c.accented_bg,
-    breadcrumbs_dir_fg = c.unaccented_fg,
-    buffer_bufnr = c.tabline.black,
-    buffer_active_fg = c.tabline.black,
-    buffer_active_bg = c.tabline.blue,
-    buffer_inactive_fg = c.tabline.inactive_fg,
-    buffer_inactive_bg = c.tabline.fill,
-    tab_active_highlight = c.tabline.blue,
-    tab_active_fg = c.fg,
-    tab_active_bg = c.editor_bg,
-    tab_inactive_fg = c.tabline.inactive_fg,
-    tab_inactive_bg = c.tabline.fill,
-    statusline_inactive_fg = c.nc.statusline_fg,
-    statusline_inactive_bg = c.nc.statusline_bg,
-    winbar_inactive_fg = c.nc.winbar_fg,
-    winbar_inactive_bg = c.nc.winbar_bg,
+    normal = get_fg('Function'),
+    insert = get_fg('Character'),
+    visual = get_fg('Identifier'),
+    command = get_fg('WarningMsg'),
+    replace = get_fg('DiagnosticError'),
+    terminal = get_fg('DiagnosticHint'),
+    git_bg = get_bg('Folded'),
+    git_branch = get_fg('Function'),
+    git_added = get_fg('GitSignsAdd'),
+    git_removed = get_fg('GitSignsDelete'),
+    git_changed = get_fg('GitSignsChange'),
+    diagnostics_error = get_fg('DiagnosticError'),
+    diagnostics_warn = get_fg('DiagnosticWarn'),
+    diagnostics_info = get_fg('DiagnosticInfo'),
+    diagnostics_hint = get_fg('DiagnosticHint'),
+    dir_fg = get_fg('StatusLineNC'),
+    unmodifiable_fg = get_fg('StatusLineNC'),
+    scrollbar_fg = get_fg('Function'),
+    scrollbar_bg = get_bg('Folded'),
+    breadcrumbs_dir_fg = get_fg('StatusLineNC'),
+    buffer_bufnr = get_fg('TabLineSel'),
+    buffer_active_fg = get_fg('TabLineSel'),
+    buffer_active_bg = get_bg('TabLineSel'),
+    buffer_inactive_fg = get_fg('TabLine'),
+    buffer_inactive_bg = get_bg('TabLineFill'),
+    tab_active_highlight = get_bg('TabLineSel'),
+    tab_active_fg = get_fg('StatusLine'),
+    tab_active_bg = get_bg('Normal'),
+    tab_inactive_fg = get_fg('TabLine'),
+    tab_inactive_bg = get_bg('TabLineFill'),
+    statusline_inactive_fg = get_fg('StatusLineNC'),
+    statusline_inactive_bg = get_bg('StatusLineNC'),
+    winbar_inactive_fg = get_fg('WinBarNC'),
+    winbar_inactive_bg = get_bg('WinBarNC'),
   }
 end
 
--- Parent component that stores window-local information.
-local WinInfo = {
+-- Data storing components.
+--
+-- These components do not have providers, as they are not rendered. However,
+-- they do store data relevant to rendering, such as text and highlights.
+local WinData = {
   condition = function(self)
     self.win = vim.fn.win_getid(self.winnr)
     return vim.api.nvim_win_is_valid(self.win)
   end,
   init = function(self)
     self.buf = vim.api.nvim_win_get_buf(self.win)
-    self.bufname = vim.api.nvim_buf_get_name(self.buf)
+    self.buf_is_valid_normal_disk = utils.valid_normal_disk_buf(self.buf)
+    self.filetype =
+      vim.api.nvim_get_option_value('filetype', { buf = self.buf })
 
-    if utils.valid_normal_disk_buf(self.buf) then
-      local winrelpath = utils.relpath(vim.fn.getcwd(self.win), self.bufname)
+    local bufname = vim.api.nvim_buf_get_name(self.buf)
+    local display_bufname = bufname
 
-      self.winreldir = vim.fs.dirname(winrelpath)
-      self.filename = vim.fs.basename(winrelpath)
-    else
-      self.winreldir = vim.fs.dirname(self.bufname)
-      self.filename = vim.fs.basename(self.bufname)
+    -- Display a window-relative path for valid, normal, disk buffers.
+    if self.buf_is_valid_normal_disk then
+      display_bufname = utils.relpath(vim.fn.getcwd(self.win), display_bufname)
     end
 
-    self.filetype =
-        vim.api.nvim_get_option_value("filetype", { buf = self.buf })
+    self.bufhead = vim.fs.dirname(display_bufname)
+    self.buftail = vim.fs.basename(display_bufname)
   end,
 }
 
--- Parent component that stores mode information
-local Mode = {
+local ModeData = {
   static = {
-    colors = {
-      n = "normal",
-      i = "insert",
-      v = "visual",
-      V = "visual",
-      ["\22"] = "visual",
-      c = "command",
-      s = "visual",
-      S = "visual",
-      ["\19"] = "visual",
-      R = "replace",
-      r = "replace",
-      ["!"] = "terminal",
-      t = "terminal",
+    colours = {
+      n = 'normal',
+      i = 'insert',
+      v = 'visual',
+      V = 'visual',
+      ['\x16'] = 'visual',
+      c = 'command',
+      s = 'visual',
+      S = 'visual',
+      ['\x13'] = 'visual',
+      R = 'replace',
+      r = 'replace',
+      ['!'] = 'terminal',
+      t = 'terminal',
     },
   },
   init = function(self)
     self.mode = vim.api.nvim_get_mode().mode
-    self.color = self.colors[self.mode:sub(1, 1)]
+    self.colour = self.colours[self.mode:sub(1, 1)]
   end,
 }
 
--- Parent component that stores Git information
-local Git = {
+local GitData = {
   condition = hconds.is_git_repo,
   init = function(self)
     self.status_dict = vim.b[self.buf].gitsigns_status_dict
   end,
-  hl = { bg = "git_bg" },
+  hl = { bg = 'git_bg' },
 }
 
--- Universal component for file icons
-local FileIcon = {
+-- Reused components.
+--
+-- Each of these components are used by multiple, other, components.
+local BufferIcon = {
   init = function(self)
-    local get_icon = micons.get
-    local is_default = false
-    self.icon, self.hl, is_default = get_icon("file", self.filename)
+    local is_default
+
+    -- Get the icon for the buffer name tail.
+    self.icon, self.icon_hl, is_default = micons.get('file', self.buftail)
+
+    -- Fall back to buffer file type.
     if is_default then
-      self.icon, self.hl = get_icon("filetype", self.filetype)
+      self.icon, self.icon_hl, _ = micons.get('filetype', self.filetype)
     end
   end,
   hl = function(self)
-    return { fg = hutils.get_highlight(self.hl).fg }
+    return self.icon_hl
   end,
-  {
-    provider = function(self)
-      return self.icon
-    end,
-  },
-  Space,
-}
-
--- Universal component for file name
-local FileName = {
   provider = function(self)
-    local filename = self.filename
-    if filename == "" then
-      return "[No Name]"
-    end
-    return filename
+    return self.icon .. ' '
   end,
 }
 
--- Universal component for file flags
-local FileFlags = {
+local BufferNameTail = {
+  provider = function(self)
+    if self.buftail == '' then
+      return '[No Name]'
+    end
+
+    return escape(self.buftail)
+  end,
+}
+
+local BufferFlags = {
   {
     condition = function(self)
-      return vim.api.nvim_get_option_value("modified", { buf = self.buf })
+      return vim.api.nvim_get_option_value('modified', { buf = self.buf })
     end,
-    Space,
-    { provider = "" },
+    provider = ' ',
   },
   {
     condition = function(self)
       return not vim.api.nvim_get_option_value(
-            "modifiable",
-            { buf = self.buf }
-          )
-          or vim.api.nvim_get_option_value("readonly", { buf = self.buf })
+          'modifiable',
+          { buf = self.buf }
+        )
+        or vim.api.nvim_get_option_value('readonly', { buf = self.buf })
     end,
-    Space,
-    {
-      provider = "󰌾",
-      hl = { fg = "unmodifiable_fg" },
-    },
+    hl = { fg = 'unmodifiable_fg' },
+    provider = ' 󰌾',
   },
 }
 
--- Status line mode bars
+-- Statusline components.
 local ModeBar = {
   hl = function(self)
-    return { fg = self.color }
+    return { fg = self.colour }
   end,
-  Bar,
+  provider = '█',
 }
 
 local ModeText = {
   static = {
     names = {
-      n = "NORMAL",
-      no = "O-PENDING",
-      nov = "O-PENDING",
-      noV = "O-PENDING",
-      ["no\22"] = "O-PENDING",
-      niI = "NORMAL",
-      niR = "NORMAL",
-      niV = "NORMAL",
-      nt = "NORMAL",
-      ntT = "NORMAL",
-      v = "VISUAL",
-      vs = "VISUAL",
-      V = "V-LINE",
-      Vs = "V-LINE",
-      ["\22"] = "V-BLOCK",
-      ["\22s"] = "V-BLOCK",
-      s = "SELECT",
-      S = "S-LINE",
-      ["\19"] = "S-BLOCK",
-      i = "INSERT",
-      ic = "INSERT",
-      ix = "INSERT",
-      R = "REPLACE",
-      Rc = "REPLACE",
-      Rx = "REPLACE",
-      Rv = "V-REPLACE",
-      Rvc = "V-REPLACE",
-      Rvx = "V-REPLACE",
-      c = "COMMAND",
-      cv = "EX",
-      ce = "EX",
-      r = "REPLACE",
-      rm = "MORE",
-      ["r?"] = "CONFIRM",
-      ["!"] = "SHELL",
-      t = "TERMINAL",
+      n = 'NORMAL',
+      no = 'O-PENDING',
+      nov = 'O-PENDING',
+      noV = 'O-PENDING',
+      ['no\x16'] = 'O-PENDING',
+      niI = 'NORMAL',
+      niR = 'NORMAL',
+      niV = 'NORMAL',
+      nt = 'NORMAL',
+      ntT = 'NORMAL',
+      v = 'VISUAL',
+      vs = 'VISUAL',
+      V = 'V-LINE',
+      Vs = 'V-LINE',
+      ['\x16'] = 'V-BLOCK',
+      ['\x16s'] = 'V-BLOCK',
+      s = 'SELECT',
+      S = 'S-LINE',
+      ['\x13'] = 'S-BLOCK',
+      i = 'INSERT',
+      ic = 'INSERT',
+      ix = 'INSERT',
+      R = 'REPLACE',
+      Rc = 'REPLACE',
+      Rx = 'REPLACE',
+      Rv = 'V-REPLACE',
+      Rvc = 'V-REPLACE',
+      Rvx = 'V-REPLACE',
+      c = 'COMMAND',
+      cv = 'EX',
+      ce = 'EX',
+      r = 'REPLACE',
+      rm = 'MORE',
+      ['r?'] = 'CONFIRM',
+      ['!'] = 'SHELL',
+      t = 'TERMINAL',
     },
   },
-  flexible = priorities.ModeText,
+  flexible = priorities.medium,
   hl = function(self)
-    return {
-      fg = self.color,
-      bold = true,
-    }
+    return { fg = self.colour, bold = true }
   end,
+  -- If there is enough space, display the full mode text with padding.
   {
-    Space,
-    {
-      provider = function(self)
-        return "%9(" .. self.names[self.mode] .. "%)"
-      end,
-    },
+    provider = function(self)
+      return ' %9(' .. self.names[self.mode] .. '%)'
+    end,
   },
+  -- Fall back to full mode text with no padding.
   {
-    Space,
-    {
-      provider = function(self)
-        return self.names[self.mode]
-      end,
-    },
+    provider = function(self)
+      return ' ' .. self.names[self.mode]
+    end,
   },
+  -- Fall back to the first character of the mode text.
   {
-    Space,
-    {
-      provider = function(self)
-        return string.sub(self.names[self.mode], 1, 1)
-      end,
-    },
+    provider = function(self)
+      return ' ' .. string.sub(self.names[self.mode], 1, 1)
+    end,
   },
+  -- Fall back to nothing.
   Empty,
 }
 
-local ModeIndicatorLeft = pad_right(hutils.insert(Mode, ModeBar, ModeText))
+local ModeIndicatorLeft =
+  hutils.insert(ModeData, pad_right({ ModeBar, ModeText }))
 
-local GitBranch = hutils.insert(Git, {
-  flexible = priorities.GitBranch,
-  hl = { fg = "git_branch" },
+local GitBranch = hutils.insert(GitData, {
+  hl = { fg = 'git_branch' },
   pad_symmetric({
-    Space,
+    flexible = priorities.medium,
+    -- If there is enough space, display the full branch name.
     {
       provider = function(self)
         local branch = self.status_dict.head
-        if branch == nil or branch == "" then
-          branch = "master"
+        if branch == nil or branch == '' then
+          branch = 'master'
         end
-        return " " .. branch
+        return '  ' .. branch .. ' '
       end,
     },
-    Space,
-  }),
-  pad_symmetric({
-    Space,
-    { provider = "" },
-    Space,
+    -- Fall back to just an icon.
+    { provider = '  ' },
   }),
 })
 
-local FileDir = {
-  flexible = priorities.FileDir,
-  hl = { fg = "dir_fg" },
+local BufferNameHead = {
+  flexible = priorities.low,
+  hl = { fg = 'dir_fg' },
+  -- If there is enough space, display the full buffer name head.
   {
     provider = function(self)
-      local trail = self.winreldir:sub(-1) == "/" and "" or "/"
-      return self.winreldir .. trail
+      local trail = self.bufhead:sub(-1) == '/' and '' or '/'
+      return escape(self.bufhead) .. trail
     end,
   },
+  -- Fall back to a shortened buffer name head.
   {
     provider = function(self)
-      local short_dir = vim.fn.pathshorten(self.winreldir)
-      local trail = short_dir:sub(-1) == "/" and "" or "/"
-      return short_dir .. trail
+      local short_dir = vim.fn.pathshorten(self.bufhead)
+      local trail = short_dir:sub(-1) == '/' and '' or '/'
+
+      return escape(short_dir) .. trail
     end,
   },
+  -- Fall back to nothing.
   Empty,
 }
 
-local StatusLineFile = pad_symmetric({
-  FileIcon,
-  FileDir,
-  FileName,
-  FileFlags,
+local BufferFull = pad_symmetric({
+  BufferIcon,
+  BufferNameHead,
+  BufferNameTail,
+  BufferFlags,
 })
 
 local Position = {
-  flexible = priorities.NavPosition,
-  pad_symmetric({ provider = "%21(Ln %l of %L, Col %c%)" }),
-  pad_symmetric({ provider = "%10(%l/%L:%c%)" }),
-  pad_symmetric({ provider = "%6(%l:%c%)" }),
+  flexible = priorities.low,
+  -- If there is enough space, display line, total lines, and column.
+  pad_symmetric({ provider = '%21(Ln %l of %L, Col %c%)' }),
+  -- Fall back to the same information without words.
+  pad_symmetric({ provider = '%10(%l/%L:%c%)' }),
+  -- Fall back to just line and column.
+  pad_symmetric({ provider = '%6(%l:%c%)' }),
+  -- Fall back to nothing.
   Empty,
 }
 
 local Scrollbar = {
-  flexible = priorities.NavPercentage,
+  flexible = priorities.low,
+  -- If there is enough space, display a percentage and scroll bar.
   pad_symmetric({
-    { provider = "%P" },
-    Space,
+    { provider = '%P ' },
     {
       static = {
-        sbar = { "🭶", "🭷", "🭸", "🭹", "🭺", "🭻" },
+        sbar = { '🭶', '🭷', '🭸', '🭹', '🭺', '🭻' },
       },
+      hl = { fg = 'scrollbar_fg', bg = 'scrollbar_bg' },
       provider = function(self)
         local curr_line = vim.api.nvim_win_get_cursor(self.win)[1]
         local lines = vim.api.nvim_buf_line_count(self.buf)
         local i = math.floor((curr_line - 1) / lines * #self.sbar) + 1
+
         return string.rep(self.sbar[i], 2)
       end,
-      hl = { fg = "scrollbar_fg", bg = "scrollbar_bg" },
     },
   }),
-  pad_symmetric({ provider = "%P" }),
+  -- Fall back to just a percentage.
+  pad_symmetric({ provider = '%P' }),
+  -- Fall back to nothing.
   Empty,
 }
 
-local ModeBarRight = pad_left(hutils.insert(Mode, ModeBar))
+local ModeBarLeft = hutils.insert(ModeData, pad_right(ModeBar))
+local ModeBarRight = hutils.insert(ModeData, pad_left(ModeBar))
 
--- Active statusline elements
 local ActiveStatusLine = hutils.insert(
-  WinInfo,
+  WinData,
   ModeIndicatorLeft,
   GitBranch,
   Trunc,
-  StatusLineFile,
+  BufferFull,
   Align,
   Position,
   Scrollbar,
   ModeBarRight
 )
 
--- Inactive statusline elements (currently unused)
-local InactiveStatusLine = hutils.insert(WinInfo, {
+local InactiveStatusLine = hutils.insert(WinData, {
   hl = {
-    fg = "statusline_inactive_fg",
-    bg = "statusline_inactive_bg",
+    fg = 'statusline_inactive_fg',
+    bg = 'statusline_inactive_bg',
     force = true,
   },
-  pad_right(Bar),
+  ModeBarLeft,
   Trunc,
-  StatusLineFile,
+  BufferFull,
   Align,
   Position,
-  pad_left(Bar),
+  ModeBarRight,
 })
 
-local BreadcrumbsSep = { Space, { provider = icons.arrows.right }, Space }
+-- Window bar components.
+local BreadcrumbsSep = { provider = ' ' .. icons.arrows.right .. ' ' }
+local BreadcrumbsUnknown = { provider = '[Unknown]' }
 
-local function BreadcrumbsDirItem(name)
-  local get_icon = require("mini.icons").get
-  local spacer
+--- Creates a breadcrumbs directory component.
+---
+--- @param name string Directory name.
+--- @return table component Breadcrumbs component for that directory.
+local function breadcrumbs_dir(name)
   local icon, hl
-  icon, hl, _ = get_icon("directory", name)
-  if icon == "" then
-    spacer = nil
-  else
-    spacer = Space
-  end
-  if name ~= "" then
+
+  icon, hl, _ = micons.get('directory', name)
+
+  local spacer = icon == '' and '' or ' '
+
+  if name == '' then
     return {
-      {
-        provider = icon,
-        hl = { fg = hutils.get_highlight(hl).fg },
-      },
-      spacer,
-      {
-        hl = { fg = "breadcrumbs_dir_fg" },
-        provider = name,
-      },
+      hl = { fg = 'breadcrumbs_dir_fg' },
+      BreadcrumbsUnknown,
     }
   end
-end
 
-local function BreadcrumbsAerialItem(symbol)
-  local spacer
-  local icon = symbol.icon or ""
-  local name = symbol.name or ""
-  if icon == "" then
-    spacer = nil
-  else
-    spacer = Space
-  end
-  local kind
-  if type(symbol.kind) == "string" then
-    kind = symbol.kind
-  elseif type(symbol.kind) == "number" then
-    kind = vim.lsp.protocol.SymbolKind[symbol.kind] or "Unknown"
-  end
-  if name ~= "" then
-    return {
-      {
-        provider = icon,
-        hl = { fg = hutils.get_highlight("Aerial" .. kind .. "Icon").fg },
-      },
-      spacer,
-      {
-        provider = name,
-        hl = { fg = hutils.get_highlight("Aerial" .. kind).fg },
-      },
-    }
-  end
-end
-
-local Breadcrumbs = {
-  Space,
-  {
-    init = function(self)
-      local symbols = {}
-      if utils.valid_normal_disk_buf(self.buf) then
-        for symbol in string.gmatch(self.winreldir, "([^/]+)") do
-          table.insert(symbols, BreadcrumbsDirItem(symbol))
-          table.insert(symbols, BreadcrumbsSep)
-        end
-      end
-      table.insert(symbols, { FileIcon, FileName, FileFlags })
-      for _, symbol in ipairs(aerial.get_location(true)) do
-        table.insert(symbols, BreadcrumbsSep)
-        table.insert(symbols, BreadcrumbsAerialItem(symbol))
-      end
-      local children = symbols
-      self.child = self:new(children, 1)
-    end,
-    provider = function(self)
-      return self.child:eval()
-    end,
-  },
-}
-
--- Window bar Git diffs
-local function GitDiff(type)
   return {
-    static = {
-      icons = {
-        added = "",
-        removed = "",
-        changed = "",
-      },
-    },
-    condition = function(self)
-      self.count = self.status_dict[type] or 0
-      return self.count > 0
-    end,
-    hl = { fg = "git_" .. type },
-    flexible = priorities.GitDiff,
     {
-      {
-        provider = function(self)
-          return self.icons[type]
-        end,
-      },
-      Space,
-      {
-        provider = function(self)
-          return self.count
-        end,
-      },
-      Space,
+      provider = icon .. spacer,
+      hl = { fg = hutils.get_highlight(hl).fg },
     },
     {
-      {
-        provider = function(self)
-          return self.count
-        end,
-      },
-      Space,
+      hl = { fg = 'breadcrumbs_dir_fg' },
+      provider = escape(name),
     },
   }
 end
 
--- Git diffs, displayed only when applicable
-local GitDiffs = hutils.insert(Git, {
+--- Creates a breadcrumbs symbol component using Aerial.
+---
+--- @param symbol table Aerial symbol.
+--- @return table component Breadcrumbs component for that symbol.
+local function breadcrumbs_symbol(symbol)
+  local icon = symbol.icon or ''
+  local name = symbol.name or ''
+
+  if name == '' then
+    return BreadcrumbsUnknown
+  end
+
+  local spacer = icon == '' and '' or ' '
+
+  local kind
+
+  if type(symbol.kind) == 'string' then
+    kind = symbol.kind
+  elseif type(symbol.kind) == 'number' then
+    kind = vim.lsp.protocol.SymbolKind[symbol.kind] or 'Unknown'
+  end
+
+  return {
+    {
+      provider = icon .. spacer,
+      hl = { fg = hutils.get_highlight('Aerial' .. kind .. 'Icon').fg },
+    },
+    {
+      provider = escape(name),
+      hl = { fg = hutils.get_highlight('Aerial' .. kind).fg },
+    },
+  }
+end
+
+local BreadcrumbsLeft = pad_right({
+  init = function(self)
+    local children = {}
+
+    -- Construct directory components.
+    for symbol in string.gmatch(self.bufhead, '([^/]+)') do
+      children[#children + 1] = breadcrumbs_dir(symbol)
+      children[#children + 1] = BreadcrumbsSep
+    end
+
+    children[#children + 1] = { BufferIcon, BufferNameTail, BufferFlags }
+
+    -- Construct symbol components.
+    for _, symbol in ipairs(aerial.get_location(true)) do
+      children[#children + 1] = BreadcrumbsSep
+      children[#children + 1] = breadcrumbs_symbol(symbol)
+    end
+
+    self.child = self:new(children, 1)
+  end,
+  provider = function(self)
+    return ' ' .. self.child:eval()
+  end,
+})
+
+local LSPClients = {
+  condition = hconds.lsp_attached,
+  init = function(self)
+    self.names = {}
+
+    for _, server in ipairs(vim.lsp.get_clients({ bufnr = self.buf })) do
+      self.names[#self.names + 1] = server.name
+    end
+  end,
+  pad_symmetric({
+    flexible = priorities.medium,
+    -- If there is enough space, display an icon and active clients.
+    {
+      provider = function(self)
+        return ' ' .. table.concat(self.names, ', ')
+      end,
+    },
+    -- Fall back to just an icon.
+    { provider = '' },
+  }),
+}
+
+--- Creates a diagnostic component.
+---
+--- @param name string Diagnostic name.
+--- @return table component Component for the diagnostic.
+local function diagnostic(name)
+  local icon =
+    vim.diagnostic.config().signs.text[vim.diagnostic.severity[string.upper(
+      name
+    )]]
+
+  return {
+    condition = function(self)
+      self.count = self.c[vim.diagnostic.severity[string.upper(name)]] or 0
+      return self.count > 0
+    end,
+    flexible = priorities.high,
+    -- If there is enough space, display the diagnostic icon and number.
+    {
+      hl = { fg = 'diagnostics_' .. name },
+      provider = function(self)
+        return ' ' .. icon .. ' ' .. self.count
+      end,
+    },
+    -- Fall back to just the diagnostic number.
+    {
+      hl = { fg = 'diagnostics_' .. name },
+      provider = function(self)
+        return ' ' .. self.count
+      end,
+    },
+  }
+end
+
+local Diagnostics = {
   condition = function(self)
-    local types = { "added", "removed", "changed" }
-    for _, type in pairs(types) do
-      local count = self.status_dict[type] or 0
+    self.c = vim.diagnostic.count(self.buf)
+
+    local total = 0
+    local names = { 'error', 'warn', 'info', 'hint' }
+
+    for _, name in ipairs(names) do
+      total = total + (self.c[vim.diagnostic.severity[string.upper(name)]] or 0)
+    end
+
+    return total ~= 0
+  end,
+  pad_symmetric({
+    {
+      flexible = priorities.low,
+      -- If there is enough space, display an icon and diagnostic number.
+      { provider = '󰨰 Diagnostics:' },
+      -- Fall back to just an icon.
+      { provider = '󰨰:' },
+    },
+    diagnostic('error'),
+    diagnostic('warn'),
+    diagnostic('info'),
+    diagnostic('hint'),
+  }),
+}
+
+--- Creates a Git diff component.
+---
+--- @param name string Git diff name.
+--- @return table component Component for the diff.
+local function git_diff(name)
+  return {
+    static = {
+      icons = {
+        added = '',
+        removed = '',
+        changed = '',
+      },
+    },
+    condition = function(self)
+      self.count = self.status_dict[name] or 0
+      return self.count > 0
+    end,
+    hl = { fg = 'git_' .. name },
+    flexible = priorities.medium,
+    -- If there is enough space, display the diff icon and number.
+    {
+      provider = function(self)
+        return ' ' .. self.icons[name] .. ' ' .. self.count
+      end,
+    },
+    -- Fall back to just the diff number.
+    {
+      provider = function(self)
+        return ' ' .. self.count
+      end,
+    },
+  }
+end
+
+local GitDiffs = hutils.insert(GitData, {
+  condition = function(self)
+    local names = { 'added', 'removed', 'changed' }
+
+    for _, name in ipairs(names) do
+      local count = self.status_dict[name] or 0
+
       if count > 0 then
         return true
       end
     end
+
     return false
   end,
   pad_symmetric({
-    Space,
-    GitDiff("added"),
-    GitDiff("removed"),
-    GitDiff("changed"),
+    git_diff('added'),
+    git_diff('removed'),
+    git_diff('changed'),
+    -- Add a trailing space since all components only handle the space that
+    -- precedes them.
+    InertSpace,
   }),
 })
 
-local function Diagnostic(type)
-  local icon =
-      vim.diagnostic.config().signs.text[vim.diagnostic.severity[string.upper(
-        type
-      )]]
-  return {
-    condition = function(self)
-      self.count = self.c[vim.diagnostic.severity[string.upper(type)]] or 0
-      return self.count > 0
-    end,
-    flexible = priorities.LSPInfo,
-    {
-      Space,
-      {
-        provider = function(self)
-          return icon .. " " .. self.count
-        end,
-        hl = { fg = "diagnostics_" .. type },
-      },
-    },
-    {
-      Space,
-      {
-        provider = function(self)
-          return self.count
-        end,
-        hl = { fg = "diagnostics_" .. type },
-      },
-    },
-  }
-end
-
-local LSPInfo = {
-  init = function(self)
-    self.c = vim.diagnostic.count(self.buf)
-    local total = 0
-    local types = { "error", "warn", "info", "hint" }
-    for _, type in pairs(types) do
-      total = total + (self.c[vim.diagnostic.severity[string.upper(type)]] or 0)
-    end
-    self.nonzero_diagnostics = total ~= 0
-  end,
-  pad_symmetric({
-    {
-      condition = hconds.lsp_attached,
-      init = function(self)
-        self.names = {}
-        for _, server in pairs(vim.lsp.get_clients({ bufnr = self.buf })) do
-          table.insert(self.names, server.name)
-        end
+local WindowCloseButtonRight = pad_left({
+  {
+    on_click = {
+      callback = function(_, minwid)
+        vim.schedule(function()
+          vim.api.nvim_win_close(minwid, false)
+        end)
       end,
-      flexible = priorities.LSPInfo,
-      {
-        {
-          provider = function(self)
-            return " " .. table.concat(self.names, ", ")
-          end,
-        },
-        {
-          condition = hconds.has_diagnostics,
-          provider = ":",
-        },
-      },
-      {
-        provider = function(self)
-          if self.nonzero_diagnostics then
-            return "󰨰"
-          end
-          return ""
-        end,
-      },
+      minwid = function(self)
+        return self.win
+      end,
+      name = 'window_close_callback',
     },
-    Diagnostic("error"),
-    Diagnostic("warn"),
-    Diagnostic("info"),
-    Diagnostic("hint"),
-  }),
-}
-
-local WindowCloseButton = {
-  on_click = {
-    callback = function(_, minwid)
-      vim.schedule(function()
-        vim.api.nvim_win_close(minwid, { force = false })
-      end)
-    end,
-    minwid = function(self)
-      return self.win
-    end,
-    name = "window_close_callback",
+    provider = '',
   },
-  { provider = "" },
-  Space,
-}
+  InertSpace,
+})
 
--- Active window bar elements
 local ActiveWinbar = hutils.insert(
-  WinInfo,
-  pad_right(Breadcrumbs),
+  WinData,
+  BreadcrumbsLeft,
   Align,
-  LSPInfo,
+  LSPClients,
+  Diagnostics,
   GitDiffs,
-  pad_left(WindowCloseButton)
+  WindowCloseButtonRight
 )
 
--- Inactive window bar elements
-local InactiveWinbar = hutils.insert(WinInfo, {
-  hl = { fg = "winbar_inactive_fg", bg = "winbar_inactive_bg", force = true },
-  pad_right(Breadcrumbs),
+local InactiveWinbar = hutils.insert(WinData, {
+  hl = { fg = 'winbar_inactive_fg', bg = 'winbar_inactive_bg', force = true },
+  BreadcrumbsLeft,
   Align,
-  LSPInfo,
+  LSPClients,
+  Diagnostics,
   GitDiffs,
-  pad_left(WindowCloseButton),
+  WindowCloseButtonRight,
 })
 
--- Tabline mode indicator
-local ModeTabline = hutils.insert(Mode, {
+-- Tab pages line components.
+local ModeTabline = hutils.insert(ModeData, {
   hl = function(self)
-    return { fg = "black", bg = self.color }
+    return { fg = 'black', bg = self.colour }
   end,
-  provider = "  ",
+  provider = '  ',
 })
 
--- Tabline Buffers
-local FileBufnr = {
-  Space,
-  {
-    provider = function(self)
-      return tostring(self.buf)
-    end,
-  },
-  Space,
+local BufferNumber = {
+  provider = function(self)
+    return ' ' .. tostring(self.buf) .. ' '
+  end,
 }
 
-local BufferFile = {
+local BufferButton = {
   on_click = {
     callback = function(_, minwid, _, button)
-      if button == "m" then
+      -- Delete the buffer on a middle mouse click. Otherwise, set the current
+      -- window buffer to the clicked buffer.
+      if button == 'm' then
         vim.schedule(function()
           vim.api.nvim_buf_delete(minwid, { force = false })
         end)
@@ -751,159 +755,161 @@ local BufferFile = {
     minwid = function(self)
       return self.bufnr
     end,
-    name = "buffer_callback",
+    name = 'buffer_callback',
   },
-  FileBufnr,
-  FileIcon,
-  FileName,
-  FileFlags,
+  BufferNumber,
+  BufferIcon,
+  BufferNameTail,
+  BufferFlags,
 }
 
 local BufferCloseButton = {
   condition = function(self)
-    return not vim.api.nvim_get_option_value("modified", { buf = self.buf })
+    return not vim.api.nvim_get_option_value('modified', { buf = self.buf })
   end,
-  Space,
+  InertSpace,
   {
     on_click = {
+      -- Delete the buffer on clicking.
       callback = function(_, minwid)
         vim.schedule(function()
           vim.api.nvim_buf_delete(minwid, { force = false })
-          vim.cmd.redrawtabline()
         end)
       end,
       minwid = function(self)
         return self.bufnr
       end,
-      name = "buffer_close_callback",
+      name = 'buffer_close_callback',
     },
-    { provider = "" },
+    { provider = '' },
   },
 }
 
 local Buffer = {
   init = function(self)
     self.buf = self.bufnr or 0
-    self.filename =
-        vim.fs.basename(vim.api.nvim_buf_get_name(self.buf))
+    self.buftail = vim.fs.basename(vim.api.nvim_buf_get_name(self.buf))
     self.filetype =
-        vim.api.nvim_get_option_value("filetype", { buf = self.buf })
+      vim.api.nvim_get_option_value('filetype', { buf = self.buf })
   end,
+  -- Highlight the active buffer and force dimming of inactive buffers.
   hl = function(self)
     if self.is_active then
-      return { fg = "buffer_active_fg", bg = "buffer_active_bg", force = true }
+      return { fg = 'buffer_active_fg', bg = 'buffer_active_bg', force = true }
     else
       return {
-        fg = "buffer_inactive_fg",
-        bg = "buffer_inactive_bg",
+        fg = 'buffer_inactive_fg',
+        bg = 'buffer_inactive_bg',
         force = true,
       }
     end
   end,
-  BufferFile,
+  BufferButton,
   BufferCloseButton,
-  Space,
+  InertSpace,
 }
 
-local Buffers = hutils.make_buflist(Buffer)
+local BuffersLeft = pad_right(hutils.make_buflist(Buffer))
 
--- Tabline tabs
-local TabLine = {
-  hl = { fg = "tab_active_highlight" },
+local TabDecorator = {
+  hl = { fg = 'tab_active_highlight' },
+  -- Highlight active tabs with a bright line.
   provider = function(self)
     if self.is_active then
-      return "▎"
+      return '▎'
     end
-    return " "
+
+    return ' '
   end,
 }
 
-local TabNumber = {
-  hl = { fg = "tab_active_highlight" },
+local TabButton = {
+  hl = { fg = 'tab_active_highlight' },
   provider = function(self)
-    return "%" .. self.tabnr .. "T" .. self.tabpage .. " %T"
+    return '%' .. self.tabnr .. 'T' .. self.tabpage .. ' %T'
   end,
 }
 
 local TabCloseButton = {
   provider = function(self)
-    return "%" .. self.tabnr .. "X%X"
+    return '%' .. self.tabnr .. 'X%X'
   end,
 }
 
 local Tab = {
   hl = function(self)
     if self.is_active then
-      return { fg = "tab_active_fg", bg = "tab_active_bg" }
+      return { fg = 'tab_active_fg', bg = 'tab_active_bg' }
     else
-      return { fg = "tab_inactive_fg", bg = "tab_inactive_bg", force = true }
+      return { fg = 'tab_inactive_fg', bg = 'tab_inactive_bg', force = true }
     end
   end,
-  TabLine,
-  TabNumber,
+  TabDecorator,
+  TabButton,
   TabCloseButton,
-  Space,
+  InertSpace,
 }
 
-local Tabs = {
+local TabsRight = pad_left({
   condition = function()
     return #vim.api.nvim_list_tabpages() > 1
   end,
   hutils.make_tablist(Tab),
-}
+})
 
--- Tabline elements
 local Tabline = {
   ModeTabline,
-  Space,
+  InertSpace,
   Trunc,
-  pad_right(Buffers),
+  BuffersLeft,
   Align,
-  pad_left(Tabs),
+  TabsRight,
 }
 
--- Sign column
-local Signcolumn = { provider = "%s" }
+-- Statuscolumn components.
+local Signcolumn = { provider = '%s' }
 
--- Line number column
 local Numbercolumn = {
   condition = function(self)
-    return vim.api.nvim_get_option_value("number", { win = self.win })
-        or vim.api.nvim_get_option_value("relativenumber", { win = self.win })
+    return vim.api.nvim_get_option_value('number', { win = self.win })
+      or vim.api.nvim_get_option_value('relativenumber', { win = self.win })
   end,
-  { provider = "%l" },
-  Space,
+  provider = '%l ',
 }
 
--- Code folds column
 local Foldcolumn = {
+  -- Hide the foldcolumn on virtual lines since fold indicators duplicate on
+  -- virtual lines.
   condition = function(self)
-    return vim.api.nvim_get_option_value("foldenable", { win = self.win })
-        and vim.api.nvim_get_option_value("foldcolumn", { win = self.win }) ~= 0
-        and vim.v.virtnum == 0
+    return vim.api.nvim_get_option_value('foldenable', { win = self.win })
+      and vim.api.nvim_get_option_value('foldcolumn', { win = self.win }) ~= '0'
+      and vim.v.virtnum == 0
   end,
-  { provider = "%C" },
-  Space,
+  provider = '%C ',
 }
 
--- Statuscolumn elements
-local Statuscolumn = hutils.insert(WinInfo, {
+local Statuscolumn = {
   condition = function(self)
-    return utils.valid_normal_disk_buf(self.buf)
+    self.win = vim.fn.win_getid(self.winnr)
+
+    if not vim.api.nvim_win_is_valid(self.win) then
+      return false
+    end
+
+    return utils.valid_normal_disk_buf(vim.api.nvim_win_get_buf(self.win))
   end,
-  Space,
+  InertSpace,
   Signcolumn,
   Numbercolumn,
   Foldcolumn,
-})
+}
 
--- Setup plugin
-require("heirline").setup({
+require('heirline').setup({
   opts = {
     disable_winbar_cb = function(ev)
       return not utils.valid_normal_disk_buf(ev.buf)
     end,
-    colors = get_colors,
+    colors = get_colours,
   },
   statusline = active_inactive_win_component(
     ActiveStatusLine,
@@ -914,69 +920,97 @@ require("heirline").setup({
   statuscolumn = Statuscolumn,
 })
 
--- Defer redrawing of status line, window bar, and tab pages line on specific
--- events to prevent a delay, particularly relevant on exiting Fzf-Lua
+-- Schedules redrawing of statusline, window bar, and tab pages line.
+--
+-- This is called on specific events to prevent a stale statusline.
 local redraw = vim.schedule_wrap(function()
   vim.cmd.redrawstatus({ bang = true })
   vim.cmd.redrawtabline()
 end)
 
-local heirline_redraw_group =
-    vim.api.nvim_create_augroup("HeirlineRedraw", { clear = true })
+-- Re-initializes the window bar.
+--
+-- This is called on specific events when a re-evaluation of whether the window
+-- bar needs to be displayed should occur.
+local reinit_winbar = vim.schedule_wrap(function()
+  vim.api.nvim_exec_autocmds('BufWinEnter', {
+    group = 'Heirline_init_winbar',
+    buffer = vim.api.nvim_get_current_buf(),
+  })
+end)
 
+local heirline_update_group =
+  vim.api.nvim_create_augroup('HeirlineUpdate', { clear = true })
+
+-- Redraw on these events.
 vim.api.nvim_create_autocmd({
-  "ModeChanged",
-  "DiagnosticChanged",
-  "LspAttach",
-  "LspDetach",
+  'ModeChanged',
+  'DiagnosticChanged',
+  'LspAttach',
+  'LspDetach',
+  'TermLeave',
 }, {
   callback = redraw,
-  group = heirline_redraw_group,
+  group = heirline_update_group,
 })
 
-vim.api.nvim_create_autocmd("User", {
+vim.api.nvim_create_autocmd('User', {
   callback = redraw,
-  group = heirline_redraw_group,
-  pattern = "GitSignsUpdate",
+  pattern = 'GitSignsUpdate',
+  group = heirline_update_group,
 })
 
--- Update colors on colorscheme change
-local heirline_colors_group =
-    vim.api.nvim_create_augroup("HeirlineColors", { clear = true })
+-- Re-evaluate displaying of the window bar on these events.
+vim.api.nvim_create_autocmd('BufWritePost', {
+  callback = reinit_winbar,
+  group = heirline_update_group,
+})
 
-vim.api.nvim_create_autocmd("ColorScheme", {
+vim.api.nvim_create_autocmd('UIEnter', {
   callback = function()
-    hutils.on_colorscheme(get_colors)
+    if vim.v.startreason == 'restart' or vim.v.startreason == 'restart!' then
+      reinit_winbar()
+    end
   end,
-  group = heirline_colors_group,
+  group = heirline_update_group,
 })
 
--- Show tab pages line based on if there are listed buffers that are not visible
-local heirline_tabline_group =
-    vim.api.nvim_create_augroup("HeirlineTabLine", { clear = true })
+-- Update highlights on colour scheme change
+vim.api.nvim_create_autocmd('ColorScheme', {
+  callback = function()
+    hutils.on_colorscheme(get_colours)
+  end,
+  group = heirline_update_group,
+})
 
+-- Show tab pages line only if there are listed buffers that are not visible.
 vim.api.nvim_create_autocmd({
-  "BufAdd",
-  "BufDelete",
-  "BufEnter",
-  "BufWinEnter",
+  'BufAdd',
+  'BufDelete',
+  'BufEnter',
+  'BufWinEnter',
 }, {
   callback = vim.schedule_wrap(function()
     local all_bufs_visible = true
+
     local bufs = vim.tbl_filter(function(buf)
       return vim.fn.buflisted(buf) == 1
     end, vim.api.nvim_list_bufs())
+
     local visible_bufs = {}
+
     for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
       local buf = vim.api.nvim_win_get_buf(win)
       visible_bufs[buf] = true
     end
+
     for _, buf in ipairs(bufs) do
       if not visible_bufs[buf] then
         all_bufs_visible = false
       end
     end
-    vim.opt.showtabline = not all_bufs_visible and 2 or 1
+
+    vim.o.showtabline = not all_bufs_visible and 2 or 1
   end),
-  group = heirline_tabline_group,
+  group = heirline_update_group,
 })
