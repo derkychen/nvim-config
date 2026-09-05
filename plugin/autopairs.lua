@@ -1,12 +1,12 @@
----Configuration for the `nvim-autopairs` plugin.
+--- Configuration for the `nvim-autopairs` plugin.
 ---
----Lazy-loads `nvim-autopairs`.
+--- Lazy-loads `nvim-autopairs`.
 vim.pack.add({
   'https://github.com/windwp/nvim-autopairs',
 }, { load = false })
 
 -- Lazy-load `nvim-autopairs` when entering INSERT mode.
-require("lazyload").register({
+require('lazyload').register({
   augroup_name = 'AutopairsLazyLoad',
   events = 'InsertEnter',
   name = 'nvim-autopairs',

@@ -8,19 +8,19 @@ local utils = require('utils')
 
 local orig_cmd_win_config
 
----Get command-line window ID.
+--- Gets command-line window ID.
 ---
----@return integer|nil win Window ID of the command-line if it is valid.
+--- @return integer|nil win Window ID of the command-line if it is valid.
 local function get_cmdline_win()
   local win = ui2.wins.cmd
 
   return (win and vim.api.nvim_win_is_valid(win)) and win or nil
 end
 
----Construct `winhighlight` option from map of highlights.
+--- Constructs `winhighlight` option from map of highlights.
 ---
----@param win_hl_map table<string, string> Table of window highlights.
----@return string winhighlight Corresponding `winhighlight` option.
+--- @param win_hl_map table<string, string> Table of window highlights.
+--- @return string winhighlight Corresponding `winhighlight` option.
 local function make_winhighlight(win_hl_map)
   local win_hls = {}
 
@@ -48,7 +48,7 @@ local cmdline_regular_winhighlight = make_winhighlight({
   IncSearch = 'None',
 })
 
----Set command-line highlights.
+--- Sets command-line highlights.
 local function set_hls()
   vim.api.nvim_set_hl(0, 'CmdlineFloatNormal', {
     fg = vim.api.nvim_get_hl(0, { name = 'MsgArea' }).fg,
@@ -62,7 +62,7 @@ local function set_hls()
   )
 end
 
----Float the command-line window.
+--- Floats the command-line window.
 local function float_cmdline()
   local win = get_cmdline_win()
 
@@ -116,7 +116,7 @@ local function float_cmdline()
   })
 end
 
----Restore the normal UI2 command-line window.
+--- Restores the normal UI2 command-line window.
 local function restore_cmdline()
   local win = get_cmdline_win()
 

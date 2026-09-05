@@ -1,4 +1,4 @@
----Configuration for built-in diagnostic functionality.
+--- Configuration for built-in diagnostic functionality.
 local icons = require('icons')
 
 -- Set diagnostic icons.

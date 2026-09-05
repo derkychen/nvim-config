@@ -1,20 +1,20 @@
----Single plugin lazy-loading functionality.
+--- Single plugin lazy-loading functionality.
 ---
----Handles automatic command boilerplate for registration of lazy plugins.
+--- Handles automatic command boilerplate for registration of lazy plugins.
 local M = {}
 
----@class LazySpec
----@field augroup_name string Automatic command group name for plugin loading.
----@field events string|string[] Event(s) on which to load the plugin.
----@field name string Name of the plugin used on loading.
----@field config fun() Configuration function for the plugin.
+--- @class LazySpec
+--- @field augroup_name string Automatic command group name for plugin loading.
+--- @field events string|string[] Event(s) on which to load the plugin.
+--- @field name string Name of the plugin used on loading.
+--- @field config fun() Configuration function for the plugin.
 
----Register a plugin to lazy-load.
+--- Registers a plugin to lazy-load.
 ---
----Creates automatic commands for loading the plugin on specified events. These
----are only added once.
+--- Creates automatic commands for loading the plugin on specified events. These
+--- are only added once.
 ---
----@param spec LazySpec Lazy plugin spec.
+--- @param spec LazySpec Lazy plugin spec.
 function M.register(spec)
   local group = vim.api.nvim_create_augroup(spec.augroup_name, { clear = true })
 

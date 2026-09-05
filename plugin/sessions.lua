@@ -1,4 +1,4 @@
----Configuration for my sessions module.
+--- Configuration for my sessions module.
 local sessions = require('sessions')
 
 -- Keymaps.

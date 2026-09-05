@@ -1,33 +1,35 @@
----Buffer option setting.
+--- Buffer option setting.
 ---
----Configures default buffer options for normal, disk buffers.
+--- Configures default buffer options for normal, disk buffers.
+
+--- @type table<integer, boolean>
 local opts_initialized = {}
 
----Check if default buffer options have been initialized for a buffer.
+--- Check if default buffer options have been initialized for a buffer.
 ---
----@param buf integer Buffer ID.
----@return boolean initialized Whether buffer options are initialized.
+--- @param buf integer Buffer ID.
+--- @return boolean initialized Whether buffer options are initialized.
 local function is_opts_initialized(buf)
   return opts_initialized[buf] or false
 end
 
----Mark default buffer options as initialized for a buffer.
+--- Mark default buffer options as initialized for a buffer.
 ---
----@param buf integer Buffer ID.
+--- @param buf integer Buffer ID.
 local function mark_opts_initialized(buf)
   opts_initialized[buf] = true
 end
 
----Clear tracking of default buffer options for a buffer.
+--- Clear tracking of default buffer options for a buffer.
 ---
----@param buf integer Buffer ID.
+--- @param buf integer Buffer ID.
 local function clear_opts_initialized(buf)
   opts_initialized[buf] = nil
 end
 
----Set the default buffer options.
+--- Set the default buffer options.
 ---
----@param buf integer Buffer ID.
+--- @param buf integer Buffer ID.
 local function set_default_opts(buf)
   local default_opts_opts = {
     expandtab = true,
@@ -44,12 +46,12 @@ local function set_default_opts(buf)
   end
 end
 
----Set `autocomplete` option as it should adapt connection of LSP clients.
+--- Set `autocomplete` option as it should adapt connection of LSP clients.
 ---
----This allows for `blink.cmp`-like falling back to buffer words for
----autocompletion when LSP clients are not available.
+--- This allows for `blink.cmp`-like falling back to buffer words for
+--- autocompletion when LSP clients are not available.
 ---
----@param buf integer Buffer ID.
+--- @param buf integer Buffer ID.
 local function update_autocomplete(buf)
   local has_lsp = #vim.lsp.get_clients({
     bufnr = buf,

@@ -1,6 +1,6 @@
----Configuration for the `tokyonight.nvim` plugin.
+--- Configuration for the `tokyonight.nvim` plugin.
 ---
----Overrides some default colours and highlights. Sets the colour scheme.
+--- Overrides some default colours and highlights. Sets the colour scheme.
 vim.pack.add({ 'https://github.com/folke/tokyonight.nvim' })
 
 require('tokyonight').setup({

@@ -1,4 +1,4 @@
----Configuration for the `mini.starter` plugin.
+--- Configuration for the `mini.starter` plugin.
 local sessions = require('sessions')
 
 vim.pack.add({ 'https://github.com/nvim-mini/mini.starter' })
@@ -6,13 +6,13 @@ vim.pack.add({ 'https://github.com/nvim-mini/mini.starter' })
 local fzf = require('fzf-lua')
 local starter = require('mini.starter')
 
----Generate a greeting based on the time of day.
+--- Generates a greeting based on the time of day.
 ---
----The time of day is defined as:
+--- The time of day is defined as:
 ---
----* Morning from 00:00 to 11:59
----* Afternoon from 12:00 to 17:59
----* Evening from 18:00 to 23:59
+--- * Morning from 00:00 to 11:59
+--- * Afternoon from 12:00 to 17:59
+--- * Evening from 18:00 to 23:59
 local function greeting()
   local hour = tonumber(vim.fn.strftime('%H'))
   local part_id = math.floor(hour / 6) + 1
@@ -22,9 +22,9 @@ local function greeting()
   return ('Good %s, %s'):format(day_part, username)
 end
 
----Generate a list of recent sessions that load on selection.
+--- Generates a list of recent sessions that load on selection.
 ---
----@param max? integer Number of recent sessions to show.
+--- @param max? integer Number of recent sessions to show.
 local function recent_sessions_items(max)
   max = max or 3
 
@@ -47,7 +47,7 @@ local function recent_sessions_items(max)
   return items
 end
 
----Generate a list of picker functions that execute on selection.
+--- Generates a list of picker functions that execute on selection.
 local function pick_items()
   local function item(name, action)
     return { name = name, section = 'Pick', action = action }
@@ -80,7 +80,7 @@ starter.setup({
   silent = true,
 })
 
--- Refresh all `mini.starter` buffers.
+-- Refreshes all `mini.starter` buffers.
 local refresh = vim.schedule_wrap(function()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     local filetype = vim.api.nvim_get_option_value('filetype', { buf = buf })

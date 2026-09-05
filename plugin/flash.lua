@@ -1,6 +1,6 @@
--- Configuration for the `flash.nvim` plugin.
---
--- `tokyonight.nvim` configures this plugin's highlights.
+--- Configuration for the `flash.nvim` plugin.
+---
+--- `tokyonight.nvim` configures this plugin's highlights.
 vim.pack.add({ 'https://github.com/folke/flash.nvim' })
 
 local flash = require('flash')

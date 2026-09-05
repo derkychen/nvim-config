@@ -1,7 +1,7 @@
----Set up global options.
+--- Sets up global options.
 ---
----These options are applied globally. However, these options can be window- or
----buffer-local.
+--- These options are applied globally. However, these options can be window- or
+--- buffer-local.
 vim.g.mapleader = ' '
 vim.o.confirm = true
 vim.o.foldopen = ''

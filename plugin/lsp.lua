@@ -1,7 +1,7 @@
----LSP functionality.
+--- LSP functionality.
 ---
----Adjusts semantic highlighting to accommodate for Tree-sitter highlighting and
----sets up LSP servers lazily.
+--- Adjusts semantic highlighting to accommodate for Tree-sitter highlighting
+--- and sets up LSP servers lazily.
 
 -- Set up all LSP servers.
 --
@@ -14,10 +14,10 @@ vim.lsp.enable(vim
   end)
   :totable())
 
----Clear semantic highlights for comments in Lua.
+--- Clears semantic highlights for comments in Lua.
 ---
----This is an exception, as it seems that Tree-sitter parsing is overridden by
----LSP when it should not be (e.g. for `TODO` or `NOTE` comments).
+--- This is an exception, as it seems that Tree-sitter parsing is overridden by
+--- LSP when it should not be (e.g. for `TODO` or `NOTE` comments).
 local function set_lua_semantic_hls()
   vim.api.nvim_set_hl(0, '@lsp.type.comment.lua', {})
 end

@@ -1,6 +1,6 @@
----Configuration for the `aerial.nvim` plugin.
+--- Configuration for the `aerial.nvim` plugin.
 ---
----`mini.icons` must be set up before this configuration is sourced.
+--- `mini.icons` must be set up before this configuration is sourced.
 local utils = require('utils')
 
 vim.pack.add({ 'https://github.com/stevearc/aerial.nvim' })

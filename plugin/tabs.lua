@@ -1,8 +1,8 @@
----Tab page functionality.
+--- Tab page functionality.
 ---
----Provides keymaps for opening and closing tab pages.
+--- Provides keymaps for opening and closing tab pages.
 
----Close the current tab.
+--- Closes the current tab.
 local function close_current()
   if vim.fn.tabpagenr('$') > 1 then
     vim.cmd.tabclose()

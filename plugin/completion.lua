@@ -1,22 +1,22 @@
----Configuration for improved built-in completion functionality.
+--- Configuration for improved built-in completion functionality.
 ---
----`mini.icons` must be set up before this configuration is sourced.
+--- `mini.icons` must be set up before this configuration is sourced.
 local utils = require('utils')
 local micons = require('mini.icons')
 
 local DOC_MAX_WIDTH = 60
 local DOC_MAX_HEIGHT = 15
 
----Configure the documentation window.
+--- Configures the documentation window.
 ---
----Prefers placing the documentation window to the right of the popup menu,
----aligned with the edge of the popup menu closest to the cursor.
+--- Prefers placing the documentation window to the right of the popup menu,
+--- aligned with the edge of the popup menu closest to the cursor.
 ---
----TODO: Replace this function with the `completepopup` option when it becomes
----available:
----https://github.com/neovim/neovim/pull/40943
+--- TODO: Replace this function with the `completepopup` option when it becomes
+--- available:
+--- https://github.com/neovim/neovim/pull/40943
 ---
----@param win integer Documentation window ID
+--- @param win integer Documentation window ID
 local function configure_doc(win)
   local pum = vim.fn.pum_getpos()
   local config = vim.api.nvim_win_get_config(win)

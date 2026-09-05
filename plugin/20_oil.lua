@@ -1,6 +1,6 @@
----Configuration for the `oil.nvim` plugin.
+--- Configuration for the `oil.nvim` plugin.
 ---
----`mini.icons` must be set up before this configuration is sourced.
+--- `mini.icons` must be set up before this configuration is sourced.
 vim.pack.add({ 'https://github.com/stevearc/oil.nvim' })
 
 local oil = require('oil')

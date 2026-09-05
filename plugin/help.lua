@@ -1,11 +1,11 @@
----Configuration for built-in help functionality.
+--- Configuration for built-in help functionality.
 ---
----Mainly just floats the window.
+--- Mainly just floats the window.
 local utils = require('utils')
 
----Float the help window in the bottom right of the editor, slightly inset.
+--- Floats the help window in the bottom right of the editor, slightly inset.
 ---
----@param win integer Help window ID.
+--- @param win integer Help window ID.
 local function float_help(win)
   if not vim.api.nvim_win_is_valid(win) then
     return

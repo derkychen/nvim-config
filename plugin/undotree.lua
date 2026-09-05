@@ -1,8 +1,8 @@
----Configuration for the built-in undo tree plugin.
+--- Configuration for the built-in undo tree plugin.
 ---
----Lazy-loads the undo tree.
+--- Lazy-loads the undo tree.
 
----Toggle the undo tree in a floating window.
+--- Toggles the undo tree in a floating window.
 local function toggle_undotree()
   local current_buf = vim.api.nvim_get_current_buf()
 
