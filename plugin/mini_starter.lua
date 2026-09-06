@@ -19,7 +19,7 @@ local function greeting()
   local day_part = ({ 'morning', 'morning', 'afternoon', 'evening' })[part_id]
   local username = vim.uv.os_get_passwd()['username'] or 'USERNAME'
 
-  return ('Good %s, %s'):format(day_part, username)
+  return 'Good ' .. day_part .. ', ' .. username .. '.'
 end
 
 --- Generates a list of recent sessions that load on selection.
