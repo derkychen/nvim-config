@@ -1,6 +1,6 @@
 ---UI2 setup and floating command-line.
 ---
----Based on and thanks to Raphaël Chartier's tiny-cmdline.nvim:
+---Based on Raphaël Chartier's Tiny-Cmdline plugin:
 ---https://github.com/rachartier/tiny-cmdline.nvim
 local ui2 = require('vim._core.ui2')
 local cmdline = require('vim._core.ui2.cmdline')

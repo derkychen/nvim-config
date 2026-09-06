@@ -1,6 +1,6 @@
---- Configuration for the `oil.nvim` plugin.
+--- Configuration for Oil.
 ---
---- `mini.icons` must be set up before this configuration is sourced.
+--- Mini Icons must be set up before this configuration is sourced.
 vim.pack.add({ 'https://github.com/stevearc/oil.nvim' })
 
 local oil = require('oil')
@@ -14,12 +14,12 @@ oil.setup({
     'mtime',
   },
   win_options = {
-    -- Show `oil.nvim` item IDs.
+    -- Show Oil item IDs.
     conceallevel = 0,
     cursorline = true,
     cursorcolumn = true,
   },
-  -- Watch the file system for chagnes.
+  -- Watch the file system for changes.
   watch_for_changes = true,
   -- Show hidden items,
   view_options = {

@@ -1,4 +1,4 @@
---- Configuration for the `nvim-treesitter` plugin.
+--- Configuration for Tree-sitter.
 ---
 --- Ensures parsers for a set of languages are installed. Automatically starts
 --- Tree-sitter on buffers with filetypes matching these languages.

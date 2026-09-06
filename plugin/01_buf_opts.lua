@@ -48,8 +48,8 @@ end
 
 --- Set `autocomplete` option as it should adapt connection of LSP clients.
 ---
---- This allows for `blink.cmp`-like falling back to buffer words for
---- autocompletion when LSP clients are not available.
+--- This allows for built-in completion to fall back to buffer words when LSP
+--- clients are not available.
 ---
 --- @param buf integer Buffer ID.
 local function update_autocomplete(buf)

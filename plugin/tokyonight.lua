@@ -1,4 +1,4 @@
---- Configuration for the `tokyonight.nvim` plugin.
+--- Configuration for TokyoNight.
 ---
 --- Overrides some default colours and highlights. Sets the colour scheme.
 vim.pack.add({ 'https://github.com/folke/tokyonight.nvim' })
@@ -31,7 +31,7 @@ require('tokyonight').setup({
     hl.IncSearch.bg = c.green1
     hl.Search.bg = c.dark3
 
-    -- Softer `flash.nvim` highlighting.
+    -- Softer Flash highlighting.
     hl.FlashLabel = { bg = c.blue5, fg = c.black }
 
     -- Match window bar background with window background.

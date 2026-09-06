@@ -1,7 +1,6 @@
---- Configuration for the Fzf-Lua plugin.
+--- Configuration for Fzf-Lua.
 ---
---- `mini.icons` and `oil.nvim` must be set up before this configuration is
---- sourced.
+--- Mini Icons and Oil must be set up before this configuration is sourced.
 local oil = require('oil')
 
 vim.pack.add({ 'https://github.com/ibhagwan/fzf-lua' })
@@ -33,7 +32,7 @@ fzf.setup({
 
 local home = vim.env.HOME
 
---- Fuzzy finds a directory and opens `oil.nvim` in it.
+--- Fuzzy finds a directory and opens Oil in it.
 ---
 --- This is not a built-in function. It searches only from the home directory.
 function fzf.dirs()

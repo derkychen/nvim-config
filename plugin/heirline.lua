@@ -1,8 +1,8 @@
---- Configuration for the Heirline plugin.
+--- Configuration for Heirline.
 ---
 --- This configuration is responsible for the statusline, statuscolumn, window
---- bar, tab pages line. `mini.icons`, `aerial.nvim`, and Gitsigns must be set
---- up before this configuration is sourced.
+--- bar, tab pages line. Mini Icons, Aerial, and Gitsigns must be set up before
+--- this configuration is sourced.
 local icons = require('icons')
 local utils = require('utils')
 local micons = require('mini.icons')

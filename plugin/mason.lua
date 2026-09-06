@@ -1,6 +1,6 @@
---- Configuration for the `mason.nvim` plugin.
+--- Configuration for Mason.
 ---
---- Ensures a set of LSP servers are installed and tweaks `mason.nvim`'s UI.
+--- Ensures a set of LSP servers are installed and tweaks Mason's UI.
 vim.pack.add({ 'https://github.com/mason-org/mason.nvim' })
 
 require('mason').setup({
@@ -10,7 +10,7 @@ require('mason').setup({
   },
 })
 
--- `mason.nvim` ensures installation of these packages.
+-- Mason ensures installation of these packages.
 --
 -- NOTE: That this list is different from the list of language servers enabled
 --       in `vim.lsp.enable`.

@@ -1,4 +1,4 @@
---- Configuration for the built-in undo tree plugin.
+--- Configuration for the built-in undo tree.
 ---
 --- Lazy-loads the undo tree.
 
@@ -27,7 +27,7 @@ local function toggle_undotree()
   vim.api.nvim_set_current_win(win)
 end
 
--- Lazy-load `nvim-autopairs` when a buffer is entered.
+-- Lazy-load Autopairs when a buffer is entered.
 require('lazyload').register({
   augroup_name = 'UndoTreeLazyLoad',
   events = 'BufEnter',

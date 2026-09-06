@@ -1,6 +1,6 @@
---- Configuration for the `aerial.nvim` plugin.
+--- Configuration for Aerial.
 ---
---- `mini.icons` must be set up before this configuration is sourced.
+--- Mini Icons must be set up before this configuration is sourced.
 local utils = require('utils')
 
 vim.pack.add({ 'https://github.com/stevearc/aerial.nvim' })
@@ -12,7 +12,7 @@ aerial.setup({
     win_opts = {
       cursorline = true,
     },
-    -- Open `aerial.nvim` in a floating window.
+    -- Open Aerial in a floating window.
     default_direction = 'float',
   },
   show_guides = true,

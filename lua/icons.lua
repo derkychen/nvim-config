@@ -1,6 +1,6 @@
 --- Icon functionality.
 ---
---- This module provides only custom icons. For example, icons from `mini.icons`
+--- This module provides only custom icons. For example, icons from Mini Icons
 --- would not be found here.
 local M = {}
 

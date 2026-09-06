@@ -1,11 +1,11 @@
---- Configuration for the `flash.nvim` plugin.
+--- Configuration for Flash.
 ---
---- `tokyonight.nvim` configures this plugin's highlights.
+--- TokyoNight configures this plugin's highlights.
 vim.pack.add({ 'https://github.com/folke/flash.nvim' })
 
 local flash = require('flash')
 
--- Enable `flash.nvim` enhancements to built-in search.
+-- Enable Flash enhancements to built-in search.
 flash.setup({
   modes = {
     search = {

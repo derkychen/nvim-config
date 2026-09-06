@@ -1,6 +1,6 @@
 --- Configuration for improved built-in completion functionality.
 ---
---- `mini.icons` must be set up before this configuration is sourced.
+--- Mini Icons must be set up before this configuration is sourced.
 local utils = require('utils')
 local micons = require('mini.icons')
 

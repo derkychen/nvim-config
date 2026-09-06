@@ -1,4 +1,4 @@
---- Configuration for the `nvim-autopairs` plugin.
+--- Configuration for Autopairs.
 ---
 --- Lazy-loads `nvim-autopairs`.
 vim.pack.add({

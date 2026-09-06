@@ -1,4 +1,4 @@
---- Configuration for the `mini.starter` plugin.
+--- Configuration for Mini Starter.
 local sessions = require('sessions')
 
 vim.pack.add({ 'https://github.com/nvim-mini/mini.starter' })
