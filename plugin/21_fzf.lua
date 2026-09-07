@@ -38,7 +38,17 @@ local home = vim.env.HOME
 ---
 --- This is not a built-in function. It searches only from the home directory.
 function fzf.dirs()
-  fzf.fzf_exec('fd --type d --hidden --follow --exclude .git', {
+  local cmd
+
+  if vim.fn.executable('fdfind') == 1 then
+    cmd = 'fdfind --type d --hidden --follow --exclude .git'
+  elseif vim.fn.executable('fd') == 1 then
+    cmd = 'fd --type d --hidden --follow --exclude .git'
+  else
+    cmd = [[find -L . -name .git -prune -o -type d ! -path . -print]]
+  end
+
+  fzf.fzf_exec(cmd, {
     prompt = 'Directory > ',
     cwd = home,
     actions = {
