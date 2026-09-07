@@ -1,6 +1,8 @@
 --- Configuration for my sessions module.
 local sessions = require('sessions')
 
+sessions.setup()
+
 -- Keymaps.
 vim.keymap.set(
   'n',
