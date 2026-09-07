@@ -6,7 +6,7 @@
 --- Will migrate to built-in Tree-sitter support when it becomes available:
 --- https://github.com/neovim/neovim/issues/39006
 ---
---- Based on and thanks Evgeni Chasnovski's Neovim configuration:
+--- Based on Evgeni Chasnovski's Neovim configuration:
 --- https://github.com/echasnovski/nvim
 vim.pack.add({ 'https://github.com/nvim-treesitter/nvim-treesitter' })
 
