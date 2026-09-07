@@ -52,8 +52,9 @@ local function configure_doc(win)
     vim.api.nvim_win_set_config(win, { width = width })
   end
 
-  local height =
-    math.min(vim.api.nvim_win_text_height(win, {}).all, DOC_MAX_HEIGHT)
+  local text_height =
+    vim.api.nvim_win_text_height(win, { max_height = DOC_MAX_HEIGHT }).all
+  local height = math.min(math.max(text_height, 1), DOC_MAX_HEIGHT)
 
   -- Choose vertical placement, preferring alignment with the edge of the popup
   -- menu closest to the cursor.
