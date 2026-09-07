@@ -37,8 +37,26 @@ local Empty = {}
 --- @param str string String to escape.
 --- @return string escaped String with `%` escaped.
 local function escape(str)
-  local escaped, _ = str:gsub('%%', '%%%%')
+  local escaped = str:gsub('%%', '%%%%')
   return escaped
+end
+
+--- Joins components with a separator.
+---
+--- @param components table Components to join.
+--- @param separator table Separator component.
+--- @return table joined Joined component.
+local function join(components, separator)
+  local joined = {}
+
+  for i = 1, #components - 1 do
+    joined[#joined + 1] = components[i]
+    joined[#joined + 1] = separator
+  end
+
+  joined[#joined + 1] = components[#components]
+
+  return joined
 end
 
 --- Pads leftmost components on the right.
@@ -200,9 +218,9 @@ local ModeData = {
 }
 
 local GitData = {
-  condition = hconds.is_git_repo,
-  init = function(self)
+  condition = function(self)
     self.status_dict = vim.b[self.buf].gitsigns_status_dict
+    return self.status_dict ~= nil
   end,
   hl = { bg = 'git_bg' },
 }
@@ -219,7 +237,7 @@ local BufferIcon = {
 
     -- Fall back to buffer file type.
     if is_default then
-      self.icon, self.icon_hl, _ = micons.get('filetype', self.filetype)
+      self.icon, self.icon_hl = micons.get('filetype', self.filetype)
     end
   end,
   hl = function(self)
@@ -328,7 +346,7 @@ local ModeText = {
   -- Fall back to the first character of the mode text.
   {
     provider = function(self)
-      return ' ' .. string.sub(self.names[self.mode], 1, 1)
+      return ' ' .. self.names[self.mode]:sub(1, 1)
     end,
   },
   -- Fall back to nothing.
@@ -346,9 +364,11 @@ local GitBranch = hutils.insert(GitData, {
     {
       provider = function(self)
         local branch = self.status_dict.head
+
         if branch == nil or branch == '' then
-          branch = 'master'
+          branch = '[Detached]'
         end
+
         return '  ' .. branch .. ' '
       end,
     },
@@ -454,7 +474,6 @@ local InactiveStatusLine = hutils.insert(WinData, {
 })
 
 -- Window bar components.
-local BreadcrumbsSep = { provider = ' ' .. icons.arrows.right .. ' ' }
 local BreadcrumbsUnknown = { provider = '[Unknown]' }
 
 --- Creates a breadcrumbs directory component.
@@ -462,10 +481,7 @@ local BreadcrumbsUnknown = { provider = '[Unknown]' }
 --- @param name string Directory name.
 --- @return table component Breadcrumbs component for that directory.
 local function breadcrumbs_dir(name)
-  local icon, hl
-
-  icon, hl, _ = micons.get('directory', name)
-
+  local icon, hl = micons.get('directory', name)
   local spacer = icon == '' and '' or ' '
 
   if name == '' then
@@ -523,22 +539,22 @@ end
 
 local BreadcrumbsLeft = pad_right({
   init = function(self)
+    local BreadcrumbsSep = { provider = ' ' .. icons.arrows.right .. ' ' }
     local children = {}
 
     -- Construct directory components.
     for symbol in string.gmatch(self.bufhead, '([^/]+)') do
       children[#children + 1] = breadcrumbs_dir(symbol)
-      children[#children + 1] = BreadcrumbsSep
     end
 
     children[#children + 1] = { BufferIcon, BufferNameTail, BufferFlags }
 
     -- Construct symbol components.
     for _, symbol in ipairs(aerial.get_location(true)) do
-      children[#children + 1] = BreadcrumbsSep
       children[#children + 1] = breadcrumbs_symbol(symbol)
     end
 
+    children = join(children, BreadcrumbsSep)
     self.child = self:new(children, 1)
   end,
   provider = function(self)
@@ -547,12 +563,15 @@ local BreadcrumbsLeft = pad_right({
 })
 
 local LSPClients = {
-  condition = hconds.lsp_attached,
+  condition = function(self)
+    self.clients = vim.lsp.get_clients({ bufnr = self.buf })
+    return #self.clients > 0
+  end,
   init = function(self)
     self.names = {}
 
-    for _, server in ipairs(vim.lsp.get_clients({ bufnr = self.buf })) do
-      self.names[#self.names + 1] = server.name
+    for _, client in ipairs(self.clients) do
+      self.names[#self.names + 1] = client.name
     end
   end,
   pad_symmetric({
@@ -571,119 +590,111 @@ local LSPClients = {
 --- Creates a diagnostic component.
 ---
 --- @param name string Diagnostic name.
+--- @param count integer Diagnostic count.
 --- @return table component Component for the diagnostic.
-local function diagnostic(name)
-  local icon =
-    vim.diagnostic.config().signs.text[vim.diagnostic.severity[string.upper(
-      name
-    )]]
+local function diagnostic(name, count)
+  local severity = vim.diagnostic.severity[name:upper()]
+  local icon = vim.diagnostic.config().signs.text[severity]
 
   return {
-    condition = function(self)
-      self.count = self.c[vim.diagnostic.severity[string.upper(name)]] or 0
-      return self.count > 0
-    end,
     flexible = priorities.high,
     -- If there is enough space, display the diagnostic icon and number.
     {
       hl = { fg = 'diagnostics_' .. name },
-      provider = function(self)
-        return ' ' .. icon .. ' ' .. self.count
-      end,
+      provider = icon .. ' ' .. tostring(count),
     },
     -- Fall back to just the diagnostic number.
     {
       hl = { fg = 'diagnostics_' .. name },
-      provider = function(self)
-        return ' ' .. self.count
-      end,
+      provider = tostring(count),
     },
   }
 end
 
 local Diagnostics = {
+  static = {
+    names = { 'error', 'warn', 'info', 'hint' },
+  },
   condition = function(self)
-    self.c = vim.diagnostic.count(self.buf)
+    self.counts = vim.diagnostic.count(self.buf)
+    return next(self.counts) ~= nil
+  end,
+  init = function(self)
+    local children = {}
 
-    local total = 0
-    local names = { 'error', 'warn', 'info', 'hint' }
+    for _, name in ipairs(self.names) do
+      local severity = vim.diagnostic.severity[name:upper()]
+      local count = self.counts[severity] or 0
 
-    for _, name in ipairs(names) do
-      total = total + (self.c[vim.diagnostic.severity[string.upper(name)]] or 0)
+      if count > 0 then
+        children[#children + 1] = diagnostic(name, count)
+      end
     end
 
-    return total ~= 0
+    self.child = self:new(join(children, InertSpace), 1)
   end,
   pad_symmetric({
-    {
-      flexible = priorities.low,
-      -- If there is enough space, display an icon and diagnostic number.
-      { provider = '󰨰 Diagnostics:' },
-      -- Fall back to just an icon.
-      { provider = '󰨰:' },
-    },
-    diagnostic('error'),
-    diagnostic('warn'),
-    diagnostic('info'),
-    diagnostic('hint'),
+    provider = function(self)
+      return self.child:eval()
+    end,
   }),
 }
 
 --- Creates a Git diff component.
 ---
 --- @param name string Git diff name.
+--- @param count integer Git diff count.
 --- @return table component Component for the diff.
-local function git_diff(name)
+local function git_diff(name, count)
   return {
-    static = {
-      icons = {
-        added = '',
-        removed = '',
-        changed = '',
-      },
-    },
-    condition = function(self)
-      self.count = self.status_dict[name] or 0
-      return self.count > 0
-    end,
     hl = { fg = 'git_' .. name },
     flexible = priorities.medium,
     -- If there is enough space, display the diff icon and number.
     {
       provider = function(self)
-        return ' ' .. self.icons[name] .. ' ' .. self.count
+        return self.icons[name] .. ' ' .. tostring(count)
       end,
     },
     -- Fall back to just the diff number.
-    {
-      provider = function(self)
-        return ' ' .. self.count
-      end,
-    },
+    { provider = tostring(count) },
   }
 end
 
 local GitDiffs = hutils.insert(GitData, {
+  static = {
+    names = { 'added', 'removed', 'changed' },
+    icons = { added = '', removed = '', changed = '' },
+  },
   condition = function(self)
-    local names = { 'added', 'removed', 'changed' }
-
-    for _, name in ipairs(names) do
-      local count = self.status_dict[name] or 0
-
-      if count > 0 then
+    for _, name in ipairs(self.names) do
+      if (self.status_dict[name] or 0) > 0 then
         return true
       end
     end
 
     return false
   end,
+  init = function(self)
+    local children = {}
+
+    for _, name in ipairs(self.names) do
+      local count = self.status_dict[name] or 0
+
+      if count > 0 then
+        children[#children + 1] = git_diff(name, count)
+      end
+    end
+
+    children = join(children, InertSpace)
+    table.insert(children, 1, InertSpace)
+    children[#children + 1] = InertSpace
+
+    self.child = self:new(children, 1)
+  end,
   pad_symmetric({
-    git_diff('added'),
-    git_diff('removed'),
-    git_diff('changed'),
-    -- Add a trailing space since all components only handle the space that
-    -- precedes them.
-    InertSpace,
+    provider = function(self)
+      return self.child:eval()
+    end,
   }),
 })
 
@@ -727,10 +738,13 @@ local InactiveWinbar = hutils.insert(WinData, {
 
 -- Tab pages line components.
 local ModeTabline = hutils.insert(ModeData, {
-  hl = function(self)
-    return { fg = 'black', bg = self.colour }
-  end,
-  provider = '  ',
+  {
+    hl = function(self)
+      return { fg = 'black', bg = self.colour }
+    end,
+    provider = '  ',
+  },
+  InertSpace,
 })
 
 local BufferNumber = {
@@ -783,6 +797,7 @@ local BufferCloseButton = {
     },
     { provider = '' },
   },
+  InertSpace,
 }
 
 local Buffer = {
@@ -806,7 +821,6 @@ local Buffer = {
   end,
   BufferButton,
   BufferCloseButton,
-  InertSpace,
 }
 
 local BuffersLeft = pad_right(hutils.make_buflist(Buffer))
@@ -831,9 +845,12 @@ local TabButton = {
 }
 
 local TabCloseButton = {
-  provider = function(self)
-    return '%' .. self.tabnr .. 'X%X'
-  end,
+  {
+    provider = function(self)
+      return '%' .. self.tabnr .. 'X%X'
+    end,
+  },
+  InertSpace,
 }
 
 local Tab = {
@@ -847,7 +864,6 @@ local Tab = {
   TabDecorator,
   TabButton,
   TabCloseButton,
-  InertSpace,
 }
 
 local TabsRight = pad_left({
@@ -859,7 +875,6 @@ local TabsRight = pad_left({
 
 local Tabline = {
   ModeTabline,
-  InertSpace,
   Trunc,
   BuffersLeft,
   Align,
@@ -1007,6 +1022,7 @@ vim.api.nvim_create_autocmd({
     for _, buf in ipairs(bufs) do
       if not visible_bufs[buf] then
         all_bufs_visible = false
+        break
       end
     end
 
