@@ -37,7 +37,7 @@
       "src": "https://github.com/windwp/nvim-autopairs"
     },
     "nvim-treesitter": {
-      "rev": "41416e81a6c7f4af4984395bfe0cd8d174e70976",
+      "rev": "5cb0114e6242625db56dd6440e945ed1ece10bc7",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter"
     },
     "oil.nvim": {
