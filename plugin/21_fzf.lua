@@ -18,15 +18,17 @@ fzf.setup({
       border = vim.o.winborder,
     },
   },
-  -- Use Fzf-Lua for `vim.ui.select`.
-  ui_select = {
-    -- Make the menu smaller.
-    winopts = {
-      height = 0.4,
-      width = 0.4,
-      row = 0.5,
-      col = 0.5,
-    },
+  fzf_colors = true,
+})
+
+-- Use Fzf-Lua for `vim.ui.select`.
+fzf.register_ui_select({
+  -- Make the menu smaller.
+  winopts = {
+    height = 0.4,
+    width = 0.4,
+    row = 0.5,
+    col = 0.5,
   },
 })
 
