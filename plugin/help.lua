@@ -19,7 +19,7 @@ local function float_help(win)
   vim.api.nvim_win_set_config(win, {
     relative = 'editor',
     row = vim.o.lines - height - vim.o.cmdheight - border_height - 1,
-    col = vim.o.columns - width - 2 * border_width,
+    col = vim.o.columns - width - border_width,
     width = width,
     height = height,
     border = vim.o.winborder,
