@@ -134,6 +134,8 @@ local function get_colours()
     command = get_fg('WarningMsg'),
     replace = get_fg('DiagnosticError'),
     terminal = get_fg('DiagnosticHint'),
+    macro_rec = get_fg('CursorLineNr'),
+    macro_reg = get_fg('String'),
     git_bg = get_bg('Folded'),
     git_branch = get_fg('Function'),
     git_added = get_fg('GitSignsAdd'),
@@ -327,7 +329,7 @@ local ModeText = {
       t = 'TERMINAL',
     },
   },
-  flexible = priorities.medium,
+  flexible = priorities.low,
   hl = function(self)
     return { fg = self.colour, bold = true }
   end,
@@ -355,6 +357,25 @@ local ModeText = {
 
 local ModeIndicatorLeft =
   hutils.insert(ModeData, pad_right({ ModeBar, ModeText }))
+
+local MacroRec = {
+  condition = function(self)
+    self.reg = vim.fn.reg_recording()
+    return self.reg ~= ''
+  end,
+  flexible = priorities.high,
+  pad_symmetric({
+    { hl = { fg = 'macro_rec' }, provider = ' [' },
+    {
+      hl = { fg = 'macro_reg' },
+      provider = function()
+        return vim.fn.reg_recording()
+      end,
+    },
+    { hl = { fg = 'macro_rec' }, provider = ']' },
+  }),
+  pad_symmetric({ hl = { fg = 'macro_rec' }, provider = '' }),
+}
 
 local GitBranch = hutils.insert(GitData, {
   hl = { fg = 'git_branch' },
@@ -450,6 +471,7 @@ local ModeBarRight = hutils.insert(ModeData, pad_left(ModeBar))
 local ActiveStatusLine = hutils.insert(
   WinData,
   ModeIndicatorLeft,
+  MacroRec,
   GitBranch,
   Trunc,
   BufferFull,
