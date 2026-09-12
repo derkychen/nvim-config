@@ -22,6 +22,7 @@ local ensure_installed = {
   'latexindent',
   'lua-language-server',
   'markdown-oxide',
+  'matlab-language-server',
   'neocmakelsp',
   'remark-language-server',
   'ruff',
