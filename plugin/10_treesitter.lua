@@ -27,7 +27,6 @@ local languages = {
   'linkerscript',
   'lua',
   'markdown',
-  'matlab',
   'python',
   'rust',
   'toml',
