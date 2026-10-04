@@ -49,6 +49,9 @@ require('tokyonight').setup({
     hl.DiagnosticError.fg = c.red
     hl.DiagnosticVirtualTextError.fg = c.red
 
+    -- Less contrast for the cursor line number.
+    hl.CursorLineNr = { bold = false, fg = c.fg_dark }
+
     -- Miscellaneous.
     hl.MatchParen.bg = c.dark3
     hl.WinSeparator.fg = c.fg_gutter

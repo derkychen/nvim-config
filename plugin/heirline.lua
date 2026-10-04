@@ -134,8 +134,8 @@ local function get_colours()
     command = get_fg('WarningMsg'),
     replace = get_fg('DiagnosticError'),
     terminal = get_fg('DiagnosticHint'),
-    macro_rec = get_fg('CursorLineNr'),
-    macro_reg = get_fg('String'),
+    macro_rec = get_fg('DiagnosticError'),
+    macro_reg = get_fg('StatusLine'),
     git_bg = get_bg('Folded'),
     git_branch = get_fg('Function'),
     git_added = get_fg('GitSignsAdd'),
@@ -364,16 +364,17 @@ local MacroRec = {
     return self.reg ~= ''
   end,
   flexible = priorities.high,
+  -- If there is enough space, display the recording icon and register.
   pad_symmetric({
-    { hl = { fg = 'macro_rec' }, provider = ' [' },
+    { hl = { fg = 'macro_rec' }, provider = ' ' },
     {
       hl = { fg = 'macro_reg' },
       provider = function()
-        return vim.fn.reg_recording()
+        return '[' .. vim.fn.reg_recording() .. ']'
       end,
     },
-    { hl = { fg = 'macro_rec' }, provider = ']' },
   }),
+  -- Fall back to just the recording icon.
   pad_symmetric({ hl = { fg = 'macro_rec' }, provider = '' }),
 }
 
@@ -800,24 +801,26 @@ local BufferButton = {
 }
 
 local BufferCloseButton = {
-  condition = function(self)
-    return not vim.api.nvim_get_option_value('modified', { buf = self.buf })
-  end,
-  InertSpace,
   {
-    on_click = {
-      -- Delete the buffer on clicking.
-      callback = function(_, minwid)
-        vim.schedule(function()
-          vim.api.nvim_buf_delete(minwid, { force = false })
-        end)
-      end,
-      minwid = function(self)
-        return self.bufnr
-      end,
-      name = 'buffer_close_callback',
+    condition = function(self)
+      return not vim.api.nvim_get_option_value('modified', { buf = self.buf })
+    end,
+    InertSpace,
+    {
+      on_click = {
+        -- Delete the buffer on clicking.
+        callback = function(_, minwid)
+          vim.schedule(function()
+            vim.api.nvim_buf_delete(minwid, { force = false })
+          end)
+        end,
+        minwid = function(self)
+          return self.bufnr
+        end,
+        name = 'buffer_close_callback',
+      },
+      { provider = '' },
     },
-    { provider = '' },
   },
   InertSpace,
 }
