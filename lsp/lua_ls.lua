@@ -19,13 +19,9 @@ return {
   },
   settings = {
     Lua = {
-      codeLens = {
-        enable = true,
-      },
-      hint = {
-        enable = true,
-        semicolon = 'Disable',
-      },
+      codeLens = { enable = true },
+      format = { enable = false },
+      hint = { enable = true, semicolon = 'Disable' },
     },
   },
 }
