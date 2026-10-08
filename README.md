@@ -6,12 +6,28 @@
 
 * A C compiler
 * `fzf`
-* `tree-sitter` (`tree-sitter-cli` on `brew`)
+* `tree-sitter`
+* `basedpyright`
+* `bash-language-server`
+* `biome`
+* `clangd`
+* `latexindent`
+* `lua-language-server`
+* `markdown-oxide`
+* `neocmakelsp`
+* `remark-language-server`
+* `ruff`
+* `rust-analyzer`
+* `shfmt`
+* `stylua`
+* `texlab`
+* `tombi`
+* `yaml-language-server`
 
 ### Optional but Recommended
 
 * `fd`
-* `rg` (`ripgrep` on `brew`)
+* `rg`
 
 ## Structure
 
