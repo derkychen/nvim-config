@@ -75,7 +75,6 @@ local function float_cmdline()
     orig_cmd_win_config = vim.api.nvim_win_get_config(win)
   end
 
-  vim.api.nvim_set_option_value('winfixbuf', true, { win = win })
   vim.api.nvim_set_option_value('wrap', false, { win = win })
   vim.api.nvim_set_option_value('sidescrolloff', 10, { win = win })
   vim.api.nvim_set_option_value(
